@@ -1,0 +1,250 @@
+/* ======================================================================
+   Grão de Mostarda — contact / toast / cart refinement
+   Visual-only layer. The navigation hover and page structure are untouched.
+   ====================================================================== */
+
+/* ----------------------------- CART DRAWER ---------------------------- */
+.cart-drawer {
+  visibility: hidden;
+  transition: visibility 0s linear .42s;
+}
+.cart-drawer[data-open="true"] {
+  visibility: visible;
+  transition-delay: 0s;
+}
+.cart-drawer__scrim {
+  background: rgba(20, 12, 6, .42) !important;
+  backdrop-filter: blur(8px) saturate(.82);
+  -webkit-backdrop-filter: blur(8px) saturate(.82);
+  transition: opacity .42s cubic-bezier(.22,.8,.22,1), backdrop-filter .42s ease;
+}
+.cart-drawer__panel {
+  box-shadow: -28px 0 80px rgba(24, 12, 4, .26), -1px 0 0 rgba(255,255,255,.25) inset;
+  will-change: transform;
+  transform: translate3d(100%,0,0) scale(.985);
+  transform-origin: right center;
+  transition: transform .42s cubic-bezier(.22,.8,.22,1), box-shadow .42s ease;
+}
+.cart-drawer[data-open="true"] .cart-drawer__panel {
+  transform: translate3d(0,0,0) scale(1);
+  box-shadow: -20px 0 70px rgba(24, 12, 4, .20), -1px 0 0 rgba(255,255,255,.25) inset;
+}
+.cart-drawer__head {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,0)),
+    var(--surface-page);
+}
+.cart-drawer__items { scroll-behavior:smooth; }
+.cart-line {
+  padding-block: 6px;
+  border-bottom: 1px solid rgba(117,97,80,.14);
+}
+.cart-line:last-child { border-bottom: none; }
+.cart-drawer__foot {
+  box-shadow: 0 -12px 28px rgba(45, 25, 12, .05);
+}
+
+/* ----------------------------- CONTACT PAGE -------------------------- */
+body[data-gdm-page="/contacto"] .page-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(196,149,63,.10) 0 1px, transparent 1.8px) 0 0 / 16px 16px,
+    linear-gradient(180deg, #3a2216 0%, #2b1810 72%, #24150d 100%);
+  color: var(--ink-on-dark);
+}
+body[data-gdm-page="/contacto"] .page-hero::after {
+  content:"";
+  position:absolute;
+  width:420px;
+  height:420px;
+  right:-150px;
+  top:-220px;
+  border-radius:50%;
+  border:1px solid rgba(215,172,92,.17);
+  box-shadow:0 0 0 34px rgba(215,172,92,.035), 0 0 0 68px rgba(215,172,92,.02);
+  pointer-events:none;
+}
+body[data-gdm-page="/contacto"] .page-hero h1 {
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+body[data-gdm-page="/contacto"] .page-hero .eyebrow {
+  color: var(--gold-300);
+}
+body[data-gdm-page="/contacto"] .section--tight {
+  background:
+    linear-gradient(180deg, rgba(255,253,248,.92), rgba(251,245,233,.70));
+}
+body[data-gdm-page="/contacto"] .contact-grid {
+  align-items: stretch;
+}
+body[data-gdm-page="/contacto"] .panel--accent,
+body[data-gdm-page="/contacto"] .contact-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(171,125,52,.24);
+  box-shadow: 0 22px 55px rgba(45,25,12,.07);
+}
+body[data-gdm-page="/contacto"] .panel--accent {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.96), rgba(251,245,233,.88));
+}
+body[data-gdm-page="/contacto"] .panel--accent::after {
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  right:-95px;
+  bottom:-105px;
+  border-radius:50%;
+  border:1px solid rgba(196,149,63,.22);
+  pointer-events:none;
+}
+body[data-gdm-page="/contacto"] .panel--accent form {
+  gap: 18px;
+}
+body[data-gdm-page="/contacto"] .panel--accent .field label {
+  font-size: 10px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-600);
+  font-weight: 800;
+}
+body[data-gdm-page="/contacto"] .panel--accent input,
+body[data-gdm-page="/contacto"] .panel--accent textarea {
+  border-color: rgba(117,97,80,.22);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+}
+body[data-gdm-page="/contacto"] .panel--accent input:focus,
+body[data-gdm-page="/contacto"] .panel--accent textarea:focus {
+  border-color: rgba(171,125,52,.72);
+  background:#fffdf8;
+  box-shadow: 0 0 0 4px rgba(196,149,63,.10), 0 1px 0 rgba(255,255,255,.9) inset;
+}
+body[data-gdm-page="/contacto"] .panel--accent textarea {
+  min-height: 154px;
+  resize: vertical;
+}
+body[data-gdm-page="/contacto"] .panel--accent .btn--primary {
+  box-shadow: 0 10px 24px rgba(122,84,32,.16);
+}
+body[data-gdm-page="/contacto"] .contact-card {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(215,172,92,.11) 0 1px, transparent 1.7px) 0 0 / 15px 15px,
+    linear-gradient(160deg, #2f1c11 0%, #24150d 100%);
+  color: var(--ink-on-dark);
+  box-shadow: 0 25px 60px rgba(28,17,8,.18);
+}
+body[data-gdm-page="/contacto"] .contact-card::after {
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  left:-220px;
+  bottom:-180px;
+  border-radius:50%;
+  border:1px solid rgba(215,172,92,.14);
+  pointer-events:none;
+}
+body[data-gdm-page="/contacto"] .contact-card__brand {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(246,246,243,.11);
+}
+body[data-gdm-page="/contacto"] .contact-card__logo {
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,.18));
+}
+body[data-gdm-page="/contacto"] .contact-card__verse {
+  position:relative;
+  margin-block: 20px;
+  padding: 18px 0 18px 18px;
+  border-left: 2px solid var(--gold-500);
+  color: #f1dfbc;
+}
+body[data-gdm-page="/contacto"] .contact-card__verse cite {
+  color: rgba(239,219,174,.68);
+}
+body[data-gdm-page="/contacto"] .contact-method {
+  padding: 13px 0;
+  border-top: 1px solid rgba(246,246,243,.09);
+}
+body[data-gdm-page="/contacto"] .contact-method:first-of-type {
+  border-top: none;
+}
+body[data-gdm-page="/contacto"] .contact-method > span {
+  width: 36px;
+  height: 36px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(215,172,92,.25);
+  border-radius:50%;
+  background: rgba(255,255,255,.035);
+}
+body[data-gdm-page="/contacto"] .contact-method svg {
+  width:19px;
+  height:19px;
+}
+body[data-gdm-page="/contacto"] .contact-method a {
+  text-underline-offset: 3px;
+}
+body[data-gdm-page="/contacto"] .contact-method a:hover {
+  color: var(--gold-300);
+}
+body[data-gdm-page="/contacto"] .contact-card .btn--whatsapp {
+  margin-top: 14px !important;
+  border:1px solid rgba(215,172,92,.42);
+  box-shadow:0 12px 24px rgba(0,0,0,.12);
+}
+
+/* ----------------------------- TOASTS --------------------------------- */
+.toast-region {
+  bottom: 22px;
+  right: 22px;
+}
+.toast {
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(230,197,131,.16);
+  border-left-width:1px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(58,34,22,.98), rgba(36,26,18,.98));
+  box-shadow: 0 18px 42px rgba(30,16,8,.25);
+  padding: 14px 14px 14px 16px;
+  min-height: 52px;
+  backdrop-filter: blur(10px);
+}
+.toast::before {
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:var(--gold-500);
+}
+.toast--success::before { background:var(--success-600); }
+.toast--error::before { background:var(--error-600); }
+.toast p { font-weight:600; line-height:1.45; }
+.toast button {
+  border-radius:50%;
+  width:28px !important;
+  height:28px !important;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.055);
+  color:rgba(255,255,255,.78);
+  transition:background .18s ease, color .18s ease, transform .18s ease;
+}
+.toast button:hover { background:rgba(230,197,131,.13); color:#fff; transform:rotate(6deg); }
+
+@media (max-width: 700px) {
+  .toast-region { right:12px; left:12px; bottom:12px; width:auto; }
+  .toast { max-width:none; }
+  body[data-gdm-page="/contacto"] .contact-card__verse { padding-left:14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer__panel,
+  .cart-drawer__scrim,
+  .toast button { transition:none !important; }
+}

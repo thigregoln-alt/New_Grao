@@ -1,0 +1,240 @@
+/* Grão de Mostarda — editorial polish v2
+   Visual-only layer. Navbar/header intentionally untouched. */
+
+:root{
+  --gdm-ink: #241a12;
+  --gdm-brown: #2b1810;
+  --gdm-brown-2:#3a2216;
+  --gdm-gold:#c4953f;
+  --gdm-gold-soft:#e6c583;
+  --gdm-cream:#fffdf8;
+  --gdm-cream-2:#f7efdf;
+  --gdm-line:rgba(122,84,32,.20);
+  --gdm-line-strong:rgba(122,84,32,.34);
+  --gdm-shadow:0 18px 44px rgba(43,24,16,.09);
+}
+
+/* =========================================================
+   Editorial separators instead of generic benefit icons
+   ========================================================= */
+.benefit-row{position:relative;counter-reset:gdm-benefit}
+.benefit{
+  position:relative;
+  counter-increment:gdm-benefit;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  padding:8px 28px 6px;
+}
+.benefit:not(:first-child)::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:16px;
+  bottom:10px;
+  width:1px;
+  background:linear-gradient(to bottom,transparent,var(--gdm-line-strong) 18%,var(--gdm-line-strong) 82%,transparent);
+}
+.benefit__icon{display:none!important}
+.benefit::after{
+  content:counter(gdm-benefit, decimal-leading-zero);
+  display:block;
+  width:max-content;
+  margin-bottom:20px;
+  color:var(--gdm-gold);
+  font:800 10px/1 var(--font-body, "DM Sans", sans-serif);
+  letter-spacing:.18em;
+}
+.benefit h3{
+  margin-top:0;
+  font-family:var(--font-display, "Manrope", sans-serif);
+  font-size:clamp(1rem,1.2vw,1.15rem);
+  line-height:1.16;
+  letter-spacing:-.025em;
+}
+.benefit p{max-width:31ch;color:var(--ink-600);line-height:1.65}
+.benefit-row::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:-18px;
+  height:1px;
+  background:var(--gdm-line);
+}
+
+/* Hero trust: use thin separators, not icon bubbles */
+.hero-trust-row{gap:0!important}
+.hero-trust-item{
+  position:relative;
+  gap:9px!important;
+  padding:0 18px;
+}
+.hero-trust-item:not(:first-child)::before{
+  content:"";
+  position:absolute;
+  left:0;top:50%;
+  width:1px;height:22px;
+  transform:translateY(-50%);
+  background:rgba(230,197,131,.30);
+}
+.hero-trust-item__icon{display:none!important}
+.hero-trust-item__label{
+  font-size:10px!important;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+/* =========================================================
+   Shared editorial heading system
+   ========================================================= */
+.eyebrow{
+  gap:10px!important;
+  align-items:center;
+  letter-spacing:.17em!important;
+  font-weight:800!important;
+}
+.eyebrow::before{
+  content:"";
+  display:inline-block;
+  width:24px;height:1px;
+  background:currentColor;
+  opacity:.72;
+}
+.eyebrow::after{
+  content:"";
+  display:inline-block;
+  width:4px;height:4px;
+  margin-left:-5px;
+  background:currentColor;
+  border-radius:50%;
+}
+.section h2,
+.page-hero h1,
+.hero__title{
+  font-family:var(--font-display, "Manrope", sans-serif)!important;
+  text-wrap:balance;
+}
+.section h2{letter-spacing:-.032em!important}
+
+/* =========================================================
+   Cards: quieter borders, stronger material feeling
+   ========================================================= */
+.category-card,.project-card,.info-card,.contact-card,.panel,.testi-card,.review-card{
+  box-shadow:0 0 0 1px rgba(228,213,188,.52),0 12px 34px rgba(43,24,16,.055)!important;
+}
+.category-card:hover,.project-card:hover,.info-card:hover,.contact-card:hover,.testi-card:hover,.review-card:hover{
+  box-shadow:0 0 0 1px rgba(196,149,63,.34),0 18px 46px rgba(43,24,16,.10)!important;
+}
+
+.product-card{
+  overflow:hidden;
+  background:var(--gdm-cream)!important;
+  box-shadow:0 0 0 1px rgba(122,84,32,.14),0 14px 34px rgba(43,24,16,.07)!important;
+}
+.product-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:inherit;
+  opacity:.65;
+}
+.product-card__media{
+  border-radius:inherit;
+  border-bottom-left-radius:0!important;
+  border-bottom-right-radius:0!important;
+  overflow:hidden;
+  background:#3a2216;
+}
+.product-card__media img{transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .35s ease!important}
+.product-card:hover .product-card__media img{transform:scale(1.035);filter:saturate(1.02) contrast(1.02)}
+.product-card__body{background:linear-gradient(to bottom,#fffdf8 0%,#fbf5e9 100%)}
+.product-card__cat{
+  display:flex;align-items:center;gap:9px;
+  letter-spacing:.16em!important;
+}
+.product-card__cat::after{
+  content:"";height:1px;width:24px;background:var(--gdm-gold);opacity:.55;
+}
+.product-card__title{font-size:15.5px!important;line-height:1.28!important}
+.product-card__price{font-family:var(--font-display,"Manrope",sans-serif);font-weight:800}
+.product-card__footer .btn{
+  min-height:44px;
+  border-radius:13px!important;
+  letter-spacing:.08em;
+  font-size:10px;
+}
+
+/* =========================================================
+   Shop toolbar — clearer hierarchy
+   ========================================================= */
+.shop-toolbar{
+  background:rgba(255,253,248,.72);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--gdm-line)!important;
+  border-radius:18px;
+  padding:10px!important;
+  box-shadow:0 10px 26px rgba(43,24,16,.045);
+}
+.filter-pill,.shop-search input,.sort-select,select,input,textarea{
+  border-color:rgba(122,84,32,.24)!important;
+}
+.filter-pill{transition:all .18s ease!important}
+.filter-pill:hover{border-color:rgba(196,149,63,.58)!important;transform:translateY(-1px)}
+
+/* =========================================================
+   Buttons — editorial, not generic SaaS
+   ========================================================= */
+.btn{letter-spacing:.045em!important;font-weight:700!important}
+.btn--primary{box-shadow:0 7px 18px rgba(122,84,32,.16)}
+.btn--primary:hover{box-shadow:0 11px 24px rgba(122,84,32,.22)}
+.btn--outline-light:hover,.btn--outline:hover{box-shadow:inset 0 0 0 1px rgba(196,149,63,.34)}
+
+/* =========================================================
+   Content blocks / prose
+   ========================================================= */
+.text-block p:not(.eyebrow){line-height:1.72}
+.content-layout p,.panel p,.contact-card p{line-height:1.68}
+blockquote{border-left:1px solid var(--gdm-gold)!important}
+
+/* FAQ: elegant rules, functional icon retained */
+.accordion-item{border-color:var(--gdm-line)!important}
+.accordion-item__trigger{padding-block:20px!important}
+.accordion-item__trigger:hover{background:rgba(244,234,214,.34)!important}
+.accordion-item__icon{opacity:.7}
+
+/* =========================================================
+   Footer links — separator-led layout
+   ========================================================= */
+.footer-col + .footer-col{border-left:1px solid rgba(122,84,32,.14);padding-left:28px}
+.footer-col h4::after{
+  content:"";display:block;width:28px;height:1px;background:var(--gdm-gold);margin-top:11px;opacity:.55
+}
+.footer-socials a{border:1px solid rgba(230,197,131,.18)!important;box-shadow:none!important}
+.footer-socials a:hover{border-color:rgba(196,149,63,.6)!important;transform:translateY(-2px)}
+
+/* Inputs: refined, tactile */
+input,textarea,select{
+  transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+}
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(196,149,63,.78)!important;
+  box-shadow:0 0 0 3px rgba(196,149,63,.13),inset 0 1px 0 rgba(255,255,255,.65)!important;
+  outline:none!important;
+}
+
+/* Decorative section rhythm */
+.section--bordered{border-top-color:var(--gdm-line-strong)!important}
+.section--tight + .section{border-top:1px solid rgba(122,84,32,.12)}
+
+/* Mobile stays clean */
+@media(max-width:760px){
+  .benefit{padding:10px 0 22px}
+  .benefit:not(:first-child)::before{left:0;right:0;top:0;bottom:auto;width:auto;height:1px;background:var(--gdm-line)}
+  .benefit-row::after{display:none}
+  .hero-trust-item{padding:0 11px}
+  .hero-trust-item__label{font-size:9px!important}
+  .footer-col + .footer-col{border-left:0;border-top:1px solid rgba(122,84,32,.14);padding-left:0;padding-top:22px}
+}

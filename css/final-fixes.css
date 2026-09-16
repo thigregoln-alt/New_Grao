@@ -1,0 +1,57 @@
+/* Grão de Mostarda — final corrective pass
+   1) Restore the original navbar hover mechanics and only increase horizontal padding.
+   2) Keep contact page visible and readable.
+   3) Keep cart backdrop subtle while leaving the page visibly present behind it.
+*/
+
+/* NAVBAR: original effect, wider horizontal padding only */
+@media (min-width:1080px){
+  .main-nav{gap:28px;}
+  .main-nav a{
+    display:inline-block;
+    padding:var(--space-2xs) 14px !important;
+  }
+  .main-nav a::before{
+    top:0 !important;
+    bottom:0 !important;
+    left:-2.5rem !important;
+    right:-2.5rem !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:linear-gradient(90deg,transparent 0%,rgba(var(--gold-600-rgb),.22) 50%,transparent 100%) !important;
+    box-shadow:none !important;
+  }
+  .main-nav a::after{
+    left:50% !important;
+    bottom:-2px !important;
+    width:0 !important;
+    height:2px !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:linear-gradient(90deg,transparent,var(--gold-600),transparent) !important;
+    transform:translateX(-50%) !important;
+  }
+  .main-nav a:hover::after,
+  .main-nav a:focus-visible::after,
+  .main-nav a[aria-current="page"]::after{width:70% !important;}
+}
+
+/* CONTACT: never let the render collapse or sit under a hidden/empty shell */
+body[data-gdm-page="/contacto"] #app{min-height:1px;}
+body[data-gdm-page="/contacto"] .contact-v5{display:block;visibility:visible;opacity:1;}
+body[data-gdm-page="/contacto"] .contact-v5__hero,
+body[data-gdm-page="/contacto"] .contact-v5__layout{position:relative;z-index:1;}
+body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
+
+/* CART: keep the page visible behind the drawer */
+.cart-drawer__scrim{
+  background:rgba(31,19,11,.22) !important;
+  backdrop-filter:blur(7px) saturate(.92) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(.92) !important;
+}
+.cart-drawer__panel{z-index:2;}
+
+@media (max-width:700px){
+  .main-nav{gap:16px;}
+  .main-nav a{padding-inline:10px !important;}
+}

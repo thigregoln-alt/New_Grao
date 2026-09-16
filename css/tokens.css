@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Grão de Mostarda — Design Tokens
+   Paleta inspirada no logótipo oficial: placa de couro, letras douradas
+   metálicas, creme institucional, toques florais suaves.
+   ========================================================================== */
+
+:root {
+  /* ---- Couro / castanho profundo ---- */
+  --leather-950: #1c1108;
+  --leather-900: #2b1810;
+  --leather-800: #3a2216;
+  --leather-700: #4d2e1c;
+  --leather-600: #653c23;
+  --leather-500: #7d4c2c;
+
+  /* ---- Dourado / mostarda ---- */
+  --gold-800: #7a5420;
+  --gold-700: #93672a;
+  --gold-600: #ab7d34;
+  --gold-600-rgb: 171, 125, 52;
+  --gold-500: #c4953f;
+  --gold-400: #d7ac5c;
+  --gold-300: #e6c583;
+  --gold-200: #f0dbac;
+
+  /* ---- Creme / marfim ---- */
+  --cream-050: #fffdf8;
+  --cream-100: #fbf5e9;
+  --cream-200: #f4ead6;
+  --cream-300: #ecdcc0;
+
+  /* ---- Floral / acento suave (usado com moderação) ---- */
+  --sage-500: #6b7b5e;
+  --sage-300: #a9b899;
+  --rose-400: #b97b6b;
+
+  /* ---- Texto ---- */
+  --ink-900: #241a12;
+  --ink-700: #4a3826;
+  --ink-500: #756150;
+  --ink-on-dark: #f4ead6;
+  --ink-on-dark-muted: #cdb896;
+
+  /* ---- Estado ---- */
+  --success-600: #4c7a4f;
+  --success-100: #e4efe1;
+  --error-600: #a3392f;
+  --error-100: #f6e3df;
+
+  /* ---- Superfícies ---- */
+  --surface-page: var(--cream-050);
+  --surface-raised: #ffffff;
+  --surface-dark: var(--leather-900);
+  --surface-dark-2: var(--leather-800);
+  --border-soft: #e6d8c0;
+  --border-dark: rgba(244, 234, 214, 0.16);
+
+  /* ---- Tipografia ---- */
+  --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --fs-2xs: 0.6875rem;
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.25rem;
+  --fs-3xl: 3rem;
+  --fs-4xl: 4rem;
+  --fs-5xl: 5.25rem;
+
+  /* ---- Espaçamento (usar UMA vez por composição — nunca empilhar pai+filho) ---- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5rem;
+  --space-3xl: 7rem;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(28, 17, 8, 0.08);
+  --shadow-md: 0 12px 32px -8px rgba(28, 17, 8, 0.22);
+  --shadow-lg: 0 24px 60px -16px rgba(28, 17, 8, 0.35);
+  --shadow-gold: 0 10px 26px -8px rgba(171, 125, 52, 0.45);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur-med: 320ms;
+  --dur-slow: 560ms;
+
+  --container-max: 1280px;
+  --container-narrow: 860px;
+
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 1ms; --dur-med: 1ms; --dur-slow: 1ms; }
+}

@@ -1,0 +1,58 @@
+/* Cart final polish: real backdrop blur + clean open/close transition. */
+.cart-drawer {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2000 !important;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .36s cubic-bezier(.22,.8,.22,1), visibility 0s linear .36s;
+}
+.cart-drawer[data-open="true"] {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.cart-drawer__scrim {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(28,17,8,.34) !important;
+  backdrop-filter: blur(12px) saturate(.82) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(.82) !important;
+  opacity: 0;
+  transition: opacity .38s cubic-bezier(.22,.8,.22,1) !important;
+  will-change: opacity, backdrop-filter;
+}
+.cart-drawer[data-open="true"] .cart-drawer__scrim {
+  opacity: 1;
+}
+.cart-drawer__panel {
+  z-index: 2 !important;
+  will-change: transform, opacity;
+  transform: translate3d(104%,0,0) scale(.985) !important;
+  opacity: .92;
+  border-left: 1px solid rgba(215,172,92,.20);
+  box-shadow: -30px 0 90px rgba(28,17,8,.22), -1px 0 0 rgba(255,255,255,.18) inset !important;
+  transition: transform .42s cubic-bezier(.22,.8,.22,1), opacity .28s ease, box-shadow .42s ease !important;
+}
+.cart-drawer[data-open="true"] .cart-drawer__panel {
+  transform: translate3d(0,0,0) scale(1) !important;
+  opacity: 1;
+}
+body.cart-open > *:not(#overlay-host) {
+  /* Fallback for browsers with weak backdrop-filter support. */
+  filter: blur(2px);
+  transition: filter .36s ease;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body.cart-open > *:not(#overlay-host) { filter: none; }
+}
+@media (max-width: 760px) {
+  .cart-drawer__panel { width: min(94vw, 420px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer,
+  .cart-drawer__scrim,
+  .cart-drawer__panel { transition: none !important; }
+}

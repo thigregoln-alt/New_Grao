@@ -1,0 +1,155 @@
+/* =====================================================================
+   Grão de Mostarda — request pass
+   Navbar: preserve original visual language, shrink hitbox to text.
+   Cart: show the site behind with a light blur + cinematic transition.
+   Contact: stronger editorial composition without changing its structure.
+   ===================================================================== */
+
+/* Navbar corrections are handled in final-fixes.css. */
+
+/* ----------------------------- CART --------------------------------- */
+.cart-drawer__scrim{
+  background:rgba(28,17,8,.17) !important;
+  backdrop-filter:blur(6px) saturate(.96) !important;
+  -webkit-backdrop-filter:blur(6px) saturate(.96) !important;
+  opacity:0 !important;
+  transition:opacity .38s cubic-bezier(.22,.8,.22,1), backdrop-filter .38s ease !important;
+}
+.cart-drawer[data-open="true"] .cart-drawer__scrim{
+  opacity:1 !important;
+}
+.cart-drawer__panel{
+  transform:translate3d(108%,0,0) scale(.985) !important;
+  opacity:.88 !important;
+  transition:transform .46s cubic-bezier(.16,1,.3,1), opacity .28s ease !important;
+}
+.cart-drawer[data-open="true"] .cart-drawer__panel{
+  transform:translate3d(0,0,0) scale(1) !important;
+  opacity:1 !important;
+}
+/* Keep the actual page sharp outside browsers without backdrop-filter;
+   where supported, the scrim itself does all the blurring. */
+body.cart-open > *:not(#overlay-host){
+  filter:none !important;
+}
+@media (max-width:700px){
+  .cart-drawer__scrim{backdrop-filter:blur(4px) saturate(.96) !important;-webkit-backdrop-filter:blur(4px) saturate(.96) !important;}
+}
+
+/* ----------------------------- CONTACT -------------------------------- */
+body[data-gdm-page="/contacto"] .contact-v5{
+  padding-bottom:clamp(30px,5vw,64px);
+}
+body[data-gdm-page="/contacto"] .contact-v5__hero{
+  position:relative;
+  padding-top:clamp(26px,3vw,40px);
+}
+body[data-gdm-page="/contacto"] .contact-v5__hero::before{
+  content:"";
+  position:absolute;
+  left:-48px;
+  top:14px;
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  border:1px solid rgba(171,125,52,.14);
+  box-shadow:0 0 0 18px rgba(171,125,52,.03),0 0 0 36px rgba(171,125,52,.018);
+  pointer-events:none;
+}
+body[data-gdm-page="/contacto"] .contact-v5__kicker::before{
+  content:"";
+  display:inline-block;
+  width:28px;
+  height:1px;
+  vertical-align:middle;
+  margin-right:10px;
+  background:var(--gold-500);
+}
+body[data-gdm-page="/contacto"] .contact-v5__hero h1{
+  max-width:10ch;
+  font-size:clamp(3rem,6.2vw,5.4rem);
+  letter-spacing:-.06em;
+}
+body[data-gdm-page="/contacto"] .contact-v5__hero > .stack > p:last-child{
+  font-size:16px;
+  max-width:48ch;
+}
+body[data-gdm-page="/contacto"] .contact-v5__aside{
+  background:rgba(251,245,233,.46);
+  border:1px solid rgba(171,125,52,.14);
+  border-left:2px solid var(--gold-500);
+  border-radius:0 14px 14px 0;
+  padding:22px 22px 22px 24px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__layout{
+  align-items:start;
+}
+body[data-gdm-page="/contacto"] .contact-v5__form{
+  padding:28px clamp(18px,3vw,34px) 30px;
+  border:1px solid rgba(117,97,80,.15);
+  border-radius:22px;
+  background:rgba(255,253,248,.72);
+  box-shadow:0 18px 42px rgba(45,25,12,.055);
+}
+body[data-gdm-page="/contacto"] .contact-v5__form-head{
+  padding-bottom:16px;
+  border-bottom:1px solid rgba(117,97,80,.11);
+}
+body[data-gdm-page="/contacto"] .contact-v5__form-head h2{
+  font-size:clamp(1.8rem,3vw,2.35rem);
+}
+body[data-gdm-page="/contacto"] .contact-v5__form label{
+  color:var(--ink-700);
+  font-weight:700;
+}
+body[data-gdm-page="/contacto"] .contact-v5__form input,
+body[data-gdm-page="/contacto"] .contact-v5__form textarea{
+  background:var(--cream-050);
+  border-color:rgba(117,97,80,.20);
+  padding-inline:15px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__form textarea{min-height:184px;}
+body[data-gdm-page="/contacto"] .contact-v5__submit .btn{
+  min-height:50px;
+  box-shadow:0 10px 22px rgba(122,84,32,.12);
+}
+body[data-gdm-page="/contacto"] .contact-v5__info{
+  border-radius:22px;
+  padding:30px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__info::after{
+  content:"";
+  position:absolute;
+  right:-74px;
+  bottom:-74px;
+  width:190px;
+  height:190px;
+  border:1px solid rgba(230,197,131,.16);
+  border-radius:50%;
+  box-shadow:0 0 0 18px rgba(230,197,131,.025),0 0 0 36px rgba(230,197,131,.018);
+  pointer-events:none;
+}
+body[data-gdm-page="/contacto"] .contact-v5__methods{margin-top:6px;}
+body[data-gdm-page="/contacto"] .contact-v5__method{
+  transition:background .18s ease,padding-inline .18s ease;
+  border-radius:10px;
+  padding-inline:8px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__method:hover{
+  background:rgba(255,255,255,.045);
+  padding-inline:12px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__wa{
+  min-height:48px;
+}
+body[data-gdm-page="/contacto"] .contact-v5__bottom{
+  padding-top:30px;
+}
+
+@media(max-width:860px){
+  body[data-gdm-page="/contacto"] .contact-v5__form{padding:24px 20px 26px;}
+  body[data-gdm-page="/contacto"] .contact-v5__aside{border-left:0;border-top:1px solid rgba(171,125,52,.24);border-radius:0 0 14px 14px;}
+}
+@media(max-width:700px){
+  .main-nav{gap:16px;}
+}

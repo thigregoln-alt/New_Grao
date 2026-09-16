@@ -1,0 +1,12 @@
+/* Final cart backdrop: keep the page visible behind the drawer. */
+.cart-drawer {
+  background: transparent !important;
+}
+.cart-drawer__scrim {
+  background: rgba(28,17,8,.20) !important;
+  backdrop-filter: blur(5px) saturate(.94) !important;
+  -webkit-backdrop-filter: blur(5px) saturate(.94) !important;
+}
+.cart-drawer__panel {
+  background: var(--surface-page) !important;
+}

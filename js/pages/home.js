@@ -33,14 +33,7 @@
       (function () { const a = el('a', { class: 'btn btn--outline-light', href: 'https://wa.me/' + C.BRAND.whatsapp, target: '_blank', rel: 'noopener' }); a.innerHTML = GDM.icons.icon('whatsapp') + '<span>Falar no WhatsApp</span>'; return a; })(),
     ]);
 
-    const content = el('div', { class: 'container hero__content' }, [
-      logo,
-      el('p', { class: 'eyebrow hero__eyebrow', text: 'Artesanato · Fé' }),
-      title,
-      verse,
-      actions,
-    ]);
-    return el('section', { class: 'hero' }, [content]);
+  
   }
 
   const CATEGORY_CARD_TONES = ['#3a2216', '#4d2e1c', '#2b1810', '#653c23'];

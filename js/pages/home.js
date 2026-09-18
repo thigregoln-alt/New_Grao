@@ -130,8 +130,29 @@
     ]);
   }
 
+  const TESTIMONIALS_PAGE_SIZE = 6;
+
+  function testimonialCard(r) {
+    const product = GDM.catalog.getById(r.productId);
+    const avatar = el('span', { class: 'testi-avatar', text: (r.author || '?').trim().charAt(0).toUpperCase() });
+    const who = el('div', { class: 'stack', style: 'gap:2px' }, [
+      el('strong', { text: r.author }),
+      el('span', { text: GDM.format.dateLabel(r.date) + (product ? ' · ' + product.name : '') }),
+    ]);
+    return el('div', { class: 'testi-card', 'data-reveal': 'fade' }, [
+      GDM.components.starRow(r.rating),
+      el('p', { class: 'testi-card__quote', text: '“' + r.body + '”' }),
+      el('div', { class: 'testi-card__who' }, [avatar, who]),
+    ]);
+  }
+
+  /** Avaliações reais (semente do ateliê + submetidas pelo formulário),
+   *  5 estrelas primeiro, depois por classificação decrescente e, dentro da
+   *  mesma nota, mais recentes primeiro. Nunca dados inventados — enquanto
+   *  não houver nenhuma, mantém-se o estado vazio honesto abaixo. */
   function testimonials() {
-    if (!C.TESTIMONIALS.length) {
+    const all = GDM.reviews.all();
+    if (!all.length) {
       const empty = el('div', { class: 'testi-empty panel', 'data-reveal': 'fade' }, [
         (function () { const s = document.createElement('span'); s.innerHTML = GDM.icons.icon('sparkle'); return s; })(),
         el('h3', { text: 'Ainda não temos histórias publicadas' }),
@@ -146,22 +167,28 @@
         ]),
       ]);
     }
+
+    const sorted = all.slice().sort(function (a, b) { return b.rating - a.rating || new Date(b.date) - new Date(a.date); });
     const grid = el('div', { class: 'testi-grid' });
-    C.TESTIMONIALS.forEach(function (t) {
-      const avatar = el('span', { class: 'testi-avatar', style: 'background:' + t.color, text: t.name.charAt(0) });
-      grid.appendChild(el('div', { class: 'testi-card', 'data-reveal': 'fade' }, [
-        GDM.components.starRow(5),
-        el('p', { class: 'testi-card__quote', text: '"' + t.quote + '"' }),
-        el('div', { class: 'testi-card__who' }, [avatar, el('div', { class: 'stack', style: 'gap:2px' }, [el('strong', { text: t.name }), el('span', { text: t.location })])]),
-      ]));
-    });
-    return el('section', { class: 'section' }, [
-      el('div', { class: 'container text-block' }, [
-        el('p', { class: 'eyebrow', text: 'Quem já comprou' }),
-        el('h2', { text: 'Histórias de quem confiou no ateliê', style: 'margin-bottom:28px' }),
-        grid,
-      ]),
-    ]);
+    let shown = 0;
+    function renderMore() {
+      sorted.slice(shown, shown + TESTIMONIALS_PAGE_SIZE).forEach(function (r) { grid.appendChild(testimonialCard(r)); });
+      shown += TESTIMONIALS_PAGE_SIZE;
+      if (shown >= sorted.length) { moreBtn.textContent = 'Já viu todas as avaliações'; moreBtn.disabled = true; }
+      if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
+    }
+    const moreBtn = el('button', { class: 'btn btn--outline', type: 'button', text: 'Ver mais avaliações' });
+    moreBtn.addEventListener('click', renderMore);
+    renderMore();
+
+    const children = [
+      el('p', { class: 'eyebrow', text: 'Quem já comprou' }),
+      el('h2', { text: 'Histórias de quem confia no ateliê', style: 'margin-bottom:28px' }),
+      grid,
+    ];
+    if (sorted.length > TESTIMONIALS_PAGE_SIZE) children.push(el('div', { style: 'text-align:center;margin-top:28px' }, [moreBtn]));
+
+    return el('section', { class: 'section' }, [el('div', { class: 'container text-block' }, children)]);
   }
 
   function ctaBand() {

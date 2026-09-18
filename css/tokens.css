@@ -34,6 +34,12 @@
   --sage-300: #a9b899;
   --rose-400: #b97b6b;
 
+  /* ---- Laranja da marca (acento para estados interativos — hover/foco/
+     ativo de selects e outros controlos — nunca azul, que não existe na
+     paleta) ---- */
+  --orange-600: #d9772e;
+  --orange-800: #b4591c;
+
   /* ---- Texto ---- */
   --ink-900: #241a12;
   --ink-700: #4a3826;

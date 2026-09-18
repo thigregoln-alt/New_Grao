@@ -61,12 +61,27 @@
     const starInput = el('div', { class: 'star-input', role: 'radiogroup', 'aria-label': 'Classificação em estrelas' });
     function drawStars() {
       starInput.innerHTML = '';
+      const buttons = [];
+      /* Preview no hover/foco: destaca até à estrela sob o rato/foco, sem
+         tocar em `rating` (o valor só muda ao clicar/Enter/Space) — sai do
+         preview ao sair do grupo com o rato ou por teclado (Tab/Esc). */
+      function preview(upTo) {
+        buttons.forEach(function (b, idx) { b.classList.toggle('is-preview', idx < upTo); });
+      }
+      function clearPreview() { preview(0); }
       for (let i = 1; i <= 5; i++) {
         const btn = el('button', { type: 'button', 'data-active': String(i <= rating), 'aria-label': i + ' estrela' + (i > 1 ? 's' : ''), 'aria-pressed': String(i === rating) });
         btn.innerHTML = GDM.icons.icon('star');
         btn.addEventListener('click', function () { rating = i; drawStars(); });
+        btn.addEventListener('mouseenter', function () { preview(i); });
+        btn.addEventListener('focus', function () { preview(i); });
+        buttons.push(btn);
         starInput.appendChild(btn);
       }
+      starInput.addEventListener('mouseleave', clearPreview);
+      starInput.addEventListener('focusout', function (e) {
+        if (!starInput.contains(e.relatedTarget)) clearPreview();
+      });
     }
     drawStars();
 
@@ -133,6 +148,10 @@
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      /* A classificação por estrelas não é um <input required> nativo — a
+         validação genérica de wireForm() não a cobre, por isso o campo
+         obrigatório é garantido aqui explicitamente antes de tudo o resto. */
+      if (!rating) { GDM.components.toast.show('Escolha uma classificação em estrelas.', 'error'); return; }
       if (!validateAll()) { GDM.components.toast.show('Preencha os campos obrigatórios.', 'error'); return; }
       const product = GDM.catalog.getBySlug(productField.__gdmInput.value);
       const review = GDM.reviews.add({
@@ -146,7 +165,10 @@
       status.textContent = 'Obrigado! A sua avaliação foi publicada.';
       status.className = 'newsletter-status newsletter-status--ok';
       form.reset();
-      populateProducts('');
+      /* form.reset() não dispara 'change' — força a repintura do select
+         personalizado de categoria (e, em cascata, o de produto) para não
+         ficar a mostrar a categoria antiga com o <select> real já vazio. */
+      categoryField.__gdmInput.dispatchEvent(new Event('change', { bubbles: true }));
       rating = 5; drawStars();
       GDM.components.toast.show('Avaliação publicada. Obrigado pelo seu feedback!', 'success');
       // GDM.reviews.add já emite 'reviews:change', que a página escuta para
@@ -208,8 +230,8 @@
     sortSelect.addEventListener('change', draw);
 
     const filterRow = el('div', { class: 'cluster', style: 'gap:12px;margin-top:24px' }, [
-      el('div', { class: 'field', style: 'min-width:220px' }, [el('label', { for: 'reviews-filter-product', class: 'sr-only', text: 'Produto' }), productSelect]),
-      el('div', { class: 'field', style: 'min-width:200px' }, [el('label', { for: 'reviews-filter-sort', class: 'sr-only', text: 'Ordenar' }), sortSelect]),
+      el('div', { class: 'field', style: 'min-width:220px' }, [el('label', { for: 'reviews-filter-product-toggle', class: 'sr-only', text: 'Produto' }), GDM.components.enhanceSelect(productSelect)]),
+      el('div', { class: 'field', style: 'min-width:200px' }, [el('label', { for: 'reviews-filter-sort-toggle', class: 'sr-only', text: 'Ordenar' }), GDM.components.enhanceSelect(sortSelect)]),
     ]);
 
     const formHost = el('div', { class: 'panel', style: 'margin-top:32px' }, [

@@ -25,7 +25,17 @@
       input = el('input', { id: config.id, name: config.id, type: config.type || 'text', 'aria-describedby': errorId, placeholder: config.placeholder || '', required: !!config.required, maxlength: config.maxLength || 200, autocomplete: config.autocomplete || 'on' });
     }
     const errorEl = el('p', { class: 'field__error', id: errorId, 'aria-live': 'polite' });
-    const children = [el('label', { for: config.id, text: config.label + (config.required ? ' *' : '') }), input];
+    const labelEl = el('label', { for: config.id, text: config.label + (config.required ? ' *' : '') });
+    /* Selects passam pelo componente de select personalizado — nunca o
+       aspeto/popup de <select> nativo (ver enhanceSelect em ui.js). O
+       <label for> passa a apontar para o botão visível, não para o
+       <select> real (que fica escondido e fora da ordem de tabulação). */
+    let control = input;
+    if (config.as === 'select' && GDM.components && GDM.components.enhanceSelect) {
+      control = GDM.components.enhanceSelect(input);
+      if (input.id) labelEl.setAttribute('for', input.id + '-toggle');
+    }
+    const children = [labelEl, control];
     if (config.hint) children.push(el('p', { class: 'field__hint', text: config.hint }));
     children.push(errorEl);
     const wrap = el('div', { class: 'field' }, children);
@@ -54,8 +64,15 @@
   /** Liga validação on-blur/input e devolve função validateAll(). */
   function wireForm(fieldWraps) {
     fieldWraps.forEach(function (fw) {
-      fw.__gdmInput.addEventListener('blur', function () { validateField(fw); });
+      /* Num select personalizado o <select> real fica escondido e nunca
+         recebe foco/blur diretamente — quem recebe é o botão visível
+         (.gdm-select__toggle), por isso é nele que ouvimos o blur. */
+      const toggle = fw.querySelector('.gdm-select__toggle');
+      (toggle || fw.__gdmInput).addEventListener('blur', function () { validateField(fw); });
       fw.__gdmInput.addEventListener('input', function () {
+        if (fw.__gdmInput.getAttribute('aria-invalid') === 'true') validateField(fw);
+      });
+      fw.__gdmInput.addEventListener('change', function () {
         if (fw.__gdmInput.getAttribute('aria-invalid') === 'true') validateField(fw);
       });
     });
@@ -64,7 +81,7 @@
       let ok = true;
       fieldWraps.forEach(function (fw) {
         const valid = validateField(fw);
-        if (!valid) { ok = false; if (!firstInvalid) firstInvalid = fw.__gdmInput; }
+        if (!valid) { ok = false; if (!firstInvalid) firstInvalid = fw.querySelector('.gdm-select__toggle') || fw.__gdmInput; }
       });
       if (firstInvalid) firstInvalid.focus();
       return ok;

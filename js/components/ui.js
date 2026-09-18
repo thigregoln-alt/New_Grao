@@ -116,6 +116,123 @@
     return el('div', { class: 'page-hero' }, [el('div', { class: 'container stack', style: 'gap:10px;align-items:center' }, children)]);
   }
 
+  /**
+   * Substitui a interação de um <select> nativo já existente por um botão +
+   * lista personalizados (paleta da marca — nunca o azul de sistema que o
+   * popup nativo de <option>s pinta em vários browsers). O <select> original
+   * continua no DOM (só visualmente escondido): guarda o valor, dispara
+   * 'change' quando uma opção é escolhida, e é o que qualquer validação ou
+   * lógica já existente (ex.: cascata categoria → produto) continua a ler —
+   * por isso repopular as suas <option> em runtime (input.innerHTML = …)
+   * também atualiza a lista personalizada automaticamente, via
+   * MutationObserver. Devolve o wrapper a inserir no lugar do <select>.
+   */
+  function enhanceSelect(select) {
+    const wrap = el('div', { class: 'gdm-select' });
+    wrap.setAttribute('data-open', 'false');
+
+    const toggleId = select.id ? select.id + '-toggle' : '';
+    const toggle = el('button', { type: 'button', class: 'gdm-select__toggle', 'aria-haspopup': 'listbox', 'aria-expanded': 'false' });
+    if (toggleId) toggle.id = toggleId;
+    const describedBy = select.getAttribute('aria-describedby');
+    if (describedBy) toggle.setAttribute('aria-describedby', describedBy);
+
+    const valueEl = el('span', { class: 'gdm-select__value' });
+    const arrow = el('span', { class: 'gdm-select__arrow', 'aria-hidden': 'true' });
+    arrow.innerHTML = GDM.icons.icon('chevronDown');
+    toggle.appendChild(valueEl);
+    toggle.appendChild(arrow);
+
+    const menu = el('div', { class: 'gdm-select__menu', role: 'listbox' });
+    if (toggleId) menu.setAttribute('aria-labelledby', toggleId);
+
+    function closeMenu() {
+      wrap.setAttribute('data-open', 'false');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    function openMenu() {
+      if (select.disabled) return;
+      wrap.setAttribute('data-open', 'true');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    /* Espelha apenas o estado (disabled/aria-invalid) no botão — nunca
+       destrói as linhas da lista. Importante: um clique real do rato numa
+       opção passa primeiro por um mousedown que tira o foco do botão
+       (blur), e esse blur pode disparar validação (wireForm) que marca
+       aria-invalid — se isso reconstruísse a lista a meio do clique (como
+       fazia antes, tudo dentro de uma única sync()), a linha clicada era
+       removida do DOM entre o mousedown e o click e o clique perdia-se. */
+    function syncState() {
+      toggle.disabled = select.disabled;
+      if (select.hasAttribute('aria-invalid')) toggle.setAttribute('aria-invalid', select.getAttribute('aria-invalid'));
+      else toggle.removeAttribute('aria-invalid');
+    }
+
+    function syncValue() {
+      const opt = select.options[select.selectedIndex];
+      valueEl.textContent = opt ? opt.textContent : '';
+      menu.innerHTML = '';
+      Array.prototype.forEach.call(select.options, function (o) {
+        const row = el('button', { type: 'button', class: 'gdm-select__option', role: 'option', 'aria-selected': String(o.selected), text: o.textContent });
+        row.addEventListener('click', function () {
+          if (select.value !== o.value) {
+            select.value = o.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          closeMenu();
+          toggle.focus();
+        });
+        menu.appendChild(row);
+      });
+    }
+
+    function sync() { syncValue(); syncState(); }
+
+    toggle.addEventListener('click', function () {
+      if (wrap.getAttribute('data-open') === 'true') { closeMenu(); return; }
+      sync(); openMenu();
+      const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
+      if (current) current.focus();
+    });
+    toggle.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        sync(); openMenu();
+        const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
+        if (current) current.focus();
+      }
+    });
+    menu.addEventListener('keydown', function (e) {
+      const opts = Array.prototype.slice.call(menu.querySelectorAll('.gdm-select__option'));
+      const idx = opts.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(); toggle.focus(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); (opts[idx + 1] || opts[0]).focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); (opts[idx - 1] || opts[opts.length - 1]).focus(); }
+      else if (e.key === 'Tab') { closeMenu(); }
+    });
+    document.addEventListener('click', function (e) {
+      if (!wrap.contains(e.target)) closeMenu();
+    });
+
+    select.addEventListener('change', sync);
+    const mo = new MutationObserver(function (mutations) {
+      if (mutations.some(function (m) { return m.type === 'childList'; })) syncValue();
+      syncState();
+    });
+    mo.observe(select, { childList: true, attributes: true, attributeFilter: ['disabled', 'aria-invalid'] });
+
+    select.classList.add('gdm-select__native');
+    select.setAttribute('tabindex', '-1');
+    select.setAttribute('aria-hidden', 'true');
+
+    wrap.appendChild(select);
+    wrap.appendChild(toggle);
+    wrap.appendChild(menu);
+    sync();
+    return wrap;
+  }
+
   function breadcrumb(items) {
     const nodes = [];
     items.forEach(function (item, idx) {
@@ -128,6 +245,7 @@
 
   GDM.components.pageHero = pageHero;
   GDM.components.breadcrumb = breadcrumb;
+  GDM.components.enhanceSelect = enhanceSelect;
   GDM.components.starRow = starRow;
   GDM.components.ratingBlock = ratingBlock;
   GDM.components.buildAccordion = buildAccordion;

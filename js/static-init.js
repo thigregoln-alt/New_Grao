@@ -410,6 +410,100 @@
     if (app) GDM.pages.checkout.render(app);
   }
 
+  function hydrateHomeTestimonials() {
+    if (document.body.getAttribute('data-gdm-page') !== '/') return;
+    var emptyEl = document.getElementById('home-testimonials-empty');
+    if (!emptyEl) return;
+    /* Estado vazio (texto + ilustração) mantém-se exactamente como está
+       enquanto não houver nenhuma avaliação real — nada a fazer aqui. Só
+       quando existirem avaliações reais (semente do ateliê em
+       GDM.content.REVIEWS ou submetidas pelo formulário) é que este bloco
+       é substituído pela grelha ordenada + paginação — nunca com dados
+       inventados. */
+    var all = GDM.reviews.all();
+    if (!all.length) return;
+
+    var sorted = all.slice().sort(function (a, b) {
+      return b.rating - a.rating || new Date(b.date) - new Date(a.date);
+    });
+    var PAGE_SIZE = 6;
+    var shown = 0;
+
+    var grid = document.createElement('div');
+    grid.className = 'testi-grid';
+
+    var moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.className = 'btn btn--outline';
+    moreBtn.textContent = 'Ver mais avaliações';
+
+    function cardFor(r) {
+      var product = GDM.catalog.getById(r.productId);
+      var card = document.createElement('div');
+      card.className = 'testi-card';
+      card.setAttribute('data-reveal', 'fade');
+      card.appendChild(GDM.components.starRow(r.rating));
+      var quote = document.createElement('p');
+      quote.className = 'testi-card__quote';
+      quote.textContent = '“' + r.body + '”';
+      card.appendChild(quote);
+      var who = document.createElement('div');
+      who.className = 'testi-card__who';
+      var avatar = document.createElement('span');
+      avatar.className = 'testi-avatar';
+      avatar.textContent = (r.author || '?').trim().charAt(0).toUpperCase();
+      who.appendChild(avatar);
+      var stack = document.createElement('div');
+      stack.className = 'stack';
+      stack.style.gap = '2px';
+      var strong = document.createElement('strong');
+      strong.textContent = r.author;
+      var meta = document.createElement('span');
+      meta.textContent = GDM.format.dateLabel(r.date) + (product ? ' · ' + product.name : '');
+      stack.appendChild(strong);
+      stack.appendChild(meta);
+      who.appendChild(stack);
+      card.appendChild(who);
+      return card;
+    }
+
+    function renderMore() {
+      sorted.slice(shown, shown + PAGE_SIZE).forEach(function (r) { grid.appendChild(cardFor(r)); });
+      shown += PAGE_SIZE;
+      if (shown >= sorted.length) {
+        moreBtn.textContent = 'Já viu todas as avaliações';
+        moreBtn.disabled = true;
+      }
+      /* Os cartões novos trazem data-reveal="fade" (opacidade 0 até entrarem
+         em viewport) — initScrollReveal() só observa quem ainda não tem
+         .is-observed, por isso é seguro chamá-la de novo aqui para não
+         deixar os cartões da página seguinte presos a opacidade 0. */
+      if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
+    }
+    moreBtn.addEventListener('click', renderMore);
+    renderMore();
+
+    var wrap = document.createElement('div');
+    wrap.appendChild(grid);
+    if (sorted.length > PAGE_SIZE) {
+      var moreWrap = document.createElement('div');
+      moreWrap.style.textAlign = 'center';
+      moreWrap.style.marginTop = '28px';
+      moreWrap.appendChild(moreBtn);
+      wrap.appendChild(moreWrap);
+    }
+    emptyEl.replaceWith(wrap);
+  }
+
+  function hydrateReviewsPage() {
+    if (document.body.getAttribute('data-gdm-page') !== '/avaliacoes') return;
+    if (!GDM.pages || !GDM.pages.reviews) return;
+    var app = document.getElementById('app');
+    if (!app) return;
+    var query = { produto: new URLSearchParams(window.location.search).get('produto') || '' };
+    GDM.pages.reviews.render(app, {}, query);
+  }
+
   function init(){
     mountGlobal();
     hydrateFavorites();
@@ -420,6 +514,8 @@
     hydrateFullCartPage();
     hydrateFavoritesPage();
     hydrateCheckoutPage();
+    hydrateReviewsPage();
+    hydrateHomeTestimonials();
     rewriteLinks(document);
     if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
   }

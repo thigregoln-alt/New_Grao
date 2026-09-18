@@ -7,12 +7,6 @@
   GDM.pages = GDM.pages || {};
   const C = GDM.content;
 
-  function heroTrustItem(iconName, label) {
-    const icon = el('span', { class: 'hero-trust-item__icon' });
-    icon.innerHTML = GDM.icons.icon(iconName);
-    return el('div', { class: 'hero-trust-item' }, [icon, el('span', { class: 'hero-trust-item__label', text: label })]);
-  }
-
   function hero() {
     const logo = el('div', { class: 'hero__logo' });
     logo.appendChild(el('span', { class: 'hero__logo-shadow' }));
@@ -39,19 +33,12 @@
       (function () { const a = el('a', { class: 'btn btn--outline-light', href: 'https://wa.me/' + C.BRAND.whatsapp, target: '_blank', rel: 'noopener' }); a.innerHTML = GDM.icons.icon('whatsapp') + '<span>Falar no WhatsApp</span>'; return a; })(),
     ]);
 
-    const trust = el('div', { class: 'hero-trust-row' }, [
-      heroTrustItem('handmade', 'Feito à mão'),
-      heroTrustItem('truck', 'Envio Nacional'),
-      heroTrustItem('shield', 'Pagamento Seguro'),
-    ]);
-
     const content = el('div', { class: 'container hero__content' }, [
       logo,
       el('p', { class: 'eyebrow hero__eyebrow', text: 'Artesanato · Fé' }),
       title,
       verse,
       actions,
-      trust,
     ]);
     return el('section', { class: 'hero' }, [content]);
   }

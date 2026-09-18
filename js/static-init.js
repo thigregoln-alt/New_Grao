@@ -368,7 +368,11 @@
       b.addEventListener('click',function(){
         var label=b.textContent.trim();
         var c=GDM.catalog.CATEGORIES.find(function(x){return x.label===label});
-        writeState({categoria:c?c.slug:''});
+        /* Clicar na categoria já ativa funciona como toggle: volta para
+           "Todas" (mesmo estado de clicar diretamente na pill "Todas").
+           Clicar numa categoria diferente troca o filtro normalmente. */
+        var isActive = c && readState().categoria === c.slug;
+        writeState({categoria: (c && !isActive) ? c.slug : ''});
       });
     });
 

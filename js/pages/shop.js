@@ -128,8 +128,12 @@
     allPill.addEventListener('click', function () { GDM.router.navigate(buildQuery({ categoria: '' }, query)); });
     pillsRow.appendChild(allPill);
     GDM.catalog.CATEGORIES.forEach(function (cat) {
-      const pill = el('button', { class: 'filter-pill', type: 'button', 'aria-pressed': String(state.category === cat.slug), text: cat.label });
-      pill.addEventListener('click', function () { GDM.router.navigate(buildQuery({ categoria: cat.slug }, query)); });
+      const isActive = state.category === cat.slug;
+      const pill = el('button', { class: 'filter-pill', type: 'button', 'aria-pressed': String(isActive), text: cat.label });
+      /* Clicar na categoria já ativa funciona como toggle: volta para "Todas"
+         (mesmo estado da pill "Todas"). Clicar numa categoria diferente troca
+         o filtro normalmente. */
+      pill.addEventListener('click', function () { GDM.router.navigate(buildQuery({ categoria: isActive ? '' : cat.slug }, query)); });
       pillsRow.appendChild(pill);
     });
 

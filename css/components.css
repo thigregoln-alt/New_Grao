@@ -284,6 +284,12 @@
 .cart-line__opts { font-size: var(--fs-2xs); color: var(--ink-500); }
 .cart-line__price { font-weight: 700; }
 .cart-line__remove { font-size: var(--fs-2xs); color: var(--error-600); text-decoration: underline; margin-top: 4px; min-height: 28px; }
+/* O stack (título + stepper) esta­ndarda o align-items para "stretch", o que
+   forçava o pill do stepper a esticar até à largura da coluna, deixando
+   espaço vazio à direita dentro do próprio pill. align-self:center devolve-o
+   à sua largura natural e centra-o horizontalmente na coluna, sem tocar na
+   grid do .cart-line nem no stepper da ficha de produto (fora deste âmbito). */
+.cart-line .qty-stepper { align-self: center; }
 
 .empty-state { text-align: center; padding: var(--space-xl) var(--space-sm); color: var(--ink-500); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
 .empty-state svg { width: 64px; height: 64px; opacity: 0.5; }

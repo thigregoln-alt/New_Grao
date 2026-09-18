@@ -166,7 +166,7 @@
       el('p', { class: 'product-info__stock ' + (stockOk ? 'product-info__stock--ok' : 'product-info__stock--low'), text: stockLabel }),
       el('p', { class: 'product-info__desc', text: product.description }),
       el('div', { class: 'field', style: 'max-width:160px;margin-top:14px' }, [el('label', { text: 'Quantidade' }), qtyStepper]),
-      el('div', { class: 'product-info__actions' }, [addBtn, buyBtn, favBtn]),
+      el('div', { class: 'product-info__actions' }, [favBtn, addBtn, buyBtn]),
       el('div', { class: 'trust-row', style: 'margin-top:20px' }, [
         trustMini('shield', 'Pagamento combinado por WhatsApp'),
         trustMini('truck', 'Envio em 3-7 dias úteis'),

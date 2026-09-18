@@ -270,8 +270,46 @@
 .product-info__price-row { display: flex; align-items: baseline; gap: var(--space-2xs); margin-block: var(--space-xs); }
 .product-info__price { font-size: var(--fs-xl); font-weight: 700; color: var(--leather-900); }
 .product-info__desc { color: var(--ink-700); margin-block: var(--space-sm); }
-.product-info__actions { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin-top: var(--space-md); }
-.product-info__actions .btn { flex: 1 1 200px; }
+/* Grelha fixa de 2 colunas: favoritos + WhatsApp partilham a linha de cima,
+   "Adicionar ao carrinho" (ordem no DOM: favoritos, WhatsApp, carrinho) ocupa
+   sempre a linha de baixo a toda a largura, com mais destaque — a ação
+   principal da página. */
+.product-info__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2xs); margin-top: var(--space-md); }
+.product-info__actions .btn--outline,
+.product-info__actions .btn--whatsapp {
+  padding-inline: var(--space-xs);
+  font-size: var(--fs-xs);
+  gap: var(--space-3xs);
+  /* Em colunas estreitas o texto ("Guardar nos favoritos", "Perguntar no
+     WhatsApp") não cabe numa só linha nem a tamanhos de letra pequenos —
+     em vez de cortar (o .btn tem overflow:hidden para o brilho do hover),
+     deixa quebrar em 2 linhas e centra, mantendo o ícone alinhado. */
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+  padding-block: var(--space-3xs);
+}
+.product-info__actions .btn--primary {
+  grid-column: 1 / -1;
+  min-height: 58px;
+  padding-inline: var(--space-lg);
+  font-size: var(--fs-md);
+  font-weight: 800;
+}
+@media (max-width: 400px) {
+  .product-info__actions .btn--outline,
+  .product-info__actions .btn--whatsapp {
+    padding-inline: var(--space-2xs);
+    font-size: var(--fs-2xs);
+  }
+  /* Largura da coluna a toda a largura ainda é estreita neste breakpoint —
+     reduz o padding/tamanho do "Adicionar ao carrinho" só o suficiente para
+     não cortar o texto; continua claramente maior que os outros dois. */
+  .product-info__actions .btn--primary {
+    padding-inline: var(--space-sm);
+    font-size: var(--fs-base);
+  }
+}
 .product-info__stock { font-size: var(--fs-xs); font-weight: 700; }
 .product-info__stock--ok { color: var(--success-600); }
 .product-info__stock--low { color: var(--gold-800); }

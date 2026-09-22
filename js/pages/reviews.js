@@ -61,27 +61,12 @@
     const starInput = el('div', { class: 'star-input', role: 'radiogroup', 'aria-label': 'Classificação em estrelas' });
     function drawStars() {
       starInput.innerHTML = '';
-      const buttons = [];
-      /* Preview no hover/foco: destaca até à estrela sob o rato/foco, sem
-         tocar em `rating` (o valor só muda ao clicar/Enter/Space) — sai do
-         preview ao sair do grupo com o rato ou por teclado (Tab/Esc). */
-      function preview(upTo) {
-        buttons.forEach(function (b, idx) { b.classList.toggle('is-preview', idx < upTo); });
-      }
-      function clearPreview() { preview(0); }
       for (let i = 1; i <= 5; i++) {
         const btn = el('button', { type: 'button', 'data-active': String(i <= rating), 'aria-label': i + ' estrela' + (i > 1 ? 's' : ''), 'aria-pressed': String(i === rating) });
         btn.innerHTML = GDM.icons.icon('star');
         btn.addEventListener('click', function () { rating = i; drawStars(); });
-        btn.addEventListener('mouseenter', function () { preview(i); });
-        btn.addEventListener('focus', function () { preview(i); });
-        buttons.push(btn);
         starInput.appendChild(btn);
       }
-      starInput.addEventListener('mouseleave', clearPreview);
-      starInput.addEventListener('focusout', function (e) {
-        if (!starInput.contains(e.relatedTarget)) clearPreview();
-      });
     }
     drawStars();
 
@@ -126,6 +111,12 @@
 
     if (defaultCategory) {
       categoryField.__gdmInput.value = defaultCategory;
+      /* Definir .value por código não dispara 'change' nem mutação de
+         childList/atributos — o botão personalizado (enhanceSelect) nunca
+         soube que o valor mudou e continuava a mostrar o placeholder.
+         Dispara o evento manualmente para o sincronizar (mesmo padrão já
+         usado mais abaixo depois do form.reset()). */
+      categoryField.__gdmInput.dispatchEvent(new Event('change', { bubbles: true }));
       populateProducts(defaultCategory, defaultProductSlug);
     } else {
       populateProducts('');

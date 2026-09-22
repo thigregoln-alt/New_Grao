@@ -154,10 +154,12 @@
           head.appendChild(date);
           card.appendChild(head);
           card.appendChild(GDM.components.starRow(r.rating));
-          var title = document.createElement('p');
-          title.style.fontWeight = '700';
-          title.textContent = r.title;
-          card.appendChild(title);
+          if (r.title) {
+            var title = document.createElement('p');
+            title.style.fontWeight = '700';
+            title.textContent = r.title;
+            card.appendChild(title);
+          }
           var body = document.createElement('p');
           body.style.color = 'var(--ink-700)';
           body.textContent = r.body;

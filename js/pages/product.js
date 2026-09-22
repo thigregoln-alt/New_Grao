@@ -85,7 +85,7 @@
         el('span', { style: 'color:var(--ink-500);font-size:var(--fs-xs)', text: GDM.format.dateLabel(r.date) }),
       ]),
       GDM.components.starRow(r.rating),
-      el('p', { style: 'font-weight:700', text: r.title }),
+      r.title ? el('p', { style: 'font-weight:700', text: r.title }) : null,
       el('p', { style: 'color:var(--ink-700)', text: r.body }),
     ]);
   }

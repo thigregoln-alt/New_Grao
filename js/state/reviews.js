@@ -51,7 +51,7 @@
     const author = GDM.security.sanitizeInput(input.author, 60) || 'Cliente Grão de Mostarda';
     const title = GDM.security.sanitizeInput(input.title, 80);
     const body = GDM.security.sanitizeInput(input.body, 600);
-    if (!title || !body) return null;
+    if (!body) return null;
     const review = {
       id: 'usr-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       productId: input.productId,

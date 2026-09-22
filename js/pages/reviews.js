@@ -16,7 +16,7 @@
         el('span', { style: 'color:var(--ink-500);font-size:var(--fs-xs)', text: GDM.format.dateLabel(r.date) }),
       ]),
       GDM.components.starRow(r.rating),
-      el('p', { style: 'font-weight:700', text: r.title }),
+      r.title ? el('p', { style: 'font-weight:700', text: r.title }) : null,
       el('p', { style: 'color:var(--ink-700)', text: r.body }),
       productName ? el('a', { href: '#/produto/' + r.productSlug, 'data-route-link': '', style: 'font-size:var(--fs-xs);color:var(--gold-700);font-weight:700', text: 'Sobre: ' + productName }) : null,
     ]);
@@ -132,7 +132,7 @@
     }
 
     const authorField = GDM.formHelpers.field({ id: 'rv-author', label: 'O seu nome', required: true, maxLength: 60 });
-    const titleField = GDM.formHelpers.field({ id: 'rv-title', label: 'Título da avaliação', required: true, maxLength: 80 });
+    const titleField = GDM.formHelpers.field({ id: 'rv-title', label: 'Título (opcional)', maxLength: 80 });
     const bodyField = GDM.formHelpers.field({ id: 'rv-body', label: 'A sua experiência', as: 'textarea', required: true, maxLength: 600 });
     const fields = [categoryField, productField, authorField, titleField, bodyField];
     const validateAll = GDM.formHelpers.wireForm(fields);

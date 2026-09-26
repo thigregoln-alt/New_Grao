@@ -393,7 +393,6 @@
   justify-content: center;
   padding: var(--space-sm);
 }
-.footer-logo-card img { width: 100%; height: auto; }
 .footer-brand__tagline {
   color: var(--gold-300);
   font-size: var(--fs-xs);

@@ -17,7 +17,6 @@
   transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
   white-space: nowrap;
 }
-.btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn--primary {
@@ -338,7 +337,6 @@
 .cart-drawer { position: fixed; inset: 0; z-index: 300; visibility: hidden; }
 .cart-drawer[data-open="true"] { visibility: visible; }
 .cart-drawer__scrim { position: absolute; inset: 0; background: rgba(28,17,8,0.5); opacity: 0; transition: opacity var(--dur-med) var(--ease-out); }
-.cart-drawer[data-open="true"] .cart-drawer__scrim { opacity: 1; }
 .cart-drawer__panel {
   position: absolute; top: 0; right: 0; bottom: 0;
   width: min(94vw, 440px);

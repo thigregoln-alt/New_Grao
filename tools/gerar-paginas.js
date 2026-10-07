@@ -231,6 +231,23 @@ function patchCardSequence(html, startIdx, endIdx, expectedProducts, mediaOptsFo
    ------------------------------------------------------------------------- */
 function buildProductPagePath(slug) { return rp('produto-' + slug + '.html'); }
 
+/* Envio Normal (CTT) para Portugal, com os valores de SHIPPING_INFO: preço
+   de uma unidade — grátis se o próprio produto já passa o limite. Prazos:
+   produção 3–7 dias úteis + entrega 3–5 dias úteis (envios.html). */
+function shippingDetailsLd(price) {
+  const info = GDM.content.SHIPPING_INFO;
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: (price >= info.freeShippingFrom ? 0 : info.normalPrice).toFixed(2), currency: 'EUR' },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'PT' },
+    deliveryTime: {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: { '@type': 'QuantitativeValue', minValue: 3, maxValue: 7, unitCode: 'DAY' },
+      transitTime: { '@type': 'QuantitativeValue', minValue: 3, maxValue: 5, unitCode: 'DAY' },
+    },
+  };
+}
+
 function regenerateProductPage(product, existingHtml) {
   let html = existingHtml;
   const name = product.name;
@@ -252,9 +269,14 @@ function regenerateProductPage(product, existingHtml) {
     '@context': 'https://schema.org', '@type': 'Product',
     name: product.name, description: product.description,
     image: SITE_URL + '/assets/og-image.png', category: product.categoryLabel,
-    offers: { '@type': 'Offer', priceCurrency: 'EUR', price: product.price.toFixed(2), availability: 'https://schema.org/InStock', url: canonical },
+    offers: {
+      '@type': 'Offer', priceCurrency: 'EUR', price: product.price.toFixed(2),
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: canonical,
+      shippingDetails: shippingDetailsLd(product.price),
+    },
   };
-  html = html.replace(/(<script type="application\/ld\+json" id="ld-product" data-gdm-ld="">)([\s\S]*?)(<\/script>)/, '$1' + JSON.stringify(productLd) + '$3');
+  html = setJsonLd(html, 'product', productLd);
 
   const breadcrumbLd = {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
@@ -265,7 +287,7 @@ function regenerateProductPage(product, existingHtml) {
       { '@type': 'ListItem', position: 4, name: product.name, item: canonical },
     ],
   };
-  html = html.replace(/(<script type="application\/ld\+json" id="ld-breadcrumb" data-gdm-ld="">)([\s\S]*?)(<\/script>)/, '$1' + JSON.stringify(breadcrumbLd) + '$3');
+  html = setJsonLd(html, 'breadcrumb', breadcrumbLd);
 
   html = html.replace(/<body data-gdm-page="produto" data-product-slug="[^"]*">/, '<body data-gdm-page="produto" data-product-slug="' + product.slug + '">');
 
@@ -568,14 +590,28 @@ function buildNotFoundPage() {
 
 /* Reescreve um bloco <script type="application/ld+json" id="ld-<id>"> (dados
    estruturados), sempre a partir de SITE_URL e dos dados do site. */
+/* JSON dentro de <script>: "<" escapado como <, para nenhum texto
+   (ex.: avaliações de visitantes) conseguir fechar o </script>. */
+function ldJson(obj) {
+  return JSON.stringify(obj).replace(/</g, '\\u003c');
+}
+
 function setJsonLd(html, id, obj) {
-  return html.replace(new RegExp('(<script type="application/ld\\+json" id="ld-' + id + '" data-gdm-ld="">)([\\s\\S]*?)(</script>)'), (_m, open, _mid, close) => open + JSON.stringify(obj) + close);
+  return html.replace(new RegExp('(<script type="application/ld\\+json" id="ld-' + id + '" data-gdm-ld="">)([\\s\\S]*?)(</script>)'), (_m, open, _mid, close) => open + ldJson(obj) + close);
 }
 
 function regenerateHomeJsonLd(html) {
+  // WebSite: um bloco próprio, a seguir ao da Organization
+  if (html.indexOf('id="ld-website"') === -1) {
+    html = html.replace(/(<script type="application\/ld\+json" id="ld-organization" data-gdm-ld="">[\s\S]*?<\/script>)/, '$1<script type="application/ld+json" id="ld-website" data-gdm-ld=""></script>');
+  }
+  html = setJsonLd(html, 'website', {
+    '@context': 'https://schema.org', '@type': 'WebSite',
+    name: BRAND.name, url: SITE_URL + '/', inLanguage: 'pt-PT',
+  });
   return setJsonLd(html, 'organization', {
     '@context': 'https://schema.org', '@type': 'Organization',
-    name: BRAND.name, url: SITE_URL + '/', logo: SITE_URL + '/assets/og-image.png',
+    name: BRAND.name, url: SITE_URL + '/', logo: SITE_URL + '/assets/logo-grao-de-mostarda.png',
     sameAs: [BRAND.instagramUrl],
     contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: '+' + BRAND.whatsapp, email: BRAND.email, areaServed: 'PT' },
   });

@@ -596,8 +596,10 @@ function buildNotFoundPage() {
    gerador, com HTML próprio (links, comentários TODO), no fim da lista.
    ------------------------------------------------------------------------- */
 function legalMain(hero, data, extra) {
-  const sections = data.sections.map((s) => ({ title: escText(s.title), html: '<p style="color:var(--ink-700)">' + escText(s.text) + '</p>' }))
-    .concat(extra || []);
+  extra = extra || [];
+  const sections = extra.filter((s) => s.first)
+    .concat(data.sections.map((s) => ({ title: escText(s.title), html: '<p style="color:var(--ink-700)">' + escText(s.text) + '</p>' })))
+    .concat(extra.filter((s) => !s.first));
   return '<main id="app" tabindex="-1">' +
     '<div class="page-hero"><div class="container stack" style="gap:10px;align-items:center"><p class="eyebrow">' + hero.eyebrow + '</p><h1>' + hero.title + '</h1><p style="max-width:60ch;margin-inline:auto;color:var(--ink-700)">' + hero.lede + '</p></div></div>' +
     '<section class="section"><div class="container" style="padding-bottom:0"><p style="color:var(--ink-500);font-size:var(--fs-sm)">Última atualização: ' + GDM.format.dateLabel(data.updated) + '</p></div>' +
@@ -717,9 +719,21 @@ let cspCache = null;
    Disallow anuncia o caminho e impede o Google de ler este noindex. */
 const NOINDEX = ['admin.html', '404.html'];
 
-/* Secções acrescentadas pelo gerador ao fim de termos.html (os textos de
-   GDM.content.TERMS ficam como estão). */
+/* Secções acrescentadas pelo gerador a termos.html (os textos de
+   GDM.content.TERMS ficam como estão; first: true = antes deles).
+   Identificação do vendedor: só aparece o que é conhecido. Os dados que
+   faltam (obrigatórios por lei) estão como comentários TODO no HTML —
+   invisíveis na página até alguém os preencher aqui. */
 const TERMS_EXTRA = [
+  {
+    first: true,
+    title: 'Quem vende',
+    html: '<p style="color:var(--ink-700)">As vendas deste site são feitas pelo ateliê ' + escText(BRAND.name) + '.' +
+      '<!-- TODO: preencher — nome completo ou denominação social do vendedor -->' +
+      '<!-- TODO: preencher — NIF -->' +
+      '<!-- TODO: preencher — morada ou sede -->' +
+      ' Contacto: <a href="mailto:' + escAttr(BRAND.email) + '">' + escText(BRAND.email) + '</a> ou WhatsApp ' + escText(BRAND.whatsappDisplay) + '.</p>',
+  },
   {
     title: 'Reclamações e resolução de litígios',
     html: '<p style="color:var(--ink-700)">Se não ficar satisfeito com a nossa resposta, pode apresentar reclamação no <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações Eletrónico</a>. Em caso de litígio de consumo, pode ainda recorrer a uma entidade de resolução alternativa de litígios de consumo (lista no Portal do Consumidor, www.consumidor.gov.pt).</p>',

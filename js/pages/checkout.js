@@ -44,6 +44,10 @@
     state.items.forEach(function (item) {
       lines.push('• ' + item.product.name + ' (x' + item.qty + ') — ' + GDM.format.currency(item.lineTotal));
     });
+    // produtos com gravação (products.js → gravacao: true): o texto combina-se por mensagem
+    if (state.items.some(function (item) { return item.product.gravacao; })) {
+      lines.push('', 'Inclui peças com gravação — diga-nos o texto a gravar em resposta a esta mensagem.');
+    }
     const ship = GDM.cart.shipping(state.subtotal);
     lines.push('', 'Subtotal: ' + GDM.format.currency(state.subtotal));
     lines.push('Portes (envio normal CTT): ' + (ship.free ? 'Grátis' : GDM.format.currency(ship.cost)));

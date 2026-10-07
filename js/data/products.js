@@ -27,6 +27,11 @@
     { slug: 'cadernos-a5', label: 'Cadernos Personalizados A5', short: 'Cadernos de bolso A5 para orações e apontamentos.' },
   ];
 
+  /* gravacao: true (opcional) — a descrição promete nome, data, frase ou
+     versículo à escolha do cliente. A ficha mostra então como pedir a
+     gravação (pelo WhatsApp, depois da encomenda) e a mensagem do checkout
+     lembra de enviar o texto. Não há campo de texto no site: a
+     personalização combina-se sempre por mensagem. */
   const RAW_PRODUCTS = [
     /* ---------------- Bíblias ---------------- */
     {
@@ -35,6 +40,7 @@
       description: 'Bíblia Sagrada (Almeida Revista e Atualizada) com capa em pele sintética castanha, nome ou iniciais gravados a relevo e fecho em botão de pressão.',
       long: 'Cada Bíblia é preparada uma a uma: escolhemos a pele, gravamos o nome à mão com prensa a quente e revemos página a página antes do envio. Fica com identidade própria — para oferecer ou para guardar como herança de família.',
       stock: 14, featured: true, tags: ['mais vendido', 'ideal para batismo'],
+      gravacao: true,
     },
     {
       id: 'bib-02', slug: 'biblia-estudo-mulher-virtuosa', category: 'biblias',
@@ -42,6 +48,7 @@
       description: 'Bíblia de estudo com notas e mapas, capa florida em tecido reforçado e etiqueta com nome bordado.',
       long: 'Pensada para devocionais diárias: letra grande, referências cruzadas e espaço nas margens para anotações. A etiqueta com o nome é bordada à mão e cosida à capa.',
       stock: 9, featured: false, tags: ['presente'],
+      gravacao: true,
     },
     {
       id: 'bib-03', slug: 'biblia-infantil-ilustrada', category: 'biblias',
@@ -49,6 +56,7 @@
       description: 'Bíblia infantil com ilustrações coloridas, capa dura resistente e nome da criança impresso na capa.',
       long: 'As histórias mais conhecidas contadas de forma simples, com ilustrações grandes. Ótima para o primeiro contacto da criança com a Palavra — e para guardar como recordação de batismo ou catequese.',
       stock: 20, featured: false, tags: ['crianças'],
+      gravacao: true,
     },
     {
       id: 'bib-04', slug: 'biblia-viagem-compacta', category: 'biblias',
@@ -56,6 +64,7 @@
       description: 'Formato de bolso, capa em pele fina e estojo em tecido com cordão, nome gravado no estojo.',
       long: 'Feita para andar sempre consigo — cabe numa mala pequena ou bolso de casaco. O estojo protege as páginas e pode ser gravado com o mesmo nome da capa.',
       stock: 11, featured: false, tags: ['compacta'],
+      gravacao: true,
     },
 
     /* ---------------- Reforma de Bíblia ---------------- */
@@ -88,6 +97,7 @@
       description: 'Caneca em cerâmica branca 325ml com o versículo de Lucas 17:6 e espaço para nome gravado.',
       long: 'A nossa caneca mais pedida. Estampa cozida a alta temperatura para não desbotar na máquina de lavar loiça — resistente ao uso diário, com o versículo que dá nome ao ateliê.',
       stock: 40, featured: true, tags: ['mais vendido'],
+      gravacao: true,
     },
     {
       id: 'can-02', slug: 'caneca-casal-devocional', category: 'canecas-personalizadas',
@@ -95,6 +105,7 @@
       description: 'Duas canecas a combinar, com nomes do casal e data especial gravados.',
       long: 'Pensada para noivado, casamento ou aniversário. As duas canecas formam um par visual, com a data e os nomes dispostos para se completarem quando colocadas lado a lado.',
       stock: 18, featured: false, tags: ['casal', 'casamento'],
+      gravacao: true,
     },
     {
       id: 'can-03', slug: 'caneca-termica-oracao', category: 'canecas-personalizadas',
@@ -109,6 +120,7 @@
       description: 'Caneca pequena com ilustração colorida da Arca de Noé e nome da criança.',
       long: 'Em cerâmica atóxica própria para uso alimentar, com pega larga fácil de segurar por mãos pequenas.',
       stock: 26, featured: false, tags: ['crianças'],
+      gravacao: true,
     },
 
     /* ---------------- T-shirts Temas Cristãos ---------------- */
@@ -125,6 +137,7 @@
       description: 'Estampado discreto à frente e versículo à escolha nas costas, em letra manuscrita.',
       long: 'Uma peça pensada para quem gosta de levar a mensagem sem exagero — o essencial à frente, a força do versículo nas costas.',
       stock: 24, featured: false, tags: ['versículo'],
+      gravacao: true,
     },
     {
       id: 'tsh-03', slug: 'tshirt-infantil-pequeno-david', category: 'tshirts-temas-cristaos',
@@ -162,6 +175,7 @@
       description: 'Moldura em madeira gravada com espaço para foto 13x18 e frase gravada na base.',
       long: 'Uma moldura pensada para guardar um retrato de batismo, casamento ou primeira comunhão, com uma frase gravada na base à sua escolha.',
       stock: 12, featured: false, tags: ['moldura'],
+      gravacao: true,
     },
     {
       id: 'dec-04', slug: 'guirlanda-oracao-parede', category: 'decoracao-crista',
@@ -208,6 +222,7 @@
       description: 'Porta-chaves em madeira maciça com forma de cruz, nome gravado a laser.',
       long: 'Um presente pequeno e acessível para lembranças de batismo, crisma ou casamento — vendido também em pack para eventos.',
       stock: 60, featured: false, tags: ['lembrança de evento'],
+      gravacao: true,
     },
     {
       id: 'pc-03', slug: 'porta-chaves-casal-fe', category: 'porta-chaves',
@@ -231,6 +246,7 @@
       description: 'Caderno A4 estruturado para planeamento pessoal com base em valores e propósito de vida.',
       long: 'Secções para definir prioridades, acompanhar hábitos e registar conquistas mês a mês — com capa gravada com o nome.',
       stock: 18, featured: false, tags: ['planeamento'],
+      gravacao: true,
     },
     {
       id: 'ca4-03', slug: 'caderno-a4-estudo-biblico', category: 'cadernos-a4',
@@ -254,6 +270,7 @@
       description: 'Caderno A5 com estrutura diária para registar três motivos de gratidão.',
       long: 'Um hábito simples que muda a forma como se olha para o dia — três linhas por dia, capa gravada com o nome.',
       stock: 28, featured: false, tags: ['gratidão'],
+      gravacao: true,
     },
     {
       id: 'ca5-03', slug: 'caderno-a5-versiculos-semana', category: 'cadernos-a5',

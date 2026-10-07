@@ -342,6 +342,22 @@ function regenerateProductPage(product, existingHtml) {
   html = html.replace(/<a class="btn btn--whatsapp" href="[^"]*"( target="_blank" rel="noopener">[\s\S]*?<span>Perguntar no WhatsApp<\/span><\/a>)/,
     (_m, rest) => '<a class="btn btn--whatsapp" href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(askText)) + '"' + rest);
 
+  // Produtos com gravação (products.js → gravacao: true): nota logo abaixo
+  // dos botões a explicar como pedir o texto. Sem campo de texto no site —
+  // a personalização combina-se pelo WhatsApp depois da encomenda.
+  html = html.replace(/<div class="manual-pay-note product-info__engraving">[\s\S]*?<\/p><\/div>/, '');
+  if (product.gravacao) {
+    const engraveText = 'Olá! Encomendei / quero encomendar «' + product.name + '» e gostava de pedir a gravação: ';
+    const note = '<div class="manual-pay-note product-info__engraving"><span>' + icon('handmade') + '</span><p><strong>Quer um nome, data ou versículo gravado?</strong> Depois de fazer a encomenda, diga-nos o texto pelo ' +
+      '<a href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(engraveText)) + '" target="_blank" rel="noopener">WhatsApp</a>' +
+      ' — confirmamos tudo consigo antes de começar a produzir.</p></div>';
+    const actionsStartE = html.indexOf('<div class="product-info__actions">');
+    if (actionsStartE !== -1) {
+      const actionsEndE = findBlockEnd(html, actionsStartE, 'div');
+      html = html.slice(0, actionsEndE) + note + html.slice(actionsEndE);
+    }
+  }
+
   // "Partilhar no WhatsApp": link discreto por baixo dos botões
   const share = '<p class="product-info__share"><a href="' + escAttr('https://wa.me/?text=' + encodeURIComponent(product.name + ' — ' + canonical)) + '" target="_blank" rel="noopener">' + icon('whatsapp') + '<span>Partilhar no WhatsApp</span></a></p>';
   if (html.indexOf('class="product-info__share"') !== -1) {

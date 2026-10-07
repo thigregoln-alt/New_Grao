@@ -2,7 +2,8 @@
    Gera as páginas dependentes do catálogo (js/data/products.js) e do
    conteúdo institucional (js/data/content.js): as fichas de produto
    (produto-<slug>.html), a grelha da loja.html, a secção "Peças mais
-   procuradas" da index.html e o sitemap.xml.
+   procuradas" da index.html, o sitemap.xml e o molde comum a todas as
+   páginas da raiz (<head>, cabeçalho, rodapé — ver regenerateChrome).
 
    Uso:  node tools/gerar-paginas.js
 
@@ -359,10 +360,31 @@ function buildSitemap() {
   return lines.join('\n');
 }
 
+/* -------------------------------------------------------------------------
+   Molde comum a TODAS as páginas (.html na raiz, incluindo admin.html):
+   <head>, <main> e a envolvente do <body>. Cada passo é idempotente — correr
+   o gerador duas vezes seguidas não altera nada na segunda.
+   ------------------------------------------------------------------------- */
+function regenerateChrome(html) {
+  // <main> sem aria-live: anunciava a página inteira a cada alteração. As
+  // regiões vivas certas são o toast e os role="status" de cada formulário.
+  html = html.replace(/<main id="app" tabindex="-1" aria-live="polite">/, '<main id="app" tabindex="-1">');
+  return html;
+}
+
 /* ------------------------------------------------------------------------- */
 
 function main() {
   let createdCount = 0, changedCount = 0, unchangedCount = 0;
+
+  function writeIfChanged(filePath, before, after) {
+    if (before !== after) {
+      fs.writeFileSync(filePath, after, 'utf8');
+      if (before !== null) changedCount++;
+    } else {
+      unchangedCount++;
+    }
+  }
 
   const existingSlugs = fs.readdirSync(ROOT)
     .filter((f) => /^produto-.*\.html$/.test(f))
@@ -382,29 +404,28 @@ function main() {
       after = buildNewProductPage(product, donorSlug);
       createdCount++;
     }
-    if (before !== after) {
-      fs.writeFileSync(filePath, after, 'utf8');
-      if (before !== null) changedCount++;
-    } else {
-      unchangedCount++;
-    }
+    writeIfChanged(filePath, before, regenerateChrome(after));
   });
 
   existingSlugs.filter((s) => !catalogSlugs.includes(s)).forEach((s) => {
     warn('página "produto-' + s + '.html" existe mas o produto já não está em products.js — não foi apagada, revê manualmente.');
   });
 
-  ['loja.html', 'index.html'].forEach((file) => {
-    const filePath = rp(file);
-    const before = fs.readFileSync(filePath, 'utf8');
-    const after = file === 'loja.html' ? regenerateShop(before) : regenerateFeatured(before);
-    if (before !== after) { fs.writeFileSync(filePath, after, 'utf8'); changedCount++; } else { unchangedCount++; }
-  });
+  // restantes páginas da raiz (loja, início, institucionais, legais, admin…)
+  fs.readdirSync(ROOT)
+    .filter((f) => /\.html$/.test(f) && !/^produto-/.test(f))
+    .sort()
+    .forEach((file) => {
+      const filePath = rp(file);
+      const before = fs.readFileSync(filePath, 'utf8');
+      let after = before;
+      if (file === 'loja.html') after = regenerateShop(after);
+      if (file === 'index.html') after = regenerateFeatured(after);
+      writeIfChanged(filePath, before, regenerateChrome(after));
+    });
 
   const sitemapPath = rp('sitemap.xml');
-  const sitemapBefore = fs.readFileSync(sitemapPath, 'utf8');
-  const sitemapAfter = buildSitemap();
-  if (sitemapBefore !== sitemapAfter) { fs.writeFileSync(sitemapPath, sitemapAfter, 'utf8'); changedCount++; } else { unchangedCount++; }
+  writeIfChanged(sitemapPath, fs.readFileSync(sitemapPath, 'utf8'), buildSitemap());
 
   console.log('');
   console.log('Concluído: ' + createdCount + ' página(s) de produto criadas, ' + changedCount + ' ficheiro(s) alterados, ' + unchangedCount + ' sem alterações.');

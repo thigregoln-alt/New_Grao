@@ -171,6 +171,9 @@
           el('a', { href: '#/privacidade', 'data-route-link': '', text: 'Política de Privacidade' }),
           ' · ',
           el('a', { href: '#/termos', 'data-route-link': '', text: 'Termos e Condições' }),
+          ' · ',
+          // obrigatório para quem vende ao consumidor em Portugal
+          el('a', { href: 'https://www.livroreclamacoes.pt/', target: '_blank', rel: 'noopener', text: 'Livro de Reclamações' }),
         ]),
         unsubscribeBtn,
       ]),

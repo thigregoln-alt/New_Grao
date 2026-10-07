@@ -543,7 +543,7 @@ function footerHtml(currentFile) {
         '</div></div>' +
     '</div></div>' +
     '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
-      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + '</p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
+      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
     '</footer>';
 }
 
@@ -590,6 +590,42 @@ function buildNotFoundPage() {
 
 /* Reescreve um bloco <script type="application/ld+json" id="ld-<id>"> (dados
    estruturados), sempre a partir de SITE_URL e dos dados do site. */
+/* -------------------------------------------------------------------------
+   Páginas legais (termos.html, privacidade.html): o <main> é escrito a partir
+   de GDM.content.TERMS / PRIVACY_POLICY. extra = secções acrescentadas pelo
+   gerador, com HTML próprio (links, comentários TODO), no fim da lista.
+   ------------------------------------------------------------------------- */
+function legalMain(hero, data, extra) {
+  const sections = data.sections.map((s) => ({ title: escText(s.title), html: '<p style="color:var(--ink-700)">' + escText(s.text) + '</p>' }))
+    .concat(extra || []);
+  return '<main id="app" tabindex="-1">' +
+    '<div class="page-hero"><div class="container stack" style="gap:10px;align-items:center"><p class="eyebrow">' + hero.eyebrow + '</p><h1>' + hero.title + '</h1><p style="max-width:60ch;margin-inline:auto;color:var(--ink-700)">' + hero.lede + '</p></div></div>' +
+    '<section class="section"><div class="container" style="padding-bottom:0"><p style="color:var(--ink-500);font-size:var(--fs-sm)">Última atualização: ' + GDM.format.dateLabel(data.updated) + '</p></div>' +
+    '<div class="container content-layout"><nav class="content-toc" aria-label="Índice da página">' +
+      sections.map((s, i) => '<a href="#sec-' + i + '">' + s.title + '</a>').join('') + '</nav>' +
+    '<div class="stack" style="gap:40px">' +
+      sections.map((s, i) => '<div id="sec-' + i + '" data-reveal="fade" class="" style="--reveal-index: ' + (i % 6) + ';"><h2 style="margin-bottom:16px">' + s.title + '</h2>' + s.html + '</div>').join('') +
+    '</div></div></section></main>';
+}
+
+function replaceMain(html, main) {
+  const start = html.indexOf('<main id="app"');
+  const end = html.indexOf('</main>', start) + '</main>'.length;
+  return html.slice(0, start) + main + html.slice(end);
+}
+
+function regenerateTerms(html) {
+  return replaceMain(html, legalMain(
+    { eyebrow: 'Condições de compra', title: 'Termos e Condições', lede: 'As regras claras de como funciona uma encomenda no nosso ateliê.' },
+    GDM.content.TERMS, TERMS_EXTRA));
+}
+
+function regeneratePrivacy(html) {
+  return replaceMain(html, legalMain(
+    { eyebrow: 'Os seus dados', title: 'Política de Privacidade', lede: 'Como recolhemos, usamos e protegemos os seus dados pessoais.' },
+    GDM.content.PRIVACY_POLICY));
+}
+
 /* JSON dentro de <script>: "<" escapado como <, para nenhum texto
    (ex.: avaliações de visitantes) conseguir fechar o </script>. */
 function ldJson(obj) {
@@ -680,6 +716,15 @@ let cspCache = null;
 /* Páginas que nunca devem ser indexadas. Não vão para o robots.txt: um
    Disallow anuncia o caminho e impede o Google de ler este noindex. */
 const NOINDEX = ['admin.html', '404.html'];
+
+/* Secções acrescentadas pelo gerador ao fim de termos.html (os textos de
+   GDM.content.TERMS ficam como estão). */
+const TERMS_EXTRA = [
+  {
+    title: 'Reclamações e resolução de litígios',
+    html: '<p style="color:var(--ink-700)">Se não ficar satisfeito com a nossa resposta, pode apresentar reclamação no <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações Eletrónico</a>. Em caso de litígio de consumo, pode ainda recorrer a uma entidade de resolução alternativa de litígios de consumo (lista no Portal do Consumidor, www.consumidor.gov.pt).</p>',
+  },
+];
 
 function regenerateChrome(html, file) {
   // URLs absolutos da página, sempre a partir de SITE_URL
@@ -773,6 +818,8 @@ function main() {
       let after = before;
       if (file === 'loja.html') after = regenerateShopJsonLd(regenerateShop(after));
       if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
+      if (file === 'termos.html') after = regenerateTerms(after);
+      if (file === 'privacidade.html') after = regeneratePrivacy(after);
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
 

@@ -100,5 +100,19 @@
     return getState();
   }
 
-  GDM.cart = { getState, addItem, updateQty, removeItem, clear, lineKey: lineKey };
+  /** Portes do Envio Normal (CTT) para um subtotal: valor, se é grátis e
+   *  quanto falta para portes grátis. Valores em GDM.content.SHIPPING_INFO. */
+  function shipping(subtotal) {
+    const info = GDM.content.SHIPPING_INFO;
+    const free = subtotal >= info.freeShippingFrom;
+    const cost = free ? 0 : info.normalPrice;
+    return {
+      cost: cost,
+      free: free,
+      remaining: free ? 0 : Math.round((info.freeShippingFrom - subtotal) * 100) / 100,
+      total: Math.round((subtotal + cost) * 100) / 100,
+    };
+  }
+
+  GDM.cart = { getState, addItem, updateQty, removeItem, clear, shipping, lineKey: lineKey };
 })(window.GDM = window.GDM || {});

@@ -79,6 +79,11 @@
       'Enviamos o código de rastreio pelo WhatsApp ou e-mail assim que a encomenda sai do ateliê.',
       'Não são feitos envios internacionais neste momento — apenas para Portugal Continental e Ilhas (consultar prazo adicional para Açores e Madeira).',
     ],
+    /* Valores numéricos do Envio Normal (CTT) usados nos cálculos do
+       checkout, do carrinho e do aviso "Faltam X € para portes grátis".
+       Manter alinhados com o texto de methods[0].price acima. */
+    normalPrice: 4.90,
+    freeShippingFrom: 50,
   };
 
   const RETURNS_INFO = {

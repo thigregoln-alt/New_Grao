@@ -82,7 +82,8 @@
       el('span', { text: 'Subtotal' }),
       el('span', { text: GDM.format.currency(state.subtotal) }),
     ]));
-    footEl.appendChild(el('p', { class: 'field__hint', text: 'Portes calculados no checkout.' }));
+    const ship = GDM.cart.shipping(state.subtotal);
+    footEl.appendChild(el('p', { class: 'field__hint', text: ship.free ? 'Tem portes grátis.' : 'Faltam ' + GDM.format.currency(ship.remaining) + ' para portes grátis.' }));
     footEl.appendChild(el('a', { class: 'btn btn--primary btn--block', href: '#/checkout', text: 'Finalizar encomenda', onclick: close }));
     footEl.appendChild(el('a', { class: 'btn btn--ghost btn--block', href: '#/carrinho', text: 'Ver carrinho completo', onclick: close }));
   }

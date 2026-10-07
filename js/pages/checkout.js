@@ -26,11 +26,14 @@
       customer.notes ? 'Notas: ' + customer.notes : null,
       '',
       'Artigos:',
-    ].filter(Boolean);
+    ].filter(function (line) { return line !== null; });
     state.items.forEach(function (item) {
       lines.push('• ' + item.product.name + ' (x' + item.qty + ') — ' + GDM.format.currency(item.lineTotal));
     });
+    const ship = GDM.cart.shipping(state.subtotal);
     lines.push('', 'Subtotal: ' + GDM.format.currency(state.subtotal));
+    lines.push('Portes (envio normal CTT): ' + (ship.free ? 'Grátis' : GDM.format.currency(ship.cost)));
+    lines.push('Total: ' + GDM.format.currency(ship.total) + ' (valor final confirmado pelo ateliê)');
     lines.push('', 'Aguardo o vosso contacto para combinar o pagamento. Obrigado!');
     return lines.join('\n');
   }
@@ -167,12 +170,16 @@
       GDM.components.initScrollReveal();
     });
 
+    const ship = GDM.cart.shipping(state.subtotal);
     const summary = el('div', { class: 'panel order-summary' }, [
       el('h2', { text: 'Resumo da encomenda', style: 'font-size:1.2rem' }),
       el('div', { class: 'stack', style: 'gap:8px' }, state.items.map(function (item) {
         return el('div', { class: 'order-summary__row' }, [el('span', { text: item.qty + '× ' + item.product.name }), el('span', { text: GDM.format.currency(item.lineTotal) })]);
       })),
-      el('div', { class: 'order-summary__row order-summary__row--total' }, [el('span', { text: 'Total' }), el('span', { text: GDM.format.currency(state.subtotal) })]),
+      el('div', { class: 'order-summary__row' }, [el('span', { text: 'Subtotal' }), el('span', { text: GDM.format.currency(state.subtotal) })]),
+      el('div', { class: 'order-summary__row' }, [el('span', { text: 'Portes (envio normal CTT)' }), el('span', { text: ship.free ? 'Grátis' : GDM.format.currency(ship.cost) })]),
+      el('div', { class: 'order-summary__row order-summary__row--total' }, [el('span', { text: 'Total' }), el('span', { text: GDM.format.currency(ship.total) })]),
+      el('p', { class: 'field__hint', text: 'Valor final confirmado pelo ateliê.' }),
     ]);
 
     const grid = el('div', { class: 'cart-page-grid' }, [form, summary]);

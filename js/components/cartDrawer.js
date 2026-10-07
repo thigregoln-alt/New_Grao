@@ -112,8 +112,7 @@
       el('span', { text: 'Subtotal' }),
       el('span', { text: GDM.format.currency(state.subtotal) }),
     ]));
-    const ship = GDM.cart.shipping(state.subtotal);
-    footEl.appendChild(el('p', { class: 'field__hint', text: ship.free ? 'Tem portes grátis.' : 'Faltam ' + GDM.format.currency(ship.remaining) + ' para portes grátis.' }));
+    footEl.appendChild(freeShippingProgress(state.subtotal));
     footEl.appendChild(el('a', { class: 'btn btn--primary btn--block', href: '#/checkout', text: 'Finalizar encomenda', onclick: close }));
     footEl.appendChild(el('a', { class: 'btn btn--ghost btn--block', href: '#/carrinho', text: 'Ver carrinho completo', onclick: close }));
     restoreFocus(saved);
@@ -150,5 +149,21 @@
     if (lastFocused && lastFocused.focus) lastFocused.focus();
   }
 
-  GDM.components.cartDrawer = { mount: mount, open: open, close: close };
+  /** "Faltam X € para portes grátis" + barra de progresso (drawer e página
+   *  do carrinho). Valores em GDM.content.SHIPPING_INFO. */
+  function freeShippingProgress(subtotal) {
+    const ship = GDM.cart.shipping(subtotal);
+    const limite = GDM.content.SHIPPING_INFO.freeShippingFrom;
+    const pct = Math.min(100, Math.round((subtotal / limite) * 100));
+    const texto = ship.free ? 'Tem portes grátis.' : 'Faltam ' + GDM.format.currency(ship.remaining) + ' para portes grátis.';
+    return el('div', { class: 'free-ship' + (ship.free ? ' free-ship--done' : '') }, [
+      el('p', { class: 'field__hint', text: texto }),
+      el('div', {
+        class: 'free-ship__bar', role: 'progressbar', 'aria-label': 'Progresso para portes grátis',
+        'aria-valuemin': '0', 'aria-valuemax': String(limite), 'aria-valuenow': String(Math.min(subtotal, limite)), 'aria-valuetext': texto,
+      }, [el('span', { class: 'free-ship__fill', style: 'width:' + pct + '%' })]),
+    ]);
+  }
+
+  GDM.components.cartDrawer = { mount: mount, open: open, close: close, freeShippingProgress: freeShippingProgress };
 })(window.GDM = window.GDM || {});

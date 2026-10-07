@@ -439,6 +439,12 @@
 .rv-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .detail-tabs__panel[hidden] { display: none; }
 
+/* Progresso para portes grátis (drawer e carrinho) */
+.free-ship { display: flex; flex-direction: column; gap: 6px; }
+.free-ship__bar { height: 6px; border-radius: 3px; background: var(--cream-200); overflow: hidden; }
+.free-ship__fill { display: block; height: 100%; background: var(--gold-500); transition: width var(--dur-med) var(--ease-out); }
+.free-ship--done .free-ship__fill { background: var(--success-600); }
+
 .product-info__share { margin-top: 12px; }
 .product-info__share a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-700); text-decoration: underline; text-underline-offset: 3px; }
 .product-info__share svg { width: 18px; height: 18px; }

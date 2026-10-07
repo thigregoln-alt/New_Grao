@@ -68,7 +68,7 @@
         el('div', { class: 'order-summary__row' }, [el('span', { text: 'Subtotal (' + state.count + ' artigos)' }), el('span', { text: GDM.format.currency(state.subtotal) })]),
         el('div', { class: 'order-summary__row' }, [el('span', { text: 'Portes (envio normal CTT)' }), el('span', { text: ship.free ? 'Grátis' : GDM.format.currency(ship.cost) })]),
         el('div', { class: 'order-summary__row order-summary__row--total' }, [el('span', { text: 'Total estimado' }), el('span', { text: GDM.format.currency(ship.total) })]),
-        el('p', { class: 'field__hint', text: ship.free ? 'Tem portes grátis.' : 'Faltam ' + GDM.format.currency(ship.remaining) + ' para portes grátis.' }),
+        GDM.components.cartDrawer.freeShippingProgress(state.subtotal),
         el('div', { class: 'manual-pay-note' }, [
           (function () { const s = document.createElement('span'); s.innerHTML = GDM.icons.icon('shield'); return s; })(),
           el('p', { text: 'O pagamento não é feito no site — combinamos consigo diretamente pelo WhatsApp depois de recebermos a encomenda.' }),

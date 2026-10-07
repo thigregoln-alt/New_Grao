@@ -20,8 +20,8 @@
   function render(container) {
     container.innerHTML = '';
 
-    const nameField = GDM.formHelpers.field({ id: 'ct-name', label: 'Nome', required: true });
-    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, validate: function (v) {
+    const nameField = GDM.formHelpers.field({ id: 'ct-name', label: 'Nome', required: true, autocomplete: 'name' });
+    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email', validate: function (v) {
       return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.';
     }});
     const subjectField = GDM.formHelpers.field({ id: 'ct-subject', label: 'Assunto', required: true });

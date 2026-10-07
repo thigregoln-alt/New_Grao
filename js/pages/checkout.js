@@ -9,6 +9,20 @@
   const B = GDM.content.BRAND;
   GDM.pages = GDM.pages || {};
 
+  /* Código postal PT: aceita 1234-567 ou 1234567 (normalizado para 1234-567). */
+  function normalizePostal(value) {
+    const v = String(value || '').trim();
+    return /^\d{7}$/.test(v) ? v.slice(0, 4) + '-' + v.slice(4) : v;
+  }
+
+  /* Telemóvel: 9 dígitos começados por 9 ou 2 (Portugal), ou indicativo
+     internacional "+" seguido de 8 a 15 dígitos. Espaços, pontos, hífens e
+     parênteses são ignorados. */
+  function isValidPhone(value) {
+    const v = String(value || '').replace(/[\s().-]/g, '');
+    return /^[29]\d{8}$/.test(v) || /^\+\d{8,15}$/.test(v);
+  }
+
   function buildOrderId() {
     return 'GM-' + Date.now().toString(36).toUpperCase().slice(-6);
   }
@@ -96,9 +110,16 @@
 
     const nameField = GDM.formHelpers.field({ id: 'co-name', label: 'Nome completo', required: true, autocomplete: 'name' });
     const emailField = GDM.formHelpers.field({ id: 'co-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email', validate: function (v) { return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.'; } });
-    const phoneField = GDM.formHelpers.field({ id: 'co-phone', label: 'Telemóvel', type: 'tel', required: true, autocomplete: 'tel', hint: 'Se estiver fora de Portugal, inclua o indicativo do país.' });
+    const phoneField = GDM.formHelpers.field({ id: 'co-phone', label: 'Telemóvel', type: 'tel', required: true, autocomplete: 'tel', hint: 'Se estiver fora de Portugal, inclua o indicativo do país.', validate: function (v) {
+      return isValidPhone(v) ? '' : 'Indique 9 dígitos a começar por 9 ou 2, ou o número com indicativo (ex.: +351 912 345 678).';
+    } });
     const addressField = GDM.formHelpers.field({ id: 'co-address', label: 'Morada', required: true, autocomplete: 'street-address' });
-    const postalField = GDM.formHelpers.field({ id: 'co-postal', label: 'Código postal', required: true, autocomplete: 'postal-code' });
+    const postalField = GDM.formHelpers.field({ id: 'co-postal', label: 'Código postal', required: true, autocomplete: 'postal-code', placeholder: '1234-567', validate: function (v) {
+      return /^\d{4}-\d{3}$/.test(normalizePostal(v)) ? '' : 'Use o formato 1234-567.';
+    } });
+    postalField.__gdmInput.addEventListener('blur', function () {
+      postalField.__gdmInput.value = normalizePostal(postalField.__gdmInput.value);
+    });
     const cityField = GDM.formHelpers.field({ id: 'co-city', label: 'Localidade', required: true, autocomplete: 'address-level2' });
     const notesField = GDM.formHelpers.field({ id: 'co-notes', label: 'Notas para o ateliê (opcional)', as: 'textarea', maxLength: 400, placeholder: 'Alguma indicação especial para a sua encomenda?' });
 
@@ -148,7 +169,7 @@
         email: GDM.formHelpers.readValue(emailField),
         phone: GDM.formHelpers.readValue(phoneField),
         address: GDM.formHelpers.readValue(addressField),
-        postal: GDM.formHelpers.readValue(postalField),
+        postal: normalizePostal(GDM.formHelpers.readValue(postalField)),
         city: GDM.formHelpers.readValue(cityField),
         notes: GDM.formHelpers.readValue(notesField),
       };

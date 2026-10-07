@@ -36,10 +36,12 @@
     return node;
   }
 
-  /** Limpa texto de input de utilizador: remove tags, trima, limita comprimento. */
+  /** Limpa texto de input de utilizador: remove tags e caracteres de
+   *  controlo invisíveis (mantém tab e quebras de linha das textareas),
+   *  trima, limita comprimento. */
   function sanitizeInput(value, maxLength) {
     const asString = String(value ?? '');
-    const stripped = asString.replace(/<[^>]*>/g, '').trim();
+    const stripped = asString.replace(/<[^>]*>/g, '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();
     return maxLength ? stripped.slice(0, maxLength) : stripped;
   }
 

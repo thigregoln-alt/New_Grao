@@ -709,10 +709,15 @@ footer a:hover{color:var(--gold-300)}
 .footer-newsletter-mini .btn-pill-submit:hover{transform:translateY(-50%) translateX(2px);box-shadow:0 6px 18px rgba(196,149,63,.20)}
 .footer-newsletter-mini .newsletter-status{font-size:12px;line-height:1.4}
 
-@media(max-width:1023px){
+/* Só até 768px: sem o min-width, esta regra (mais abaixo no ficheiro) anulava
+   a coluna única do telemóvel e o texto da marca ficava com ~1 letra de largura. */
+@media(min-width:768px) and (max-width:1023px){
   .footer-cols{grid-template-columns:1.35fr .9fr .9fr 1fr;gap:36px}
 }
 @media(max-width:767px){
+  /* repete a coluna única do telemóvel: a grelha de 4 colunas definida
+     acima (sem media query) vinha depois da regra original e ganhava-lhe */
+  .footer-cols{grid-template-columns:1fr;gap:34px}
   .footer-main{padding-top:36px;padding-bottom:36px}
   .footer-newsletter-mini{margin-top:24px}
 }

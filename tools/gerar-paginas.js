@@ -392,24 +392,26 @@ function regenerateFeatured(html) {
 /* -------------------------------------------------------------------------
    sitemap.xml — sempre reconstruído de raiz (determinístico)
    ------------------------------------------------------------------------- */
-function buildSitemap() {
+/* Sem as variantes loja.html?categoria=… (o canonical delas é loja.html,
+   por isso eram URLs duplicados). <lastmod> = data em que o gerador
+   alterou essa página pela última vez: se a página não mudou, mantém a
+   data que já estava no sitemap (o resultado não muda entre execuções). */
+function buildSitemap(lastmodFor) {
   const lines = [];
+  const url = (file, freq, prio) => '  <url><loc>' + SITE_URL + '/' + (file === 'index.html' ? '' : file) + '</loc><lastmod>' + lastmodFor(file) + '</lastmod><changefreq>' + freq + '</changefreq><priority>' + prio + '</priority></url>';
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-  lines.push('  <url><loc>' + SITE_URL + '/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>');
-  lines.push('  <url><loc>' + SITE_URL + '/loja.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>');
-  CATEGORIES.forEach((c) => {
-    lines.push('  <url><loc>' + SITE_URL + '/loja.html?categoria=' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
-  });
+  lines.push(url('index.html', 'weekly', '1.0'));
+  lines.push(url('loja.html', 'weekly', '0.9'));
   PRODUCTS.forEach((p) => {
-    lines.push('  <url><loc>' + SITE_URL + '/produto-' + p.slug + '.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>');
+    lines.push(url('produto-' + p.slug + '.html', 'monthly', '0.6'));
   });
   ['inspiracao.html:monthly:0.5', 'projetos.html:monthly:0.5', 'sobre.html:monthly:0.6', 'contacto.html:monthly:0.6',
     'faq.html:monthly:0.5', 'envios.html:monthly:0.5', 'trocas.html:monthly:0.5', 'avaliacoes.html:weekly:0.5',
     'privacidade.html:yearly:0.3', 'termos.html:yearly:0.3']
     .forEach((entry) => {
       const [file, freq, prio] = entry.split(':');
-      lines.push('  <url><loc>' + SITE_URL + '/' + file + '</loc><changefreq>' + freq + '</changefreq><priority>' + prio + '</priority></url>');
+      lines.push(url(file, freq, prio));
     });
   lines.push('</urlset>');
   lines.push('');
@@ -681,9 +683,11 @@ function regenerateChrome(html, file) {
 function main() {
   let createdCount = 0, changedCount = 0, unchangedCount = 0;
 
+  const changedFiles = new Set();
   function writeIfChanged(filePath, before, after) {
     if (before !== after) {
       fs.writeFileSync(filePath, after, 'utf8');
+      changedFiles.add(path.basename(filePath));
       if (before !== null) changedCount++;
     } else {
       unchangedCount++;
@@ -746,7 +750,16 @@ function main() {
   writeIfChanged(robotsPath, readText(robotsPath), 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
   const sitemapPath = rp('sitemap.xml');
-  writeIfChanged(sitemapPath, readText(sitemapPath), buildSitemap());
+  const sitemapBefore = readText(sitemapPath);
+  const previousLastmod = {};
+  for (const m of sitemapBefore.matchAll(/<loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod>/g)) previousLastmod[m[1]] = m[2];
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const lastmodFor = (file) => {
+    const loc = SITE_URL + '/' + (file === 'index.html' ? '' : file);
+    return changedFiles.has(file) || !previousLastmod[loc] ? today : previousLastmod[loc];
+  };
+  writeIfChanged(sitemapPath, sitemapBefore, buildSitemap(lastmodFor));
 
   console.log('');
   console.log('Concluído: ' + createdCount + ' página(s) criadas, ' + changedCount + ' ficheiro(s) alterados, ' + unchangedCount + ' sem alterações.');

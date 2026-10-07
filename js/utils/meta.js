@@ -38,7 +38,11 @@
   }
 
   /** Atualiza title, description, canonical, Open Graph e Twitter Card para
-   *  a rota atual. opts: { title, description, path, image, type } */
+   *  a rota atual. opts: { title, description, path, image, type }
+   *  ATENÇÃO — DESATUALIZADO: vem do tempo do router por hash e constrói o
+   *  canonical como <domínio>/#<caminho>, que já não corresponde a nenhuma
+   *  página real. Nenhuma página o chama hoje (as meta tags e o JSON-LD são
+   *  escritos no HTML por tools/gerar-paginas.js). Não usar sem o corrigir. */
   function set(opts) {
     opts = opts || {};
     const title = opts.title ? opts.title + ' · ' + SITE_NAME : SITE_NAME;

@@ -172,16 +172,18 @@ segurança, fica como trabalho futuro.
   total apresentado continua a ser recalculado a partir do catálogo atual.
 - **Favoritos**: lista de IDs em `localStorage`, filtrada contra o catálogo
   atual (um ID que já não exista é ignorado).
-- **Avaliações**: `GDM.content.REVIEWS` e `GDM.content.TESTIMONIALS`
-  (`js/data/content.js`) começam **vazios de propósito** — o site ainda não
-  está publicado e não devem existir avaliações/testemunhos de demonstração
-  apresentados como reais. A página `/avaliacoes` e a secção de testemunhos
-  da Início mostram um estado vazio honesto enquanto estes arrays estiverem
-  vazios; um comentário em `content.js`, junto de cada array, explica o
-  formato para o ateliê acrescentar avaliações reais mais tarde. Avaliações
-  novas escritas pelo visitante ficam guardadas em `localStorage` neste
-  dispositivo e aparecem combinadas com as da semente. Não são partilhadas
-  entre visitantes/dispositivos (não há servidor a agregá-las).
+- **Avaliações**: guardadas no **Supabase** (base de dados partilhada,
+  região UE) — qualquer visitante deixa uma avaliação, ela fica
+  **pendente** até o ateliê a aprovar no painel do Supabase, e a partir daí
+  aparece para todos (página de avaliações, ficha de produto, estrelas nos
+  cartões, testemunhos da Início). A segurança está na própria base de dados
+  (Row Level Security + permissões por coluna, `tools/supabase-avaliacoes.sql`):
+  a chave pública do site só lê avaliações aprovadas e só cria pendentes.
+  Pedidos com `fetch()` direto à API REST, sem SDK (`js/state/reviews.js`);
+  vistas e formulário em `js/pages/reviews.js`. Com `js/data/reviewsConfig.js`
+  por preencher, o site mostra "As avaliações estão a chegar em breve".
+  Nunca há avaliações inventadas. Guia completo: `docs/AVALIACOES.md`.
+  `GDM.content.TESTIMONIALS` continua vazio de propósito.
 - **Newsletter**: valida o formato do e-mail e guarda localmente que este
   dispositivo já subscreveu — não existe envio real de e-mails de boas-vindas
   nem lista de contactos centralizada (ver secção 4).
@@ -223,9 +225,6 @@ chegar, seria necessário construir (fora do âmbito deste projeto estático):
 - **Gestão de stock em tempo real partilhada.** O stock no catálogo é um
   número fixo no código; cada visitante vê o mesmo valor, mas comprar não o
   decrementa para os outros visitantes (não há servidor a coordenar isso).
-- **Avaliações partilhadas entre visitantes.** Como não há backend, uma
-  avaliação escrita por uma pessoa só é visível no browser dela — não
-  aparece para outros visitantes do site.
 - **Fotografia real de produto.** Todas as imagens de produto são
   composições SVG geradas (`js/data/categoryArt.js`), com direção de arte
   cuidada (gradiente por categoria, ícone ilustrado, motivo botânico de
@@ -267,15 +266,11 @@ ao ateliê no resumo da encomenda.
 
 ## 6a. SEO, dados estruturados e conformidade legal (ronda de Prioridade 1, 2026-09-03)
 
-- **Avaliações honestas em todo o site.** `GDM.reviews.summaryFor(productId)`
-  (`js/state/reviews.js`) calcula a nota média e a contagem reais a partir de
-  `GDM.content.REVIEWS` (semente) + avaliações escritas neste dispositivo —
-  nunca de números inventados. Os campos fictícios `rating`/`reviews` foram
-  **removidos** de `js/data/products.js`. `GDM.components.ratingBlock`
-  (`js/components/ui.js`) devolve `null` quando não há avaliações reais, e o
-  cartão de produto, a ficha de produto e "também vai gostar" usam sempre
-  `summaryFor` — nunca mostram um selo de nota até existir pelo menos 1
-  avaliação real. A ordenação "Melhor avaliação" na loja segue a mesma regra.
+- **Avaliações honestas em todo o site.** Médias e contagens vêm só de
+  avaliações reais aprovadas (vista `resumo_avaliacoes` no Supabase); sem
+  avaliações, nenhum selo de nota aparece. `aggregateRating`/`review` no
+  JSON-LD só são escritos por `node tools/gerar-paginas.js --com-avaliacoes`,
+  a partir das avaliações aprovadas (ver `docs/AVALIACOES.md`).
 - **Meta tags por página, já pré-renderizadas**: title, description,
   `<link rel="canonical">`, Open Graph, Twitter Card e JSON-LD
   (`Product`+`BreadcrumbList` na ficha de produto, `Organization` na

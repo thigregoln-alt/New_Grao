@@ -35,9 +35,9 @@
     media.innerHTML = GDM.categoryArt.productArt(item.product);
 
     const stepper = el('div', { class: 'qty-stepper', style: 'margin-top:6px' });
-    const minus = el('button', { type: 'button', 'aria-label': 'Diminuir quantidade' }, [document.createTextNode('−')]);
-    const input = el('input', { type: 'number', min: '1', max: String(item.product.stock), value: String(item.qty), 'aria-label': 'Quantidade' });
-    const plus = el('button', { type: 'button', 'aria-label': 'Aumentar quantidade' }, [document.createTextNode('+')]);
+    const minus = el('button', { type: 'button', 'aria-label': 'Diminuir quantidade', 'data-ctl': 'minus' }, [document.createTextNode('−')]);
+    const input = el('input', { type: 'number', min: '1', max: String(item.product.stock), value: String(item.qty), 'aria-label': 'Quantidade', 'data-ctl': 'qty' });
+    const plus = el('button', { type: 'button', 'aria-label': 'Aumentar quantidade', 'data-ctl': 'plus' }, [document.createTextNode('+')]);
     minus.addEventListener('click', function () { GDM.cart.updateQty(item.key, Math.max(1, item.qty - 1)); });
     plus.addEventListener('click', function () { GDM.cart.updateQty(item.key, Math.min(item.product.stock, item.qty + 1)); });
     input.addEventListener('change', function () {
@@ -46,13 +46,13 @@
     });
     stepper.appendChild(minus); stepper.appendChild(input); stepper.appendChild(plus);
 
-    const removeBtn = el('button', { class: 'cart-line__remove', type: 'button', text: 'Remover' });
+    const removeBtn = el('button', { class: 'cart-line__remove', type: 'button', text: 'Remover', 'data-ctl': 'remove' });
     removeBtn.addEventListener('click', function () {
       GDM.cart.removeItem(item.key);
       GDM.components.toast.show('Artigo removido do carrinho.', 'info');
     });
 
-    return el('div', { class: 'cart-line' }, [
+    return el('div', { class: 'cart-line', 'data-key': item.key }, [
       media,
       el('div', { class: 'stack', style: 'gap:4px' }, [
         el('p', { class: 'cart-line__title', text: item.product.name }),
@@ -65,8 +65,37 @@
     ]);
   }
 
+  /* Re-renderizar apaga o controlo que tinha o foco (ex.: o "+" da
+     quantidade). Guardamos qual era — linha e controlo — para o devolver
+     ao equivalente na nova marcação; se a linha desapareceu, o foco vai
+     para a linha seguinte ou para o botão de fechar. */
+  function focusedControl() {
+    const active = document.activeElement;
+    if (!active || !panelEl.contains(active)) return null;
+    const line = active.closest('.cart-line');
+    if (!line || !active.getAttribute('data-ctl')) return null;
+    const lines = Array.prototype.slice.call(itemsEl.querySelectorAll('.cart-line'));
+    return { key: line.getAttribute('data-key'), ctl: active.getAttribute('data-ctl'), index: lines.indexOf(line) };
+  }
+
+  function restoreFocus(saved) {
+    if (!saved) return;
+    const lines = itemsEl.querySelectorAll('.cart-line');
+    let target = null;
+    lines.forEach(function (line) {
+      if (line.getAttribute('data-key') === saved.key) target = line.querySelector('[data-ctl="' + saved.ctl + '"]');
+    });
+    if (!target && lines.length) {
+      const next = lines[Math.min(saved.index, lines.length - 1)];
+      target = next.querySelector('[data-ctl="remove"]');
+    }
+    if (!target) target = panelEl.querySelector('.icon-btn');
+    if (target) target.focus();
+  }
+
   function renderContents(state) {
     state = state || GDM.cart.getState();
+    const saved = focusedControl();
     itemsEl.innerHTML = '';
     footEl.innerHTML = '';
     if (!state.items.length) {
@@ -75,6 +104,7 @@
       empty.appendChild(el('p', { text: 'O seu carrinho está vazio.' }));
       empty.appendChild(el('a', { class: 'btn btn--dark', href: '#/loja', text: 'Ver a loja' }));
       itemsEl.appendChild(empty);
+      restoreFocus(saved);
       return;
     }
     state.items.forEach(function (item) { itemsEl.appendChild(cartLine(item)); });
@@ -86,6 +116,7 @@
     footEl.appendChild(el('p', { class: 'field__hint', text: ship.free ? 'Tem portes grátis.' : 'Faltam ' + GDM.format.currency(ship.remaining) + ' para portes grátis.' }));
     footEl.appendChild(el('a', { class: 'btn btn--primary btn--block', href: '#/checkout', text: 'Finalizar encomenda', onclick: close }));
     footEl.appendChild(el('a', { class: 'btn btn--ghost btn--block', href: '#/carrinho', text: 'Ver carrinho completo', onclick: close }));
+    restoreFocus(saved);
   }
 
   function open(trigger) {

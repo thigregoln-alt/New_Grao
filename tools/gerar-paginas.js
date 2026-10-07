@@ -43,6 +43,13 @@ const PRODUCTS = GDM.catalog.PRODUCTS;
 const CATEGORIES = GDM.catalog.CATEGORIES;
 const SITE_URL = GDM.content.BRAND.siteUrl;
 
+/* Lê um ficheiro de texto com as quebras de linha normalizadas para \n
+   (no Windows o git pode ter feito checkout com \r\n). Os ficheiros
+   escritos pelo gerador ficam sempre com \n — o git normaliza na mesma. */
+function readText(filePath) {
+  return fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
+}
+
 function escAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -277,7 +284,7 @@ function regenerateProductPage(product, existingHtml) {
 function buildNewProductPage(product, donorSlug) {
   const donorPath = buildProductPagePath(donorSlug);
   if (!fs.existsSync(donorPath)) throw new Error('molde "' + donorSlug + '" não encontrado para criar página nova.');
-  const donorHtml = fs.readFileSync(donorPath, 'utf8');
+  const donorHtml = readText(donorPath);
   const donorProduct = GDM.catalog.getBySlug(donorSlug);
   let html = regenerateProductPage(donorProduct, donorHtml); // normaliza o molde primeiro
   html = regenerateProductPage(product, html); // depois aplica os dados do produto novo (troca tudo)
@@ -452,19 +459,30 @@ function replaceHostContent(html, hostId, inner) {
   return html.slice(0, start) + open + inner + '</div>' + html.slice(end);
 }
 
-/* Bloco de recursos do <head> (ícone, preload das fontes, CSS): reescrito
-   sempre de raiz entre o <link rel="icon"> e o último <link rel="stylesheet">. */
-function headAssets() {
+/* Bloco de recursos do <head> (ícone, preload das fontes, CSS, scripts):
+   reescrito sempre de raiz entre o <link rel="icon"> e o último
+   <link rel="stylesheet">. Os scripts vão para o <head> com defer — a ordem
+   mantém-se e só correm depois de o HTML estar todo lido, sem bloquear a
+   renderização. Cada página mantém a sua própria lista de scripts. */
+function headAssets(scripts) {
   return [
     '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
     // só a fonte do corpo e a dos títulos (subconjunto latin) — as -ext só
     // descarregam se a página tiver caracteres fora do latin básico
     '<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>',
-  ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=9">')).join('\n');
+  ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=9">'))
+    .concat(scripts.map((src) => '<script src="' + src + '?v=3" defer></script>'))
+    .join('\n');
 }
 
 function regenerateChrome(html, file) {
+  // recolhe os <script src="js/…"> (no fim do <body> ou já no <head>) pela ordem atual
+  const scripts = [];
+  html = html.replace(/<script src="(js\/[^"?]+)(?:\?[^"]*)?"(?: defer)?><\/script>\n?/g, function (_m, src) {
+    scripts.push(src);
+    return '';
+  });
   const currentFile = /^produto-/.test(file) ? '' : file;
   html = replaceHostContent(html, 'header-host', headerHtml(currentFile));
   html = replaceHostContent(html, 'footer-host', footerHtml(currentFile));
@@ -473,8 +491,9 @@ function regenerateChrome(html, file) {
   const lastCss = html.lastIndexOf('<link rel="stylesheet"');
   if (assetsStart !== -1 && lastCss !== -1) {
     const assetsEnd = html.indexOf('>', lastCss) + 1;
-    html = html.slice(0, assetsStart) + headAssets() + html.slice(assetsEnd);
+    html = html.slice(0, assetsStart) + headAssets(scripts) + html.slice(assetsEnd);
   }
+  html = html.replace(/\n+<\/head>/, '\n</head>').replace(/\n+<\/body>/, '\n</body>');
   // <main> sem aria-live: anunciava a página inteira a cada alteração. As
   // regiões vivas certas são o toast e os role="status" de cada formulário.
   html = html.replace(/<main id="app" tabindex="-1" aria-live="polite">/, '<main id="app" tabindex="-1">');
@@ -505,7 +524,7 @@ function main() {
     let before = null;
     let after;
     if (fs.existsSync(filePath)) {
-      before = fs.readFileSync(filePath, 'utf8');
+      before = readText(filePath);
       after = regenerateProductPage(product, before);
     } else {
       const donorSlug = existingSlugs.find((s) => GDM.catalog.getBySlug(s) && GDM.catalog.getBySlug(s).category === product.category) || existingSlugs[0];
@@ -526,7 +545,7 @@ function main() {
     .sort()
     .forEach((file) => {
       const filePath = rp(file);
-      const before = fs.readFileSync(filePath, 'utf8');
+      const before = readText(filePath);
       let after = before;
       if (file === 'loja.html') after = regenerateShop(after);
       if (file === 'index.html') after = regenerateFeatured(after);
@@ -534,7 +553,7 @@ function main() {
     });
 
   const sitemapPath = rp('sitemap.xml');
-  writeIfChanged(sitemapPath, fs.readFileSync(sitemapPath, 'utf8'), buildSitemap());
+  writeIfChanged(sitemapPath, readText(sitemapPath), buildSitemap());
 
   console.log('');
   console.log('Concluído: ' + createdCount + ' página(s) de produto criadas, ' + changedCount + ' ficheiro(s) alterados, ' + unchangedCount + ' sem alterações.');

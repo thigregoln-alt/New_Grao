@@ -439,6 +439,10 @@
 .rv-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .detail-tabs__panel[hidden] { display: none; }
 
+.product-info__share { margin-top: 12px; }
+.product-info__share a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-700); text-decoration: underline; text-underline-offset: 3px; }
+.product-info__share svg { width: 18px; height: 18px; }
+
 /* Barra fixa "Adicionar ao carrinho" (ficha de produto, só telemóvel) */
 .sticky-buy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--surface-page); border-top: 1px solid var(--border-soft); box-shadow: 0 -8px 24px rgba(43, 24, 16, 0.08); }
 .sticky-buy[hidden] { display: none; }

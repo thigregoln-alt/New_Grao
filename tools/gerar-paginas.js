@@ -342,6 +342,18 @@ function regenerateProductPage(product, existingHtml) {
   html = html.replace(/<a class="btn btn--whatsapp" href="[^"]*"( target="_blank" rel="noopener">[\s\S]*?<span>Perguntar no WhatsApp<\/span><\/a>)/,
     (_m, rest) => '<a class="btn btn--whatsapp" href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(askText)) + '"' + rest);
 
+  // "Partilhar no WhatsApp": link discreto por baixo dos botões
+  const share = '<p class="product-info__share"><a href="' + escAttr('https://wa.me/?text=' + encodeURIComponent(product.name + ' — ' + canonical)) + '" target="_blank" rel="noopener">' + icon('whatsapp') + '<span>Partilhar no WhatsApp</span></a></p>';
+  if (html.indexOf('class="product-info__share"') !== -1) {
+    html = html.replace(/<p class="product-info__share">[\s\S]*?<\/p>/, share);
+  } else {
+    const actionsStart = html.indexOf('<div class="product-info__actions">');
+    if (actionsStart !== -1) {
+      const actionsEnd = findBlockEnd(html, actionsStart, 'div');
+      html = html.slice(0, actionsEnd) + share + html.slice(actionsEnd);
+    }
+  }
+
   // galeria (imagem principal + 3 miniaturas) — sempre reescrita de raiz
   html = regenerateGallery(html, product);
 

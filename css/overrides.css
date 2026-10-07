@@ -2272,3 +2272,19 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
   .category-card__label{min-height:78px;}
 }
 
+
+/* ---------------------------------------------------------------------
+   Movimento reduzido — tem de ficar no FIM do ficheiro: várias regras
+   acima declaram transition com !important e um seletor mais específico
+   do que o * do bloco geral, por isso o drawer do carrinho e alguns campos
+   continuavam a animar com prefers-reduced-motion: reduce.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer,
+  .cart-drawer__scrim,
+  .cart-drawer__panel,
+  .filter-pill,
+  .product-card__media img,
+  input, textarea, select,
+  .shop-toolbar input { transition: none !important; }
+}

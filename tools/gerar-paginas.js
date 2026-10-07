@@ -337,6 +337,11 @@ function regenerateProductPage(product, existingHtml) {
   html = html.replace(/<p class="product-info__desc">[^<]*<\/p>/, '<p class="product-info__desc">' + escText(product.description) + '</p>');
   html = html.replace(/(<input type="number" min="1" max=")\d+("[^>]*>)/, '$1' + product.stock + '$2');
 
+  // "Perguntar no WhatsApp": conversa com o ateliê já com o produto na mensagem
+  const askText = 'Olá! Tenho uma pergunta sobre: ' + product.name + ' — ' + canonical;
+  html = html.replace(/<a class="btn btn--whatsapp" href="[^"]*"( target="_blank" rel="noopener">[\s\S]*?<span>Perguntar no WhatsApp<\/span><\/a>)/,
+    (_m, rest) => '<a class="btn btn--whatsapp" href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(askText)) + '"' + rest);
+
   // galeria (imagem principal + 3 miniaturas) — sempre reescrita de raiz
   html = regenerateGallery(html, product);
 

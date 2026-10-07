@@ -331,6 +331,17 @@ ao ateliê no resumo da encomenda.
   Plausible, pixel do Meta/Instagram) antes de o injetar no DOM; hoje o
   site não carrega nenhum script de terceiros, por
   isso esta função ainda não é chamada em lado nenhum além do próprio banner.
+- **Hoje o site não usa nada que exija consentimento.** Com as fontes
+  alojadas no próprio site (`assets/fonts/`, antes vinham do Google
+  Fonts), a fotografia do rodapé também local (antes vinha do Unsplash) e
+  sem analytics nem pixels, nenhum pedido sai para terceiros ao abrir uma
+  página — a Content-Security-Policy (`default-src 'self'`) garante-o. O
+  `localStorage` usado (carrinho, favoritos, newsletter, escolha de
+  cookies) é estritamente necessário ao que o visitante pede. O banner e o
+  `GDM.consent` ficam como estão, prontos para o dia em que se acrescente
+  algo não essencial. Exceção futura: o pedido à API do Supabase para ler
+  avaliações (secção de avaliações, `docs/AVALIACOES.md`) é funcional — o
+  conteúdo que o visitante abriu — e não grava nada no browser.
 
 ## 6b. Acessibilidade e movimento
 

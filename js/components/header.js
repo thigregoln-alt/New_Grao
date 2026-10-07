@@ -23,7 +23,7 @@
     { path: '/contacto', label: 'Contacto' },
   ];
 
-  let favBadge, cartBadge, mobileNavEl, searchPanel, releaseFocus, searchReleaseFocus;
+  let favBadge, cartBadge, mobileNavEl, searchPanel, releaseFocus, searchReleaseFocus, searchTrigger;
 
   function navList(extraClass) {
     const ul = el('ul', { class: extraClass || '' });
@@ -83,6 +83,7 @@
        antes de transferi-lo para o overlay, evitando dois estados
        visuais de foco ao mesmo tempo. */
     const active = document.activeElement;
+    searchTrigger = active;
     if (active && active !== document.body && typeof active.blur === 'function') active.blur();
     document.querySelectorAll('.shop-sort-dropdown[data-open=\"true\"]').forEach(function (node) {
       node.setAttribute('data-open', 'false');
@@ -91,6 +92,7 @@
     });
 
     searchPanel.setAttribute('data-open', 'true');
+    GDM.components.setBackgroundInert(searchPanel, true);
     document.body.style.overflow = 'hidden';
     searchReleaseFocus = GDM.components.trapFocus(searchPanel);
     const input = searchPanel.querySelector('input');
@@ -101,8 +103,11 @@
   function closeSearch() {
     if (!searchPanel || searchPanel.getAttribute('data-open') !== 'true') return;
     searchPanel.setAttribute('data-open', 'false');
+    GDM.components.setBackgroundInert(searchPanel, false);
     document.body.style.overflow = '';
     if (searchReleaseFocus) searchReleaseFocus();
+    // devolve o foco a quem abriu a pesquisa (como o drawer e o menu já faziam)
+    if (searchTrigger && searchTrigger !== document.body && searchTrigger.focus) searchTrigger.focus();
   }
 
   /* A marcação do cabeçalho e do menu mobile já vem no HTML de cada página
@@ -215,6 +220,7 @@
   function openMobileNav(trigger) {
     lastNavTrigger = trigger;
     mobileNavEl.setAttribute('data-open', 'true');
+    GDM.components.setBackgroundInert(mobileNavEl, true);
     trigger.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     releaseFocus = GDM.components.trapFocus(mobileNavEl);
@@ -223,6 +229,7 @@
   function closeMobileNav() {
     if (!mobileNavEl || mobileNavEl.getAttribute('data-open') !== 'true') return;
     mobileNavEl.setAttribute('data-open', 'false');
+    GDM.components.setBackgroundInert(mobileNavEl, false);
     document.body.style.overflow = '';
     if (releaseFocus) releaseFocus();
     if (lastNavTrigger) { lastNavTrigger.setAttribute('aria-expanded', 'false'); lastNavTrigger.focus(); }

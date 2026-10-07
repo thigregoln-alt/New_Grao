@@ -73,6 +73,21 @@
     return function () { container.removeEventListener('keydown', handler); };
   }
 
+  /** Põe (ou tira) inert em tudo o que está por trás de um diálogo aberto
+   *  (#header-host, #app, #footer-host): leitores de ecrã e Tab deixam de
+   *  chegar lá. O menu mobile e a pesquisa vivem dentro de #header-host, por
+   *  isso aí só os irmãos que não contêm o diálogo ficam inertes. */
+  function setBackgroundInert(dialogEl, on) {
+    ['header-host', 'app', 'footer-host'].forEach(function (id) {
+      const host = document.getElementById(id);
+      if (!host) return;
+      const targets = host.contains(dialogEl)
+        ? Array.prototype.filter.call(host.children, function (child) { return !child.contains(dialogEl); })
+        : [host];
+      targets.forEach(function (node) { node.toggleAttribute('inert', !!on); });
+    });
+  }
+
   function updateActiveNav(path) {
     document.querySelectorAll('[data-route-link]').forEach(function (link) {
       const target = link.getAttribute('href').replace(/^#/, '');
@@ -266,6 +281,7 @@
   GDM.components.ratingBlock = ratingBlock;
   GDM.components.buildAccordion = buildAccordion;
   GDM.components.trapFocus = trapFocus;
+  GDM.components.setBackgroundInert = setBackgroundInert;
   GDM.components.updateActiveNav = updateActiveNav;
   GDM.components.closeAllOverlays = closeAllOverlays;
   GDM.components.initScrollReveal = initScrollReveal;

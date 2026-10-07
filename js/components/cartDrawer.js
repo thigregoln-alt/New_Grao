@@ -132,6 +132,7 @@
     if (active && active !== document.body && typeof active.blur === 'function') active.blur();
 
     rootEl.setAttribute('data-open', 'true');
+    GDM.components.setBackgroundInert(rootEl, true);
     document.body.classList.add('cart-open');
     document.body.style.overflow = 'hidden';
     releaseFocus = GDM.components.trapFocus(panelEl);
@@ -142,6 +143,7 @@
   function close() {
     if (!rootEl || rootEl.getAttribute('data-open') !== 'true') return;
     rootEl.setAttribute('data-open', 'false');
+    GDM.components.setBackgroundInert(rootEl, false);
     document.body.classList.remove('cart-open');
     document.body.style.overflow = '';
     if (releaseFocus) releaseFocus();

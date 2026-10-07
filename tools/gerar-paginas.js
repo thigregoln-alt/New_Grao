@@ -533,6 +533,37 @@ function regenerateHeroLogo(html) {
   return html.slice(0, start) + open + img + '</div>' + html.slice(end);
 }
 
+/* 404.html — o GitHub Pages serve-a sozinho para qualquer endereço que não
+   exista. Criada uma vez a partir de envios.html (cabeçalho, rodapé e
+   scripts vêm do molde comum); depois disso só o molde é reaplicado.
+   Nota: os caminhos são relativos, por isso só fica com estilos em
+   endereços inexistentes ao nível da raiz (ex.: /pagina-antiga.html). */
+function buildNotFoundPage() {
+  let html = readText(rp('envios.html'));
+  const title = 'Página não encontrada · Grão de Mostarda Personalizados';
+  const desc = 'Esta página não existe ou mudou de endereço.';
+  html = html.replace(/<title>[^<]*<\/title>/, '<title>' + title + '</title>')
+    .replace(/<link rel="canonical" href="[^"]*">\n/, '')
+    .replace(/<meta property="og:url" content="[^"]*">\n/, '')
+    .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + desc + '">')
+    .replace(/<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="' + title + '">')
+    .replace(/<meta property="og:description" content="[^"]*">/, '<meta property="og:description" content="' + desc + '">')
+    .replace(/<meta name="twitter:title" content="[^"]*">/, '<meta name="twitter:title" content="' + title + '">')
+    .replace(/<meta name="twitter:description" content="[^"]*">/, '<meta name="twitter:description" content="' + desc + '">')
+    .replace(/<body data-gdm-page="[^"]*">/, '<body data-gdm-page="/404">');
+  const main = '<main id="app" tabindex="-1">' +
+    '<div class="page-hero"><div class="container stack" style="gap:10px;align-items:center"><p class="eyebrow">Erro 404</p><h1>Página não encontrada</h1>' +
+    '<p style="max-width:60ch;margin-inline:auto;color:var(--ink-700)">O endereço pode ter mudado ou já não existir. Experimente pesquisar ou seguir para a loja.</p></div></div>' +
+    '<section class="section section--tight"><div class="container stack" style="gap:20px;align-items:center">' +
+      '<div style="width:100%;max-width:420px"><form class="search-box" role="search" action="loja.html" method="get"><span aria-hidden="true">' + icon('search') + '</span>' +
+        '<input type="search" name="pesquisa" placeholder="Pesquisar por nome, categoria…" aria-label="Pesquisar produtos"></form></div>' +
+      '<div class="cluster" style="gap:12px;justify-content:center"><a class="btn btn--primary" href="loja.html">Ir para a Loja</a><a class="btn btn--outline" href="index.html">Voltar ao início</a></div>' +
+    '</div></section></main>';
+  const mStart = html.indexOf('<main id="app"');
+  const mEnd = html.indexOf('</main>', mStart) + '</main>'.length;
+  return html.slice(0, mStart) + main + html.slice(mEnd);
+}
+
 /* Reescreve um bloco <script type="application/ld+json" id="ld-<id>"> (dados
    estruturados), sempre a partir de SITE_URL e dos dados do site. */
 function setJsonLd(html, id, obj) {
@@ -684,7 +715,12 @@ function main() {
     warn('página "produto-' + s + '.html" existe mas o produto já não está em products.js — não foi apagada, revê manualmente.');
   });
 
-  // restantes páginas da raiz (loja, início, institucionais, legais, admin…)
+  if (!fs.existsSync(rp('404.html'))) {
+    fs.writeFileSync(rp('404.html'), buildNotFoundPage(), 'utf8');
+    createdCount++;
+  }
+
+  // restantes páginas da raiz (loja, início, institucionais, legais, admin, 404…)
   fs.readdirSync(ROOT)
     .filter((f) => /\.html$/.test(f) && !/^produto-/.test(f))
     .sort()
@@ -713,7 +749,7 @@ function main() {
   writeIfChanged(sitemapPath, readText(sitemapPath), buildSitemap());
 
   console.log('');
-  console.log('Concluído: ' + createdCount + ' página(s) de produto criadas, ' + changedCount + ' ficheiro(s) alterados, ' + unchangedCount + ' sem alterações.');
+  console.log('Concluído: ' + createdCount + ' página(s) criadas, ' + changedCount + ' ficheiro(s) alterados, ' + unchangedCount + ' sem alterações.');
   if (warnings.length) console.log(warnings.length + ' aviso(s) — ver acima.');
 }
 

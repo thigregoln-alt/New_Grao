@@ -20,6 +20,20 @@
     });
   }
 
+  /* Links "#/…" criados depois do arranque (listas re-renderizadas ao
+     filtrar, drawer, avaliações…) não passam por rewriteLinks. Um único
+     listener delegado corrige o href no próprio link antes de o browser o
+     seguir — assim o clique normal, Ctrl/Cmd+clique, o clique do meio e o
+     URL mostrado ao passar o rato/focar funcionam todos. */
+  function fixLinkOnInteraction(e) {
+    var target = e.target;
+    var a = target && target.closest ? target.closest('a[href^="#/"]') : null;
+    if (a) a.setAttribute('href', routeToFile(a.getAttribute('href')));
+  }
+  ['mousedown', 'click', 'mouseover', 'focusin'].forEach(function (type) {
+    document.addEventListener(type, fixLinkOnInteraction, true);
+  });
+
   function markActive() {
     var page = document.body.getAttribute('data-gdm-page') || '/';
     var normalized = page === 'produto' ? '' : page;

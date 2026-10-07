@@ -11,8 +11,10 @@
 
   /** variant 'band' = formulário largo (secção de topo), 'pill' = campo compacto
    *  embutido na coluna "Fica a Par". Ambas as instâncias partilham o mesmo
-   *  estado (GDM.newsletter) e sincronizam-se uma à outra via GDM.bus. */
-  function newsletterForm(idPrefix, variant) {
+   *  estado (GDM.newsletter) e sincronizam-se uma à outra via GDM.bus.
+   *  buildNewsletterForm só cria a marcação; wireNewsletterForm liga os
+   *  eventos (também à marcação que já vem no HTML estático). */
+  function buildNewsletterForm(idPrefix, variant) {
     variant = variant === 'pill' ? 'pill' : 'band';
     const input = el('input', { type: 'email', name: 'email', id: idPrefix + '-email', placeholder: 'o.seu@email.com', 'aria-label': 'O seu e-mail', required: true, autocomplete: 'email' });
     const status = el('p', { class: 'newsletter-status', role: 'status' });
@@ -26,6 +28,20 @@
       ]),
       btn,
     ]);
+    const privacy = el('p', { class: 'newsletter-privacy' }, [
+      'Ao subscrever aceita a ',
+      el('a', { href: '#/privacidade', 'data-route-link': '', text: 'Política de Privacidade' }),
+      '.',
+    ]);
+    return el('div', { class: variant === 'pill' ? 'newsletter-pill-wrap' : '' }, [form, status, privacy]);
+  }
+
+  function wireNewsletterForm(wrap) {
+    const form = wrap.querySelector('form');
+    const variant = form.classList.contains('newsletter-form--pill') ? 'pill' : 'band';
+    const input = form.querySelector('input[type="email"]');
+    const btn = form.querySelector('button[type="submit"]');
+    const status = wrap.querySelector('.newsletter-status');
 
     function showSubscribed(record) {
       input.value = record.email;
@@ -53,7 +69,8 @@
       const result = GDM.newsletter.subscribe(input.value);
       if (result.ok) {
         showSubscribed(result.record);
-        GDM.components.toast.show('Inscrição na newsletter confirmada.', 'success');
+        // honesto: ainda não há serviço de envio ligado (o e-mail fica só neste browser)
+        GDM.components.toast.show('Obrigado! Avisamos assim que a newsletter arrancar.', 'success');
       } else {
         status.className = 'newsletter-status newsletter-status--error';
         status.textContent = result.error;
@@ -64,8 +81,12 @@
     GDM.bus.on('newsletter:change', function (record) {
       if (record) showSubscribed(record); else showUnsubscribed();
     });
+  }
 
-    return el('div', { class: variant === 'pill' ? 'newsletter-pill-wrap' : '' }, [form, status]);
+  function newsletterForm(idPrefix, variant) {
+    const wrap = buildNewsletterForm(idPrefix, variant);
+    wireNewsletterForm(wrap);
+    return wrap;
   }
 
   function col(title, links) {
@@ -91,21 +112,22 @@
       el('div', { class: 'footer-newsletter-mini' }, [
         newsletterTitle,
         newsletterCopy,
-        newsletterForm('footer', 'pill'),
+        buildNewsletterForm('footer', 'pill'),
       ]),
     ]);
   }
 
-  function mount(root) {
+  /* A marcação do rodapé já vem no HTML de cada página (escrita por
+     tools/gerar-paginas.js — manter as duas versões iguais). buildFooter só
+     corre como fallback, se uma página não a trouxer; em ambos os casos os
+     eventos são ligados por hydrate(). */
+  function buildFooter() {
     const footerVisual = el('div', { class: 'footer-visual' }, [
       el('div', { class: 'container footer-visual__inner' }, [
         el('p', { class: 'footer-visual__kicker', text: 'GRÃO DE MOSTARDA  /  PORTUGAL  /  2026' }),
         el('button', { class: 'footer-visual__top', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
       ]),
     ]);
-    footerVisual.querySelector('.footer-visual__top').addEventListener('click', function () {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
 
     const social = el('div', { class: 'social-row' }, [
       (function () { const a = el('a', { class: 'social-row__link social-row__link--whatsapp', href: 'https://wa.me/' + B.whatsapp, target: '_blank', rel: 'noopener', 'aria-label': 'WhatsApp' }); a.innerHTML = GDM.icons.icon('whatsapp'); return a; })(),
@@ -116,13 +138,7 @@
     const brandBlock = el('div', { class: 'footer-brand' }, [
       (function () {
         const d = el('div', { class: 'footer-logo-card' });
-        d.appendChild(el('img', {
-          src: 'assets/logo-grao-de-mostarda.png',
-          alt: 'Grão de Mostarda — Editora Gráfica Cristã',
-          width: '220',
-          height: '124',
-          loading: 'lazy',
-        }));
+        d.appendChild(GDM.components.logoPicture('112px', { alt: 'Grão de Mostarda — Editora Gráfica Cristã', width: '220', height: '124', loading: 'lazy' }));
         return d;
       })(),
       el('p', { class: 'footer-brand__tagline', text: 'Fé · Amor · Propósito' }),
@@ -150,18 +166,10 @@
     const mainWrap = el('div', { class: 'container footer-main' }, [footerCols]);
 
     const unsubscribeBtn = el('button', { class: 'footer-unsub-btn', type: 'button', text: 'Cancelar subscrição da newsletter' });
-    unsubscribeBtn.addEventListener('click', function () {
-      if (GDM.newsletter.status()) {
-        GDM.newsletter.unsubscribe();
-        GDM.components.toast.show('Subscrição da newsletter cancelada.', 'info');
-      } else {
-        GDM.components.toast.show('Não tinha nenhuma subscrição ativa neste dispositivo.', 'info');
-      }
-    });
 
     const bottom = el('div', { class: 'container footer-bottom' }, [
       el('div', { class: 'footer-bottom__left' }, [
-        el('p', { text: '© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.' }),
+        el('p', { 'data-footer-year': '', text: '© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.' }),
         el('p', { text: 'Pagamento combinado diretamente por WhatsApp, depois da encomenda.' }),
       ]),
       el('div', { class: 'footer-bottom__right' }, [
@@ -169,13 +177,38 @@
           el('a', { href: '#/privacidade', 'data-route-link': '', text: 'Política de Privacidade' }),
           ' · ',
           el('a', { href: '#/termos', 'data-route-link': '', text: 'Termos e Condições' }),
+          ' · ',
+          // obrigatório para quem vende ao consumidor em Portugal
+          el('a', { href: 'https://www.livroreclamacoes.pt/', target: '_blank', rel: 'noopener', text: 'Livro de Reclamações' }),
         ]),
         unsubscribeBtn,
       ]),
     ]);
 
-    const footerEl = el('footer', { class: 'site-footer' }, [footerVisual, mainWrap, bottom]);
-    root.appendChild(footerEl);
+    return el('footer', { class: 'site-footer' }, [footerVisual, mainWrap, bottom]);
+  }
+
+  function hydrate(root) {
+    root.querySelector('.footer-visual__top').addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    root.querySelectorAll('.newsletter-form').forEach(function (form) { wireNewsletterForm(form.parentNode); });
+    root.querySelector('.footer-unsub-btn').addEventListener('click', function () {
+      if (GDM.newsletter.status()) {
+        GDM.newsletter.unsubscribe();
+        GDM.components.toast.show('Subscrição da newsletter cancelada.', 'info');
+      } else {
+        GDM.components.toast.show('Não tinha nenhuma subscrição ativa neste dispositivo.', 'info');
+      }
+    });
+    // o ano vem do momento em que o HTML foi gerado — acertado aqui
+    const year = root.querySelector('[data-footer-year]');
+    if (year) year.textContent = year.textContent.replace(/\d{4}/, String(new Date().getFullYear()));
+  }
+
+  function mount(root) {
+    if (!root.querySelector('.site-footer')) root.appendChild(buildFooter());
+    hydrate(root);
   }
 
   GDM.components.footer = { mount: mount, newsletterForm: newsletterForm };

@@ -11,13 +11,17 @@ gestão de encomendas reais.
   bibliotecas externas, sem passo de build (webpack/vite/etc.), sem `npm
   install` no site em si (o único script Node do repositório,
   `tools/gerar-paginas.js`, é uma ferramenta de desenvolvimento — ver
-  secção 2b — que também não usa dependências, só `fs`/`path`/`vm`).
+  secção 2b — que também não usa dependências, só `fs`/`path`/`vm`/`crypto`, módulos do próprio Node).
 - **47 páginas `.html` estáticas e pré-renderizadas.** Cada página já traz
-  o conteúdo final no próprio HTML (não há um `<main id="app">` vazio à
-  espera de ser preenchido por JavaScript) — abrir qualquer página com
-  JavaScript desativado mostra o conteúdo na mesma. O JavaScript entra só
-  para tornar a página interativa (carrinho, favoritos, filtros, formulários,
-  drawers, animações), nunca para gerar a marcação inicial.
+  o conteúdo principal no próprio HTML (não há um `<main id="app">` vazio
+  à espera de ser preenchido por JavaScript). O cabeçalho, o menu mobile e
+  o rodapé também vêm escritos no HTML (`#header-host`/`#footer-host`,
+  gerados por `tools/gerar-paginas.js`); `header.js`/`footer.js` só os
+  **hidratam** (ligam eventos, badges, newsletter). Com JavaScript
+  desativado, a navegação e todos os links funcionam — o botão do menu
+  mobile é um link para `#mobile-nav`, que o CSS abre com `:target`. O que
+  continua a precisar de JavaScript: carrinho/drawer, pesquisa, favoritos,
+  checkout, formulários de contacto e avaliações, e os filtros da loja.
 - **Sem router client-side.** Não existe navegação por hash nem History
   API: cada link aponta diretamente para o ficheiro `.html` de destino
   (`loja.html`, `produto-<slug>.html`, `loja.html?categoria=...`, etc.) e o
@@ -70,6 +74,14 @@ tools/
   gerar-paginas.js        Ver secção 2b
 assets/
   favicon.svg
+  fonts/                  DM Sans e Manrope (woff2, latin + latin-ext) — ver README.md lá dentro
+  art/                    Ilustrações de produto (<slug>.svg, <slug>-b/-c.svg das
+                          miniaturas) — escritas por tools/gerar-paginas.js, não editar à mão
+  logo-grao-de-mostarda.png         Original (fallback do <picture>)
+  logo-grao-de-mostarda-<96|192|384|666>.<avif|webp>
+                          Versões leves do logótipo, geradas a partir do PNG
+                          (sharp, fora do repositório); se o PNG mudar, gerar de novo
+  og-image.png            Pré-visualização de partilha (PNG de paleta, ~30 KB)
 ```
 
 ## 2a. Que JavaScript cada página carrega
@@ -160,16 +172,18 @@ segurança, fica como trabalho futuro.
   total apresentado continua a ser recalculado a partir do catálogo atual.
 - **Favoritos**: lista de IDs em `localStorage`, filtrada contra o catálogo
   atual (um ID que já não exista é ignorado).
-- **Avaliações**: `GDM.content.REVIEWS` e `GDM.content.TESTIMONIALS`
-  (`js/data/content.js`) começam **vazios de propósito** — o site ainda não
-  está publicado e não devem existir avaliações/testemunhos de demonstração
-  apresentados como reais. A página `/avaliacoes` e a secção de testemunhos
-  da Início mostram um estado vazio honesto enquanto estes arrays estiverem
-  vazios; um comentário em `content.js`, junto de cada array, explica o
-  formato para o ateliê acrescentar avaliações reais mais tarde. Avaliações
-  novas escritas pelo visitante ficam guardadas em `localStorage` neste
-  dispositivo e aparecem combinadas com as da semente. Não são partilhadas
-  entre visitantes/dispositivos (não há servidor a agregá-las).
+- **Avaliações**: guardadas no **Supabase** (base de dados partilhada,
+  região UE) — qualquer visitante deixa uma avaliação, ela fica
+  **pendente** até o ateliê a aprovar no painel do Supabase, e a partir daí
+  aparece para todos (página de avaliações, ficha de produto, estrelas nos
+  cartões, testemunhos da Início). A segurança está na própria base de dados
+  (Row Level Security + permissões por coluna, `tools/supabase-avaliacoes.sql`):
+  a chave pública do site só lê avaliações aprovadas e só cria pendentes.
+  Pedidos com `fetch()` direto à API REST, sem SDK (`js/state/reviews.js`);
+  vistas e formulário em `js/pages/reviews.js`. Com `js/data/reviewsConfig.js`
+  por preencher, o site mostra "As avaliações estão a chegar em breve".
+  Nunca há avaliações inventadas. Guia completo: `docs/AVALIACOES.md`.
+  `GDM.content.TESTIMONIALS` continua vazio de propósito.
 - **Newsletter**: valida o formato do e-mail e guarda localmente que este
   dispositivo já subscreveu — não existe envio real de e-mails de boas-vindas
   nem lista de contactos centralizada (ver secção 4).
@@ -211,9 +225,6 @@ chegar, seria necessário construir (fora do âmbito deste projeto estático):
 - **Gestão de stock em tempo real partilhada.** O stock no catálogo é um
   número fixo no código; cada visitante vê o mesmo valor, mas comprar não o
   decrementa para os outros visitantes (não há servidor a coordenar isso).
-- **Avaliações partilhadas entre visitantes.** Como não há backend, uma
-  avaliação escrita por uma pessoa só é visível no browser dela — não
-  aparece para outros visitantes do site.
 - **Fotografia real de produto.** Todas as imagens de produto são
   composições SVG geradas (`js/data/categoryArt.js`), com direção de arte
   cuidada (gradiente por categoria, ícone ilustrado, motivo botânico de
@@ -255,15 +266,11 @@ ao ateliê no resumo da encomenda.
 
 ## 6a. SEO, dados estruturados e conformidade legal (ronda de Prioridade 1, 2026-09-03)
 
-- **Avaliações honestas em todo o site.** `GDM.reviews.summaryFor(productId)`
-  (`js/state/reviews.js`) calcula a nota média e a contagem reais a partir de
-  `GDM.content.REVIEWS` (semente) + avaliações escritas neste dispositivo —
-  nunca de números inventados. Os campos fictícios `rating`/`reviews` foram
-  **removidos** de `js/data/products.js`. `GDM.components.ratingBlock`
-  (`js/components/ui.js`) devolve `null` quando não há avaliações reais, e o
-  cartão de produto, a ficha de produto e "também vai gostar" usam sempre
-  `summaryFor` — nunca mostram um selo de nota até existir pelo menos 1
-  avaliação real. A ordenação "Melhor avaliação" na loja segue a mesma regra.
+- **Avaliações honestas em todo o site.** Médias e contagens vêm só de
+  avaliações reais aprovadas (vista `resumo_avaliacoes` no Supabase); sem
+  avaliações, nenhum selo de nota aparece. `aggregateRating`/`review` no
+  JSON-LD só são escritos por `node tools/gerar-paginas.js --com-avaliacoes`,
+  a partir das avaliações aprovadas (ver `docs/AVALIACOES.md`).
 - **Meta tags por página, já pré-renderizadas**: title, description,
   `<link rel="canonical">`, Open Graph, Twitter Card e JSON-LD
   (`Product`+`BreadcrumbList` na ficha de produto, `Organization` na
@@ -319,6 +326,17 @@ ao ateliê no resumo da encomenda.
   Plausible, pixel do Meta/Instagram) antes de o injetar no DOM; hoje o
   site não carrega nenhum script de terceiros, por
   isso esta função ainda não é chamada em lado nenhum além do próprio banner.
+- **Hoje o site não usa nada que exija consentimento.** Com as fontes
+  alojadas no próprio site (`assets/fonts/`, antes vinham do Google
+  Fonts), a fotografia do rodapé também local (antes vinha do Unsplash) e
+  sem analytics nem pixels, nenhum pedido sai para terceiros ao abrir uma
+  página — a Content-Security-Policy (`default-src 'self'`) garante-o. O
+  `localStorage` usado (carrinho, favoritos, newsletter, escolha de
+  cookies) é estritamente necessário ao que o visitante pede. O banner e o
+  `GDM.consent` ficam como estão, prontos para o dia em que se acrescente
+  algo não essencial. Exceção futura: o pedido à API do Supabase para ler
+  avaliações (secção de avaliações, `docs/AVALIACOES.md`) é funcional — o
+  conteúdo que o visitante abriu — e não grava nada no browser.
 
 ## 6b. Acessibilidade e movimento
 

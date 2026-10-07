@@ -58,6 +58,18 @@
     return root;
   }
 
+  /** Dá foco a um elemento de uma lista que acabou de abrir. As listas abrem
+   *  com transição de visibility (ainda "hidden" no primeiro frame), e um
+   *  elemento escondido não aceita foco — tenta de novo nos frames seguintes. */
+  function focusWhenVisible(node) {
+    let tries = 0;
+    (function attempt() {
+      if (!node) return;
+      node.focus();
+      if (document.activeElement !== node && tries++ < 20) requestAnimationFrame(attempt);
+    })();
+  }
+
   /** Foco preso dentro de um elemento (drawers/modais). Devolve função de limpeza. */
   function trapFocus(container) {
     function handler(e) {
@@ -71,6 +83,21 @@
     }
     container.addEventListener('keydown', handler);
     return function () { container.removeEventListener('keydown', handler); };
+  }
+
+  /** Põe (ou tira) inert em tudo o que está por trás de um diálogo aberto
+   *  (#header-host, #app, #footer-host): leitores de ecrã e Tab deixam de
+   *  chegar lá. O menu mobile e a pesquisa vivem dentro de #header-host, por
+   *  isso aí só os irmãos que não contêm o diálogo ficam inertes. */
+  function setBackgroundInert(dialogEl, on) {
+    ['header-host', 'app', 'footer-host'].forEach(function (id) {
+      const host = document.getElementById(id);
+      if (!host) return;
+      const targets = host.contains(dialogEl)
+        ? Array.prototype.filter.call(host.children, function (child) { return !child.contains(dialogEl); })
+        : [host];
+      targets.forEach(function (node) { node.toggleAttribute('inert', !!on); });
+    });
   }
 
   function updateActiveNav(path) {
@@ -174,7 +201,7 @@
       valueEl.textContent = opt ? opt.textContent : '';
       menu.innerHTML = '';
       Array.prototype.forEach.call(select.options, function (o) {
-        const row = el('button', { type: 'button', class: 'gdm-select__option', role: 'option', 'aria-selected': String(o.selected), text: o.textContent });
+        const row = el('button', { type: 'button', class: 'gdm-select__option', role: 'option', 'aria-selected': String(o.selected), tabindex: '-1', text: o.textContent });
         row.addEventListener('click', function () {
           if (select.value !== o.value) {
             select.value = o.value;
@@ -192,15 +219,13 @@
     toggle.addEventListener('click', function () {
       if (wrap.getAttribute('data-open') === 'true') { closeMenu(); return; }
       sync(); openMenu();
-      const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
-      if (current) current.focus();
+      focusWhenVisible(menu.querySelector('[aria-selected="true"]') || menu.firstElementChild);
     });
     toggle.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         sync(); openMenu();
-        const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
-        if (current) current.focus();
+        focusWhenVisible(menu.querySelector('[aria-selected="true"]') || menu.firstElementChild);
       }
     });
     menu.addEventListener('keydown', function (e) {
@@ -209,6 +234,8 @@
       if (e.key === 'Escape') { e.preventDefault(); closeMenu(); toggle.focus(); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); (opts[idx + 1] || opts[0]).focus(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); (opts[idx - 1] || opts[opts.length - 1]).focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
       else if (e.key === 'Tab') { closeMenu(); }
     });
     document.addEventListener('click', function (e) {
@@ -233,6 +260,21 @@
     return wrap;
   }
 
+  /** Logótipo em <picture> (AVIF/WebP em várias larguras + PNG). sizes =
+   *  largura com que é mostrado; attrs = atributos do <img>. Mesma marcação
+   *  que tools/gerar-paginas.js escreve no HTML estático. */
+  function logoPicture(sizes, attrs) {
+    const widths = [96, 192, 384, 666];
+    const srcset = function (ext) {
+      return widths.map(function (w) { return 'assets/logo-grao-de-mostarda-' + w + '.' + ext + ' ' + w + 'w'; }).join(', ');
+    };
+    return el('picture', {}, [
+      el('source', { type: 'image/avif', srcset: srcset('avif'), sizes: sizes }),
+      el('source', { type: 'image/webp', srcset: srcset('webp'), sizes: sizes }),
+      el('img', Object.assign({ src: 'assets/logo-grao-de-mostarda.png' }, attrs)),
+    ]);
+  }
+
   function breadcrumb(items) {
     const nodes = [];
     items.forEach(function (item, idx) {
@@ -245,11 +287,14 @@
 
   GDM.components.pageHero = pageHero;
   GDM.components.breadcrumb = breadcrumb;
+  GDM.components.logoPicture = logoPicture;
   GDM.components.enhanceSelect = enhanceSelect;
   GDM.components.starRow = starRow;
   GDM.components.ratingBlock = ratingBlock;
   GDM.components.buildAccordion = buildAccordion;
   GDM.components.trapFocus = trapFocus;
+  GDM.components.focusWhenVisible = focusWhenVisible;
+  GDM.components.setBackgroundInert = setBackgroundInert;
   GDM.components.updateActiveNav = updateActiveNav;
   GDM.components.closeAllOverlays = closeAllOverlays;
   GDM.components.initScrollReveal = initScrollReveal;

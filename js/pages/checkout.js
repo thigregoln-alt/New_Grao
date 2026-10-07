@@ -9,6 +9,20 @@
   const B = GDM.content.BRAND;
   GDM.pages = GDM.pages || {};
 
+  /* Código postal PT: aceita 1234-567 ou 1234567 (normalizado para 1234-567). */
+  function normalizePostal(value) {
+    const v = String(value || '').trim();
+    return /^\d{7}$/.test(v) ? v.slice(0, 4) + '-' + v.slice(4) : v;
+  }
+
+  /* Telemóvel: 9 dígitos começados por 9 ou 2 (Portugal), ou indicativo
+     internacional "+" seguido de 8 a 15 dígitos. Espaços, pontos, hífens e
+     parênteses são ignorados. */
+  function isValidPhone(value) {
+    const v = String(value || '').replace(/[\s().-]/g, '');
+    return /^[29]\d{8}$/.test(v) || /^\+\d{8,15}$/.test(v);
+  }
+
   function buildOrderId() {
     return 'GM-' + Date.now().toString(36).toUpperCase().slice(-6);
   }
@@ -26,23 +40,52 @@
       customer.notes ? 'Notas: ' + customer.notes : null,
       '',
       'Artigos:',
-    ].filter(Boolean);
+    ].filter(function (line) { return line !== null; });
     state.items.forEach(function (item) {
       lines.push('• ' + item.product.name + ' (x' + item.qty + ') — ' + GDM.format.currency(item.lineTotal));
     });
+    const ship = GDM.cart.shipping(state.subtotal);
     lines.push('', 'Subtotal: ' + GDM.format.currency(state.subtotal));
+    lines.push('Portes (envio normal CTT): ' + (ship.free ? 'Grátis' : GDM.format.currency(ship.cost)));
+    lines.push('Total: ' + GDM.format.currency(ship.total) + ' (valor final confirmado pelo ateliê)');
     lines.push('', 'Aguardo o vosso contacto para combinar o pagamento. Obrigado!');
     return lines.join('\n');
   }
 
-  function confirmationView(orderId) {
+  /* O carrinho NÃO é esvaziado ao abrir o WhatsApp/e-mail: o popup pode ter
+     sido bloqueado ou não haver programa de e-mail, e o pedido perdia-se.
+     Só é esvaziado quando a pessoa confirma "Já enviei o pedido" (ou segue
+     para "Continuar a comprar"). sendUrl (com a mensagem completa) vive só
+     em memória, nesta vista — nunca vai para o localStorage. */
+  function confirmationView(orderId, mode, sendUrl) {
+    const isWhatsapp = mode === 'whatsapp';
     const wrap = el('div', { class: 'order-confirm', 'data-reveal': 'scale' });
     const svg = document.createElement('div');
     svg.innerHTML = '<svg class="success-check" width="72" height="72" viewBox="0 0 72 72" fill="none"><circle cx="36" cy="36" r="32" stroke="#4c7a4f" stroke-width="4"/><path d="M22 37l10 10 18-20" stroke="#4c7a4f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     wrap.appendChild(svg);
     wrap.appendChild(el('h2', { text: 'Pedido preparado!' }));
     wrap.appendChild(el('p', { text: 'A sua encomenda ' + orderId + ' está pronta a enviar para o ateliê. Assim que recebermos a mensagem, confirmamos consigo o pagamento.', style: 'max-width:52ch' }));
-    wrap.appendChild(el('a', { class: 'btn btn--dark', href: '#/loja', text: 'Continuar a comprar' }));
+    wrap.appendChild(el('p', { class: 'field__hint', text: 'Guarde este número (' + orderId + ') — pode usá-lo para deixar uma avaliação com o selo Compra verificada.', style: 'max-width:52ch' }));
+    const status = el('p', { role: 'status', style: 'max-width:52ch', text: (isWhatsapp ? 'Se o WhatsApp não abriu' : 'Se o seu programa de e-mail não abriu') + ', use o botão abaixo. O carrinho só é esvaziado quando confirmar que enviou o pedido.' });
+    wrap.appendChild(status);
+
+    const reopen = el('a', isWhatsapp
+      ? { class: 'btn btn--whatsapp', href: sendUrl, target: '_blank', rel: 'noopener' }
+      : { class: 'btn btn--outline', href: sendUrl });
+    reopen.innerHTML = GDM.icons.icon(isWhatsapp ? 'whatsapp' : 'mail');
+    reopen.appendChild(el('span', { text: isWhatsapp ? 'Abrir novamente o WhatsApp' : 'Abrir novamente o e-mail' }));
+    const sentBtn = el('button', { class: 'btn btn--primary', type: 'button', text: 'Já enviei o pedido' });
+    const continueLink = el('a', { class: 'btn btn--dark', href: '#/loja', text: 'Continuar a comprar' });
+    const actions = el('div', { class: 'cluster', style: 'gap:12px;justify-content:center' }, [reopen, sentBtn, continueLink]);
+    wrap.appendChild(actions);
+
+    sentBtn.addEventListener('click', function () {
+      GDM.cart.clear();
+      status.textContent = 'Obrigado! O carrinho foi esvaziado — vamos responder-lhe em breve.';
+      reopen.remove();
+      sentBtn.remove();
+    });
+    continueLink.addEventListener('click', function () { GDM.cart.clear(); });
     return wrap;
   }
 
@@ -68,9 +111,16 @@
 
     const nameField = GDM.formHelpers.field({ id: 'co-name', label: 'Nome completo', required: true, autocomplete: 'name' });
     const emailField = GDM.formHelpers.field({ id: 'co-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email', validate: function (v) { return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.'; } });
-    const phoneField = GDM.formHelpers.field({ id: 'co-phone', label: 'Telemóvel', type: 'tel', required: true, autocomplete: 'tel', hint: 'Se estiver fora de Portugal, inclua o indicativo do país.' });
+    const phoneField = GDM.formHelpers.field({ id: 'co-phone', label: 'Telemóvel', type: 'tel', required: true, autocomplete: 'tel', hint: 'Se estiver fora de Portugal, inclua o indicativo do país.', validate: function (v) {
+      return isValidPhone(v) ? '' : 'Indique 9 dígitos a começar por 9 ou 2, ou o número com indicativo (ex.: +351 912 345 678).';
+    } });
     const addressField = GDM.formHelpers.field({ id: 'co-address', label: 'Morada', required: true, autocomplete: 'street-address' });
-    const postalField = GDM.formHelpers.field({ id: 'co-postal', label: 'Código postal', required: true, autocomplete: 'postal-code' });
+    const postalField = GDM.formHelpers.field({ id: 'co-postal', label: 'Código postal', required: true, autocomplete: 'postal-code', placeholder: '1234-567', validate: function (v) {
+      return /^\d{4}-\d{3}$/.test(normalizePostal(v)) ? '' : 'Use o formato 1234-567.';
+    } });
+    postalField.__gdmInput.addEventListener('blur', function () {
+      postalField.__gdmInput.value = normalizePostal(postalField.__gdmInput.value);
+    });
     const cityField = GDM.formHelpers.field({ id: 'co-city', label: 'Localidade', required: true, autocomplete: 'address-level2' });
     const notesField = GDM.formHelpers.field({ id: 'co-notes', label: 'Notas para o ateliê (opcional)', as: 'textarea', maxLength: 400, placeholder: 'Alguma indicação especial para a sua encomenda?' });
 
@@ -120,7 +170,7 @@
         email: GDM.formHelpers.readValue(emailField),
         phone: GDM.formHelpers.readValue(phoneField),
         address: GDM.formHelpers.readValue(addressField),
-        postal: GDM.formHelpers.readValue(postalField),
+        postal: normalizePostal(GDM.formHelpers.readValue(postalField)),
         city: GDM.formHelpers.readValue(cityField),
         notes: GDM.formHelpers.readValue(notesField),
       };
@@ -128,24 +178,30 @@
       const orderId = buildOrderId();
       const message = buildMessage(orderId, customer, freshState);
 
+      let sendUrl;
       if (submitMode === 'whatsapp') {
-        window.open('https://wa.me/' + B.whatsapp + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
+        sendUrl = 'https://wa.me/' + B.whatsapp + '?text=' + encodeURIComponent(message);
+        window.open(sendUrl, '_blank', 'noopener');
       } else {
         const subject = 'Nova encomenda ' + orderId + ' — Grão de Mostarda';
-        window.location.href = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message);
+        sendUrl = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message);
+        window.location.href = sendUrl;
       }
-      GDM.cart.clear();
       inner.innerHTML = '';
-      inner.appendChild(confirmationView(orderId));
+      inner.appendChild(confirmationView(orderId, submitMode, sendUrl));
       GDM.components.initScrollReveal();
     });
 
+    const ship = GDM.cart.shipping(state.subtotal);
     const summary = el('div', { class: 'panel order-summary' }, [
       el('h2', { text: 'Resumo da encomenda', style: 'font-size:1.2rem' }),
       el('div', { class: 'stack', style: 'gap:8px' }, state.items.map(function (item) {
         return el('div', { class: 'order-summary__row' }, [el('span', { text: item.qty + '× ' + item.product.name }), el('span', { text: GDM.format.currency(item.lineTotal) })]);
       })),
-      el('div', { class: 'order-summary__row order-summary__row--total' }, [el('span', { text: 'Total' }), el('span', { text: GDM.format.currency(state.subtotal) })]),
+      el('div', { class: 'order-summary__row' }, [el('span', { text: 'Subtotal' }), el('span', { text: GDM.format.currency(state.subtotal) })]),
+      el('div', { class: 'order-summary__row' }, [el('span', { text: 'Portes (envio normal CTT)' }), el('span', { text: ship.free ? 'Grátis' : GDM.format.currency(ship.cost) })]),
+      el('div', { class: 'order-summary__row order-summary__row--total' }, [el('span', { text: 'Total' }), el('span', { text: GDM.format.currency(ship.total) })]),
+      el('p', { class: 'field__hint', text: 'Valor final confirmado pelo ateliê.' }),
     ]);
 
     const grid = el('div', { class: 'cart-page-grid' }, [form, summary]);

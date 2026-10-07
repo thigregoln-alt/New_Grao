@@ -457,6 +457,13 @@
 .star-input svg { width: 26px; height: 26px; fill: none; stroke: var(--ink-500); transition: fill var(--dur-fast), stroke var(--dur-fast); }
 .star-input button[data-active="true"] svg { fill: var(--gold-600); stroke: var(--gold-600); }
 .star-input button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(196,149,63,0.35); border-radius: var(--radius-sm); }
+/* Estrelas como <input type="radio"> reais: o radio fica invisível (mas
+   focável e com setas nativas) e a <label> desenha a estrela. */
+.star-input { position: relative; }
+.star-input input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.star-input label { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.star-input label[data-active="true"] svg { fill: var(--gold-600); stroke: var(--gold-600); }
+.star-input input:focus-visible + label { outline: none; box-shadow: 0 0 0 3px rgba(196,149,63,0.35); border-radius: var(--radius-sm); }
 
 /* ---- Banner de consentimento de cookies ---- */
 .cookie-banner {

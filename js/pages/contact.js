@@ -20,8 +20,8 @@
   function render(container) {
     container.innerHTML = '';
 
-    const nameField = GDM.formHelpers.field({ id: 'ct-name', label: 'Nome', required: true });
-    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, validate: function (v) {
+    const nameField = GDM.formHelpers.field({ id: 'ct-name', label: 'Nome', required: true, autocomplete: 'name' });
+    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email', validate: function (v) {
       return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.';
     }});
     const subjectField = GDM.formHelpers.field({ id: 'ct-subject', label: 'Assunto', required: true });
@@ -54,7 +54,7 @@
         (function () {
           const s = document.createElement('span');
           s.className = 'contact-v5__brand-logo';
-          s.appendChild(el('img', { src: 'assets/logo-grao-de-mostarda.png', alt: 'Grão de Mostarda', loading: 'lazy' }));
+          s.appendChild(GDM.components.logoPicture('190px', { alt: 'Grão de Mostarda', width: '666', height: '375', loading: 'lazy' }));
           return s;
         })(),
         el('small', { text: 'Atendimento personalizado · normalmente em menos de 24 horas úteis' }),

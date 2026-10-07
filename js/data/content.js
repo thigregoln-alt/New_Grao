@@ -1,6 +1,7 @@
 /* ==========================================================================
-   Conteúdo institucional — depoimentos, FAQ, envios, devoluções, inspiração,
-   avaliações-semente. Texto estático, sem dados de utilizador.
+   Conteúdo institucional — depoimentos, FAQ, envios, devoluções, inspiração.
+   Texto estático, sem dados de utilizador. (As avaliações vivem no
+   Supabase — ver js/state/reviews.js.)
    ========================================================================== */
 (function (GDM) {
   'use strict';
@@ -79,6 +80,11 @@
       'Enviamos o código de rastreio pelo WhatsApp ou e-mail assim que a encomenda sai do ateliê.',
       'Não são feitos envios internacionais neste momento — apenas para Portugal Continental e Ilhas (consultar prazo adicional para Açores e Madeira).',
     ],
+    /* Valores numéricos do Envio Normal (CTT) usados nos cálculos do
+       checkout, do carrinho e do aviso "Faltam X € para portes grátis".
+       Manter alinhados com o texto de methods[0].price acima. */
+    normalPrice: 4.90,
+    freeShippingFrom: 50,
   };
 
   const RETURNS_INFO = {
@@ -106,25 +112,6 @@
     { title: 'Levar a Palavra consigo', verse: '"A tua palavra é lâmpada para os meus pés."', ref: 'Salmos 119:105', text: 'Um porta-chaves gravado é um lembrete discreto, presente em cada porta que se abre.', category: 'porta-chaves' },
   ];
 
-  /* AVALIAÇÕES-SEMENTE — o site ainda não foi publicado, por isso ainda não
-     existem avaliações reais de clientes. NÃO preencher este array com
-     avaliações inventadas: o ateliê pediu explicitamente para não mostrar
-     avaliações falsas como se fossem reais. A página de Avaliações
-     (js/pages/reviews.js) mostra um estado vazio honesto enquanto este
-     array estiver vazio, e passa a listar automaticamente qualquer
-     avaliação que aqui for adicionada — sem precisar de mexer em mais
-     nenhum ficheiro.
-     Para acrescentar uma avaliação real recolhida por WhatsApp, Instagram,
-     etc., adicionar um objeto neste formato (copiar o exemplo comentado
-     abaixo, substituindo pelos dados reais):
-     { id: 'rv-01', productId: 'can-01', author: 'Rita F.', rating: 5,
-       date: '2026-06-12', title: 'Superou expectativas',
-       body: 'Texto real da avaliação do cliente.', verified: true }
-     — productId tem de corresponder a um id existente em GDM.catalog.PRODUCTS
-     (ver js/data/products.js); date no formato AAAA-MM-DD; verified indica
-     se foi uma compra confirmada pelo ateliê. */
-  const REVIEWS = [];
-
   /* PROJETOS — o que o ateliê está a construir para além da loja em si.
      Página distinta de "Inspiração" (versículos/histórias por categoria).
      Fica isolado aqui para o cliente conseguir atualizar facilmente mais
@@ -151,11 +138,12 @@
      dados via formulário de contacto, checkout e newsletter, mesmo sem
      checkout de pagamento automático. Ver js/pages/legal.js. */
   const PRIVACY_POLICY = {
-    updated: '2026-09-03',
+    updated: '2026-10-07',
     sections: [
-      { title: 'Que dados recolhemos', text: 'Recolhemos apenas os dados que nos fornece diretamente: nome, e-mail, telefone e morada (no formulário de checkout), nome e e-mail (no formulário de contacto), e e-mail (na subscrição da newsletter). Não usamos cookies de rastreio nem recolhemos dados de navegação além do estritamente necessário ao funcionamento do site (ver secção de cookies).' },
+      { title: 'Que dados recolhemos', text: 'Recolhemos apenas os dados que nos fornece diretamente: nome, e-mail, telefone e morada (no formulário de checkout), nome e e-mail (no formulário de contacto), e-mail (na subscrição da newsletter) e, se deixar uma avaliação, o nome que escolher, a classificação, o texto e, opcionalmente, o número da encomenda (ver secção "Avaliações de produtos"). Não usamos cookies de rastreio nem recolhemos dados de navegação além do estritamente necessário ao funcionamento do site (ver secção de cookies).' },
       { title: 'Para que servem', text: 'Usamos estes dados exclusivamente para: preparar e combinar consigo a sua encomenda (por WhatsApp ou e-mail), responder às suas mensagens de contacto, e enviar novidades do ateliê caso subscreva a newsletter. Nunca vendemos nem partilhamos os seus dados com terceiros para fins de marketing.' },
-      { title: 'Onde ficam guardados', text: 'O carrinho, os favoritos, a subscrição da newsletter e as avaliações que escrever ficam guardados apenas no seu próprio dispositivo (localStorage do navegador) — não existe uma base de dados central neste site. Os dados que envia por WhatsApp ou e-mail no checkout/contacto ficam guardados nessas plataformas (WhatsApp, Gmail), fora do site, e são geridos diretamente pelo ateliê.' },
+      { title: 'Onde ficam guardados', text: 'O carrinho, os favoritos e a subscrição da newsletter ficam guardados apenas no seu próprio dispositivo (localStorage do navegador). As avaliações de produtos são a única exceção: ficam numa base de dados alojada pelo Supabase na União Europeia (ver secção seguinte). Os dados que envia por WhatsApp ou e-mail no checkout/contacto ficam guardados nessas plataformas (WhatsApp, Gmail), fora do site, e são geridos diretamente pelo ateliê.' },
+      { id: 'avaliacoes', title: 'Avaliações de produtos', text: 'Quando deixa uma avaliação guardamos o nome que indicar (aparece publicamente com a avaliação — pode usar só o primeiro nome e a inicial), a classificação em estrelas, o título e o texto, a data e, se o indicar, o número da encomenda. Estes dados ficam alojados pelo Supabase (Supabase Inc.), numa base de dados na União Europeia (Frankfurt, Alemanha), que atua como subcontratante do ateliê. Cada avaliação só é publicada depois de revista pelo ateliê. O número da encomenda nunca é mostrado publicamente: serve apenas para confirmarmos a compra e mostrarmos o selo "Compra verificada". As avaliações publicadas ficam guardadas enquanto estiverem publicadas; as que não forem aprovadas são apagadas no prazo de 30 dias. Pode pedir a qualquer momento para corrigir ou apagar a sua avaliação, por WhatsApp (+351 925 130 518) ou e-mail (ateliergraodemostarda176@gmail.com) — indique o nome e o produto avaliado.' },
       { title: 'Quanto tempo guardamos', text: 'Os dados de encomendas e mensagens de contacto são guardados pelo ateliê pelo tempo necessário para cumprir obrigações legais e fiscais (normalmente até 10 anos, por exigência da lei portuguesa para documentos comerciais). Pode pedir a eliminação de dados que não estejam sujeitos a essa obrigação a qualquer momento.' },
       { title: 'Os seus direitos', text: 'Tem direito a aceder, retificar, apagar ou pedir a portabilidade dos seus dados pessoais, e a opor-se ao seu tratamento, nos termos do RGPD. Para exercer qualquer um destes direitos, contacte-nos pelos dados abaixo.' },
       { title: 'Responsável pelo tratamento', text: 'Ateliê Grão de Mostarda Personalizados — contacto: ateliergraodemostarda176@gmail.com ou WhatsApp +351 925 130 518. Se não ficar satisfeito com a nossa resposta, pode apresentar reclamação junto da Comissão Nacional de Proteção de Dados (CNPD).' },
@@ -174,5 +162,5 @@
     ],
   };
 
-  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, REVIEWS, PROJECTS, PRIVACY_POLICY, TERMS };
+  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, PROJECTS, PRIVACY_POLICY, TERMS };
 })(window.GDM = window.GDM || {});

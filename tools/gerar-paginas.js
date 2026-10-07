@@ -129,6 +129,7 @@ function artImg(product, opts) {
 }
 
 let warnings = [];
+let staticReviews = null; // preenchido por --com-avaliacoes
 function warn(msg) { warnings.push(msg); console.warn('AVISO: ' + msg); }
 
 /* -------------------------------------------------------------------------
@@ -303,6 +304,14 @@ function regenerateProductPage(product, existingHtml) {
   // painel de informação do produto
   html = html.replace(/<span class="badge badge--outline">[^<]*<\/span><h1 class="product-info__title">[^<]*<\/h1>/,
     '<span class="badge badge--outline">' + escText(product.categoryLabel) + '</span><h1 class="product-info__title">' + escText(product.name) + '</h1>');
+  // linha de avaliações junto ao título (estrelas + média + nº), preenchida
+  // pelo JS; o espaço fica reservado para não haver salto de layout
+  const ratingLine = '<p class="product-info__rating" data-gdm-rating="">' + (productReviewsStatic(product) ? productReviewsStatic(product).rating : preservedInner(html, '<p class="product-info__rating" data-gdm-rating="">', 'p')) + '</p>';
+  if (html.indexOf('data-gdm-rating') === -1) {
+    html = html.replace(/(<h1 class="product-info__title">[^<]*<\/h1>)/, '$1' + ratingLine);
+  } else {
+    html = html.replace(/<p class="product-info__rating" data-gdm-rating="">[\s\S]*?<\/p>/, ratingLine);
+  }
 
   const priceRow = '<div class="product-info__price-row"><span class="product-info__price">' + priceHtml(product.price) + '</span>' +
     (product.oldPrice ? '<span class="product-card__price--old">' + priceHtml(product.oldPrice) + '</span>' : '') + '</div>';
@@ -319,13 +328,26 @@ function regenerateProductPage(product, existingHtml) {
   // galeria (imagem principal + 3 miniaturas) — sempre reescrita de raiz
   html = regenerateGallery(html, product);
 
-  // separadores (padrão WAI-ARIA "tabs"): os 3 controlam o mesmo painel, cujo
-  // conteúdo static-init.js troca; só o separador ativo está na ordem do Tab
-  const tabs = [['tab-descricao', 'Descrição'], ['tab-envio', 'Envio &amp; Trocas'], ['tab-avaliacoes', 'Avaliações']];
-  html = html.replace(/<div class="detail-tabs__nav"[^>]*>[\s\S]*?<\/div>/, '<div class="detail-tabs__nav" role="tablist" aria-label="Informação do produto">' +
-    tabs.map(([id, label], i) => '<button type="button" role="tab" id="' + id + '" aria-selected="' + (i === 0) + '" aria-controls="detail-panel" tabindex="' + (i === 0 ? '0' : '-1') + '">' + label + '</button>').join('') + '</div>');
-  // separador "Descrição" (texto longo)
-  html = html.replace(/<div class="detail-tabs__panel"[^>]*><p>[^<]*<\/p><\/div>/, '<div class="detail-tabs__panel" id="detail-panel" role="tabpanel" aria-labelledby="tab-descricao" tabindex="0"><p>' + escText(product.long) + '</p></div>');
+  // separadores (padrão WAI-ARIA "tabs"): cada um com o seu painel, os
+  // inativos com hidden; só o separador ativo está na ordem do Tab.
+  // O painel "Avaliações" é preenchido ao vivo pelo JS; o que lá estiver
+  // (avaliações estáticas de --com-avaliacoes) é preservado entre execuções.
+  const tabsStart = html.indexOf('<div class="detail-tabs">');
+  if (tabsStart !== -1) {
+    const tabsEnd = findBlockEnd(html, tabsStart, 'div');
+    const staticReviews = productReviewsStatic(product);
+    const reviewsInner = staticReviews ? staticReviews.panel : preservedInner(html, '<div data-gdm-product-reviews="">', 'div');
+    const tabs = [
+      ['descricao', 'Descrição', '<p>' + escText(product.long) + '</p>'],
+      ['envio', 'Envio &amp; Trocas', '<div class="stack" style="gap:8px"><p>Produção em 3 a 7 dias úteis. Envio pelos CTT, com portes grátis acima de €50.</p><p><a href="envios.html">Ver prazos de envio completos</a></p><p><a href="trocas.html">Ver política de trocas e devoluções</a></p></div>'],
+      ['avaliacoes', 'Avaliações', '<div data-gdm-product-reviews="">' + reviewsInner + '</div>'],
+    ];
+    const block = '<div class="detail-tabs"><div class="detail-tabs__nav" role="tablist" aria-label="Informação do produto">' +
+      tabs.map(([id, label], i) => '<button type="button" role="tab" id="tab-' + id + '" aria-selected="' + (i === 0) + '" aria-controls="panel-' + id + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' + label + '</button>').join('') + '</div>' +
+      tabs.map(([id, , inner], i) => '<div class="detail-tabs__panel" id="panel-' + id + '" role="tabpanel" aria-labelledby="tab-' + id + '" tabindex="0"' + (i === 0 ? '' : ' hidden') + '>' + inner + '</div>').join('') +
+      '</div>';
+    html = html.slice(0, tabsStart) + block + html.slice(tabsEnd);
+  }
 
   // "também vai gostar"
   const related = relatedFor(product);
@@ -350,6 +372,20 @@ function regenerateProductPage(product, existingHtml) {
   }
 
   return html;
+}
+
+/* Conteúdo atual de um bloco (para o preservar entre execuções). */
+function preservedInner(html, openTag, tagName) {
+  const start = html.indexOf(openTag);
+  if (start === -1) return '';
+  const end = findBlockEnd(html, start, tagName);
+  return html.slice(start + openTag.length, end - ('</' + tagName + '>').length);
+}
+
+/* Avaliações estáticas de um produto (só com --com-avaliacoes, ver 7.8);
+   null quando não foram pedidas. */
+function productReviewsStatic(product) {
+  return staticReviews ? staticReviews.porProduto(product) : null;
 }
 
 function buildNewProductPage(product, donorSlug) {
@@ -759,6 +795,10 @@ function regenerateChrome(html, file) {
     scripts.push(src);
     return '';
   });
+  // as fichas de produto usam as vistas/formulário de avaliações no separador
+  if (/data-gdm-page="produto"/.test(html) && !scripts.includes('js/pages/reviews.js') && scripts.includes('js/static-init.js')) {
+    scripts.splice(scripts.indexOf('js/static-init.js'), 0, 'js/pages/reviews.js');
+  }
   // a configuração das avaliações tem de carregar antes de js/state/reviews.js
   if (scripts.includes('js/state/reviews.js') && !scripts.includes('js/data/reviewsConfig.js')) {
     scripts.splice(scripts.indexOf('js/state/reviews.js'), 0, 'js/data/reviewsConfig.js');

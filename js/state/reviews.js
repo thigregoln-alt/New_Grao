@@ -143,17 +143,23 @@
   }
 
   /** Lista paginada de avaliações aprovadas.
-   *  opcoes: { produtoId, ordem: 'recentes'|'maior'|'menor', pagina (0…), estrelas (1–5) }
+   *  opcoes: { produtoId | produtoIds (vários, ex.: uma categoria),
+   *            ordem: 'recentes'|'maior'|'menor', pagina (0…), estrelas (1–5),
+   *            limite (por página; por defeito reviewsConfig.porPagina) }
    *  -> { itens, total } */
   function listar(opcoes) {
     if (!configurado()) return semConfiguracao();
     opcoes = opcoes || {};
-    const porPagina = config().porPagina;
+    const porPagina = Number.isInteger(opcoes.limite) && opcoes.limite > 0 && opcoes.limite <= 50 ? opcoes.limite : config().porPagina;
     const pagina = Number.isInteger(opcoes.pagina) && opcoes.pagina > 0 ? opcoes.pagina : 0;
     const params = new URLSearchParams();
     params.set('select', COLUNAS);
     params.set('order', ORDENS[opcoes.ordem] || ORDENS.recentes);
     if (produtoValido(opcoes.produtoId)) params.set('produto_id', 'eq.' + opcoes.produtoId);
+    else if (Array.isArray(opcoes.produtoIds)) {
+      const ids = opcoes.produtoIds.filter(produtoValido);
+      if (ids.length) params.set('produto_id', 'in.(' + ids.join(',') + ')');
+    }
     if (Number.isInteger(opcoes.estrelas) && opcoes.estrelas >= 1 && opcoes.estrelas <= 5) params.set('classificacao', 'eq.' + opcoes.estrelas);
     params.set('limit', String(porPagina));
     params.set('offset', String(pagina * porPagina));

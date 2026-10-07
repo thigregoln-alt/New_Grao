@@ -65,6 +65,7 @@
     wrap.appendChild(svg);
     wrap.appendChild(el('h2', { text: 'Pedido preparado!' }));
     wrap.appendChild(el('p', { text: 'A sua encomenda ' + orderId + ' está pronta a enviar para o ateliê. Assim que recebermos a mensagem, confirmamos consigo o pagamento.', style: 'max-width:52ch' }));
+    wrap.appendChild(el('p', { class: 'field__hint', text: 'Guarde este número (' + orderId + ') — pode usá-lo para deixar uma avaliação com o selo Compra verificada.', style: 'max-width:52ch' }));
     const status = el('p', { role: 'status', style: 'max-width:52ch', text: (isWhatsapp ? 'Se o WhatsApp não abriu' : 'Se o seu programa de e-mail não abriu') + ', use o botão abaixo. O carrinho só é esvaziado quando confirmar que enviou o pedido.' });
     wrap.appendChild(status);
 

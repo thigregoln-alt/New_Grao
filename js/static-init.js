@@ -154,70 +154,6 @@
       fav.addEventListener('click',function(){ GDM.favorites.toggle(product.id); var pressed=syncFav(); if(GDM.components.toast) GDM.components.toast.show(pressed?'Adicionado aos favoritos.':'Removido dos favoritos.','info'); });
       fav.dataset.gdmHydrated='1';
     }
-    function renderProductReviews(){
-      var wrap = document.createElement('div');
-      wrap.className = 'stack';
-      wrap.style.gap = '14px';
-      var list = GDM.reviews.forProduct(product.id);
-      var summary = GDM.reviews.summaryFor(product.id);
-      if (summary.count) {
-        var rating = document.createElement('div');
-        rating.className = 'rating';
-        rating.appendChild(GDM.components.starRow(summary.avg));
-        var count = document.createElement('span');
-        count.textContent = summary.avg.toFixed(1) + ' (' + summary.count + ')';
-        rating.appendChild(count);
-        wrap.appendChild(rating);
-      }
-      if (!list.length) {
-        var empty = document.createElement('p');
-        empty.style.color = 'var(--ink-500)';
-        empty.textContent = 'Ainda sem avaliações escritas para este produto.';
-        wrap.appendChild(empty);
-      } else {
-        list.slice(0,3).forEach(function(r){
-          var card = document.createElement('div');
-          card.className = 'review-card';
-          var head = document.createElement('div');
-          head.className = 'review-card__head';
-          var author = document.createElement('div');
-          author.className = 'review-card__author';
-          var strong = document.createElement('strong');
-          strong.textContent = r.author;
-          author.appendChild(strong);
-          var badge = document.createElement('span');
-          badge.className = r.verified ? 'badge badge--gold' : 'badge badge--outline';
-          badge.textContent = r.verified ? 'Compra verificada' : 'Não verificada';
-          author.appendChild(badge);
-          head.appendChild(author);
-          var date = document.createElement('span');
-          date.style.color = 'var(--ink-500)';
-          date.style.fontSize = 'var(--fs-xs)';
-          date.textContent = GDM.format.dateLabel(r.date);
-          head.appendChild(date);
-          card.appendChild(head);
-          card.appendChild(GDM.components.starRow(r.rating));
-          if (r.title) {
-            var title = document.createElement('p');
-            title.style.fontWeight = '700';
-            title.textContent = r.title;
-            card.appendChild(title);
-          }
-          var body = document.createElement('p');
-          body.style.color = 'var(--ink-700)';
-          body.textContent = r.body;
-          card.appendChild(body);
-          wrap.appendChild(card);
-        });
-      }
-      var all = document.createElement('a');
-      all.className = 'btn btn--outline btn--sm';
-      all.href = 'avaliacoes.html?produto=' + encodeURIComponent(product.slug);
-      all.textContent = 'Ver todas as avaliações';
-      wrap.appendChild(all);
-      return wrap;
-    }
-
     /* Separadores com o padrão WAI-ARIA "tabs": só o separador ativo está na
        ordem do Tab (tabindex 0); ←/→ (com volta), Home e End mudam de
        separador e mostram logo o painel (ativação automática). */
@@ -240,25 +176,104 @@
         selectTab(next, true);
       });
       btn.addEventListener('click',function(){
-        arr.forEach(function(b,i){b.setAttribute('aria-selected',String(i===idx)); b.setAttribute('tabindex', i===idx ? '0' : '-1');});
-        var panel=document.querySelector('.detail-tabs__panel');
-        if(!panel)return;
-        if(btn.id) panel.setAttribute('aria-labelledby', btn.id);
-        if(idx===0){
-          panel.innerHTML='';
-          var p=document.createElement('p');
-          p.textContent=product.long;
-          panel.appendChild(p);
-        } else if(idx===1){
-          panel.innerHTML='<div class="stack" style="gap:8px"><p>Produção em 3 a 7 dias úteis. Envio pelos CTT, com portes grátis acima de €50.</p><p><a href="envios.html">Ver prazos de envio completos</a></p><p><a href="trocas.html">Ver política de trocas e devoluções</a></p></div>';
-        } else if(idx===2){
-          panel.innerHTML='';
-          var wait=document.createElement('p');
-          wait.textContent='As avaliações estão a chegar em breve.';
-          panel.appendChild(wait);
-        }
+        /* cada separador tem o seu painel (escrito no HTML pelo gerador):
+           só se mostra/esconde — nada é reconstruído */
+        arr.forEach(function(b,i){
+          b.setAttribute('aria-selected',String(i===idx));
+          b.setAttribute('tabindex', i===idx ? '0' : '-1');
+          var p=document.getElementById(b.getAttribute('aria-controls'));
+          if(p) p.hidden = i!==idx;
+        });
+        if(btn.id==='tab-avaliacoes') loadProductReviews();
       });
     });
+
+    /* ---- Avaliações da ficha: linha junto ao título + separador ---- */
+    var ratingLine = document.querySelector('[data-gdm-rating]');
+    var reviewsHost = document.querySelector('[data-gdm-product-reviews]');
+    var reviewsTab = document.getElementById('tab-avaliacoes');
+    function openReviewsTab(e){
+      if(e) e.preventDefault();
+      if(reviewsTab){ reviewsTab.click(); reviewsTab.scrollIntoView({block:'center'}); reviewsTab.focus({preventScroll:true}); }
+    }
+    if (ratingLine && GDM.reviews.configurado()) {
+      GDM.reviews.resumo(product.id).then(function(s){
+        ratingLine.innerHTML='';
+        if (s.erro) return;
+        var link = document.createElement('a');
+        link.href = '#panel-avaliacoes';
+        link.addEventListener('click', openReviewsTab);
+        if (s.contagem) {
+          var stars = GDM.components.starRow(s.media);
+          stars.setAttribute('role','img');
+          stars.setAttribute('aria-label','Média de ' + s.media.toLocaleString('pt-PT',{maximumFractionDigits:1}) + ' em 5 estrelas');
+          ratingLine.appendChild(stars);
+          var avg = document.createElement('span');
+          avg.textContent = s.media.toLocaleString('pt-PT',{minimumFractionDigits:1,maximumFractionDigits:1});
+          ratingLine.appendChild(avg);
+          link.textContent = '(' + s.contagem + (s.contagem===1 ? ' avaliação)' : ' avaliações)');
+        } else {
+          link.textContent = 'Seja o primeiro a avaliar';
+        }
+        ratingLine.appendChild(link);
+      });
+    }
+
+    var reviewsLoaded = false;
+    function loadProductReviews(){
+      if (reviewsLoaded || !reviewsHost || !GDM.pages || !GDM.pages.reviews) return;
+      reviewsLoaded = true;
+      var R = GDM.pages.reviews;
+      var list = document.createElement('div');
+      list.className = 'stack';
+      list.style.gap = '16px';
+      var formPanel = document.createElement('div');
+      formPanel.className = 'panel';
+      formPanel.style.marginTop = '24px';
+      var h = document.createElement('h3');
+      h.textContent = 'Deixe a sua avaliação';
+      h.style.marginBottom = '16px';
+      formPanel.appendChild(h);
+      formPanel.appendChild(R.buildForm({ produtoSlug: product.slug }));
+      if (!GDM.reviews.configurado()) {
+        reviewsHost.innerHTML = '';
+        reviewsHost.appendChild(R.comingSoonBlock());
+        reviewsHost.appendChild(formPanel);
+        return;
+      }
+      function draw(){
+        /* mantém a altura do bloco estático (se houver) enquanto carrega */
+        var minH = reviewsHost.offsetHeight;
+        reviewsHost.style.minHeight = minH ? minH + 'px' : '';
+        reviewsHost.innerHTML = '';
+        reviewsHost.appendChild(R.skeleton('card', 2));
+        Promise.all([GDM.reviews.resumo(product.id), GDM.reviews.listar({ produtoId: product.id, limite: 5 })]).then(function(res){
+          var s = res[0], l = res[1];
+          reviewsHost.innerHTML = '';
+          reviewsHost.style.minHeight = '';
+          if (s.erro || l.erro) { reviewsHost.appendChild(R.errorBlock(draw)); reviewsHost.appendChild(formPanel); return; }
+          if (!s.contagem) {
+            reviewsHost.appendChild(R.emptyBlock('Ainda sem avaliações para este produto', 'Seja o primeiro a avaliar — o formulário está aqui em baixo.'));
+          } else {
+            reviewsHost.appendChild(R.summaryBlock(s));
+            list.innerHTML = '';
+            l.itens.forEach(function(item){ list.appendChild(R.reviewCard(item)); });
+            list.style.marginTop = '20px';
+            reviewsHost.appendChild(list);
+            var all = document.createElement('a');
+            all.className = 'btn btn--outline btn--sm';
+            all.style.marginTop = '16px';
+            all.href = 'avaliacoes.html?produto=' + encodeURIComponent(product.slug);
+            all.textContent = 'Ver todas as avaliações';
+            reviewsHost.appendChild(all);
+          }
+          reviewsHost.appendChild(formPanel);
+          GDM.components.initScrollReveal();
+        });
+      }
+      draw();
+    }
+    if (window.location.hash === '#panel-avaliacoes' || window.location.hash === '#avaliacoes') openReviewsTab();
     rewriteLinks(document);
   }
 
@@ -280,6 +295,9 @@
     }
 
     var cardProducts = cards.map(function(card){ return { card: card, product: productOf(card) }; }).filter(function(x){ return !!x.product; });
+    /* médias por produto (GDM.reviews.resumoTodos): "Melhor avaliação" só
+       fica disponível depois de carregarem */
+    var ratings = null;
 
     var sortLabels = {
       'relevancia':'Relevância',
@@ -325,6 +343,10 @@
       list.sort(function(a,b){
         if(ord==='preco-asc') return a.price-b.price;
         if(ord==='preco-desc') return b.price-a.price;
+        if(ord==='avaliacao' && ratings){
+          var ra=ratings[a.id], rb=ratings[b.id];
+          return ((rb?rb.media:0)-(ra?ra.media:0)) || ((rb?rb.contagem:0)-(ra?ra.contagem:0));
+        }
         return (b.featured?1:0)-(a.featured?1:0);
       });
 
@@ -393,6 +415,7 @@
         option.setAttribute('role','option');
         option.setAttribute('data-sort-value', key);
         option.setAttribute('tabindex','-1');
+        if(key==='avaliacao') option.hidden = true; // até as médias carregarem
         option.innerHTML='<span class="shop-sort-option__mark" aria-hidden="true"></span><span class="shop-sort-option__text"></span>';
         option.querySelector('.shop-sort-option__text').textContent=sortLabels[key];
         option.addEventListener('click',function(e){
@@ -409,7 +432,7 @@
          opção atual; dentro da lista ↑/↓/Home/End mudam de opção,
          Enter/Espaço escolhem, Esc fecha e devolve o foco ao botão. */
       function focusOption(which){
-        var opts = Array.prototype.slice.call(menu.querySelectorAll('.shop-sort-option'));
+        var opts = Array.prototype.slice.call(menu.querySelectorAll('.shop-sort-option:not([hidden])'));
         var idx = opts.indexOf(document.activeElement);
         var current = menu.querySelector('[aria-selected="true"]') || opts[0];
         var target = which === 'current' ? current
@@ -476,8 +499,47 @@
       });
     });
 
+    if (GDM.reviews.configurado()) {
+      GDM.reviews.resumoTodos().then(function(r){
+        if (r.erro) return; // sem médias, a opção "Melhor avaliação" continua escondida
+        ratings = r.porProduto;
+        var opt = document.querySelector('.shop-sort-option[data-sort-value="avaliacao"]');
+        if (opt) opt.hidden = false;
+        if (readState().ordenar === 'avaliacao') apply();
+      });
+    }
+
     window.addEventListener('popstate', apply);
     apply();
+  }
+
+  /* Estrelas e contagem nos cartões de produto (loja, destaques, "também vai
+     gostar", favoritos): um só pedido por página (resumoTodos, em cache).
+     Ficam na linha do preço, por isso não empurram nada (sem salto de
+     layout). Sem configuração, com erro ou sem avaliações: nada aparece. */
+  function decorateCardRatings(root) {
+    var metas = (root || document).querySelectorAll('.product-card .product-card__meta');
+    if (!metas.length || !GDM.reviews || !GDM.reviews.configurado()) return;
+    GDM.reviews.resumoTodos().then(function(r){
+      if (r.erro) return;
+      metas.forEach(function(meta){
+        if (meta.querySelector('.product-card__rating')) return;
+        var a = meta.closest('.product-card').querySelector('.product-card__title a');
+        var m = a && (a.getAttribute('href') || '').match(/produto-([^?#]+)\.html|#\/produto\/([^?#]+)/);
+        var p = m && GDM.catalog.getBySlug(m[1] || m[2]);
+        var s = p && r.porProduto[p.id];
+        if (!s) return;
+        var media = s.media.toLocaleString('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        var span = document.createElement('span');
+        span.className = 'product-card__rating';
+        span.setAttribute('role', 'img');
+        span.setAttribute('aria-label', 'Média de ' + media + ' em 5 estrelas, ' + s.contagem + (s.contagem === 1 ? ' avaliação' : ' avaliações'));
+        span.innerHTML = GDM.icons.icon('star');
+        span.firstElementChild.setAttribute('aria-hidden', 'true');
+        span.appendChild(document.createTextNode(media + ' (' + s.contagem + ')'));
+        meta.appendChild(span);
+      });
+    });
   }
 
   function hydrateContactPage() {
@@ -500,7 +562,11 @@
     if (document.body.getAttribute('data-gdm-page') !== '/favoritos') return;
     if (!GDM.pages || !GDM.pages.favorites) return;
     var app = document.getElementById('app');
-    if (app) GDM.pages.favorites.render(app);
+    if (!app) return;
+    GDM.pages.favorites.render(app);
+    decorateCardRatings(app);
+    // a página volta a desenhar os cartões quando os favoritos mudam
+    GDM.bus.on('favorites:change', function () { setTimeout(function () { decorateCardRatings(app); }, 0); });
   }
 
   function hydrateCheckoutPage() {
@@ -514,52 +580,40 @@
     if (document.body.getAttribute('data-gdm-page') !== '/') return;
     var emptyEl = document.getElementById('home-testimonials-empty');
     if (!emptyEl) return;
-    /* Estado vazio (texto + ilustração) mantém-se exactamente como está
-       enquanto não houver nenhuma avaliação real — nada a fazer aqui. Só
-       quando existirem avaliações reais (semente do ateliê em
-       GDM.content.REVIEWS ou submetidas pelo formulário) é que este bloco
-       é substituído pela grelha ordenada + paginação — nunca com dados
-       inventados. */
-    var all = [];
-    if (!all.length) return;
-
-    var sorted = all.slice().sort(function (a, b) {
-      return b.rating - a.rating || new Date(b.date) - new Date(a.date);
-    });
-    var PAGE_SIZE = 6;
-    var shown = 0;
-
-    var grid = document.createElement('div');
-    grid.className = 'testi-grid';
-
-    var moreBtn = document.createElement('button');
-    moreBtn.type = 'button';
-    moreBtn.className = 'btn btn--outline';
-    moreBtn.textContent = 'Ver mais avaliações';
+    /* As 6 melhores avaliações aprovadas (classificação desc, depois mais
+       recentes). O estado vazio honesto que já está no HTML fica como está
+       enquanto carrega, sem configuração ou sem nenhuma avaliação — nunca
+       com dados inventados. */
+    if (!GDM.reviews.configurado()) return;
+    var current = emptyEl;
 
     function cardFor(r) {
-      var product = GDM.catalog.getById(r.productId);
+      var product = GDM.catalog.getById(r.produtoId);
       var card = document.createElement('div');
       card.className = 'testi-card';
       card.setAttribute('data-reveal', 'fade');
-      card.appendChild(GDM.components.starRow(r.rating));
+      var stars = GDM.components.starRow(r.classificacao);
+      stars.setAttribute('role', 'img');
+      stars.setAttribute('aria-label', r.classificacao + ' de 5 estrelas');
+      card.appendChild(stars);
       var quote = document.createElement('p');
       quote.className = 'testi-card__quote';
-      quote.textContent = '“' + r.body + '”';
+      quote.textContent = '“' + r.texto + '”';
       card.appendChild(quote);
       var who = document.createElement('div');
       who.className = 'testi-card__who';
       var avatar = document.createElement('span');
       avatar.className = 'testi-avatar';
-      avatar.textContent = (r.author || '?').trim().charAt(0).toUpperCase();
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = (r.autor || '?').trim().charAt(0).toUpperCase();
       who.appendChild(avatar);
       var stack = document.createElement('div');
       stack.className = 'stack';
       stack.style.gap = '2px';
       var strong = document.createElement('strong');
-      strong.textContent = r.author;
+      strong.textContent = r.autor;
       var meta = document.createElement('span');
-      meta.textContent = GDM.format.dateLabel(r.date) + (product ? ' · ' + product.name : '');
+      meta.textContent = GDM.format.dateLabel(r.data) + (product ? ' · ' + product.name : '');
       stack.appendChild(strong);
       stack.appendChild(meta);
       who.appendChild(stack);
@@ -567,32 +621,35 @@
       return card;
     }
 
-    function renderMore() {
-      sorted.slice(shown, shown + PAGE_SIZE).forEach(function (r) { grid.appendChild(cardFor(r)); });
-      shown += PAGE_SIZE;
-      if (shown >= sorted.length) {
-        moreBtn.textContent = 'Já viu todas as avaliações';
-        moreBtn.disabled = true;
-      }
-      /* Os cartões novos trazem data-reveal="fade" (opacidade 0 até entrarem
-         em viewport) — initScrollReveal() só observa quem ainda não tem
-         .is-observed, por isso é seguro chamá-la de novo aqui para não
-         deixar os cartões da página seguinte presos a opacidade 0. */
-      if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
+    function load() {
+      GDM.reviews.listar({ ordem: 'maior', limite: 6 }).then(function (r) {
+        if (r.erro) {
+          var err = GDM.pages && GDM.pages.reviews ? GDM.pages.reviews.errorBlock(function () { err.replaceWith(emptyEl); current = emptyEl; load(); }) : null;
+          if (err) { current.replaceWith(err); current = err; }
+          return;
+        }
+        if (!r.itens.length) return;
+        var wrap = document.createElement('div');
+        var grid = document.createElement('div');
+        grid.className = 'testi-grid';
+        r.itens.forEach(function (item) { grid.appendChild(cardFor(item)); });
+        wrap.appendChild(grid);
+        var moreWrap = document.createElement('div');
+        moreWrap.style.textAlign = 'center';
+        moreWrap.style.marginTop = '28px';
+        var all = document.createElement('a');
+        all.className = 'btn btn--outline';
+        all.href = 'avaliacoes.html';
+        all.textContent = 'Ver todas as avaliações';
+        moreWrap.appendChild(all);
+        wrap.appendChild(moreWrap);
+        current.replaceWith(wrap);
+        current = wrap;
+        /* data-reveal = opacidade 0 até entrar no ecrã: observar os novos */
+        if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
+      });
     }
-    moreBtn.addEventListener('click', renderMore);
-    renderMore();
-
-    var wrap = document.createElement('div');
-    wrap.appendChild(grid);
-    if (sorted.length > PAGE_SIZE) {
-      var moreWrap = document.createElement('div');
-      moreWrap.style.textAlign = 'center';
-      moreWrap.style.marginTop = '28px';
-      moreWrap.appendChild(moreBtn);
-      wrap.appendChild(moreWrap);
-    }
-    emptyEl.replaceWith(wrap);
+    load();
   }
 
   function hydrateReviewsPage() {
@@ -600,8 +657,7 @@
     if (!GDM.pages || !GDM.pages.reviews) return;
     var app = document.getElementById('app');
     if (!app) return;
-    var query = { produto: new URLSearchParams(window.location.search).get('produto') || '' };
-    GDM.pages.reviews.render(app, {}, query);
+    GDM.pages.reviews.render(app);
   }
 
   function init(){
@@ -616,6 +672,7 @@
     hydrateCheckoutPage();
     hydrateReviewsPage();
     hydrateHomeTestimonials();
+    decorateCardRatings(document);
     rewriteLinks(document);
     if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
   }

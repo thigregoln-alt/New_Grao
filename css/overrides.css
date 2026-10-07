@@ -82,7 +82,7 @@ h1{line-height:.98} h2{line-height:1.02} h3{line-height:1.12}
 .product-card__fav:hover{background:var(--cream-warm)}
 .product-card__badges .badge{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:999px}
 .badge--gold{background:var(--gold-500);color:var(--leather-950)}
-.badge--sale{background:var(--rose-400);color:#fff}
+.badge--sale{background:#946256;color:#fff} /* rosa mais escuro: branco sobre --rose-400 dava 3,4:1 (AA pede 4,5:1) */
 .badge--outline{background:rgba(255,253,248,.88);border-color:var(--line-warm);color:var(--leather-800)}
 
 /* Botões: menos "template", mais marca */
@@ -350,9 +350,9 @@ footer a:hover{color:var(--gold-300)}
 .footer-col a,.footer-col p{font-size:13px;color:rgba(244,234,214,.72)}
 .footer-col a{transition:color .18s ease,transform .18s ease}
 .footer-col a:hover{transform:translateX(2px);color:var(--cream-050)}
-.footer-contact-note{margin-top:18px;max-width:26ch;line-height:1.65;color:rgba(244,234,214,.48)!important}
+.footer-contact-note{margin-top:18px;max-width:26ch;line-height:1.65;color:rgba(244,234,214,.52)!important}
 .footer-bottom{padding-bottom:20px}
-.footer-bottom__left p,.footer-bottom__right p{font-size:12px;color:rgba(244,234,214,.46)}
+.footer-bottom__left p,.footer-bottom__right p{font-size:12px;color:rgba(244,234,214,.52)}
 
 @media(max-width:1023px){
   

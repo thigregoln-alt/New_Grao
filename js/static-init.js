@@ -80,11 +80,21 @@
       var product = GDM.catalog.getBySlug(m[1]);
       if (!product) return;
       btn.dataset.gdmHydrated = '1';
-      btn.addEventListener('click', function (e) {
-        e.preventDefault(); e.stopPropagation();
-        var pressed = GDM.favorites.toggle(product.id).indexOf(product.id) !== -1;
+      /* O HTML estático vem sempre com aria-pressed="false" — o estado real
+         (favoritos deste browser) é aplicado já ao hidratar e sempre que os
+         favoritos mudam (incluindo noutro separador). */
+      function sync() {
+        var pressed = GDM.favorites.has(product.id);
         btn.setAttribute('aria-pressed', String(pressed));
         btn.setAttribute('aria-label', pressed ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+        return pressed;
+      }
+      sync();
+      GDM.bus.on('favorites:change', sync);
+      btn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        GDM.favorites.toggle(product.id);
+        var pressed = sync();
         btn.classList.add('is-bumping');
         setTimeout(function(){btn.classList.remove('is-bumping')},400);
         if (GDM.components.toast) GDM.components.toast.show(pressed ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'info');
@@ -130,7 +140,18 @@
     }
     var fav = Array.prototype.find.call(document.querySelectorAll('.product-info .btn'), function(b){ return b.textContent.indexOf('Guardar nos favoritos')!==-1 || b.textContent.indexOf('Remover dos favoritos')!==-1; });
     if (fav && !fav.dataset.gdmHydrated) {
-      fav.addEventListener('click',function(){ var pressed=GDM.favorites.toggle(product.id).indexOf(product.id)!==-1; fav.textContent=pressed?'Remover dos favoritos':'Guardar nos favoritos'; if(GDM.components.toast) GDM.components.toast.show(pressed?'Adicionado aos favoritos.':'Removido dos favoritos.','info'); });
+      /* Estado inicial vindo dos favoritos deste browser (o HTML estático
+         diz sempre "Guardar"). Só o <span> do texto muda — o ícone fica. */
+      var syncFav = function(){
+        var pressed=GDM.favorites.has(product.id);
+        var label=fav.querySelector('span')||fav;
+        label.textContent=pressed?'Remover dos favoritos':'Guardar nos favoritos';
+        fav.setAttribute('aria-pressed',String(pressed));
+        return pressed;
+      };
+      syncFav();
+      GDM.bus.on('favorites:change', syncFav);
+      fav.addEventListener('click',function(){ GDM.favorites.toggle(product.id); var pressed=syncFav(); if(GDM.components.toast) GDM.components.toast.show(pressed?'Adicionado aos favoritos.':'Removido dos favoritos.','info'); });
       fav.dataset.gdmHydrated='1';
     }
     function renderProductReviews(){

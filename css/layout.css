@@ -248,6 +248,11 @@
   overflow-y: auto;
 }
 .mobile-nav[data-open="true"] .mobile-nav__panel { transform: translateX(0); }
+/* Sem JavaScript, o botão do menu é um link para #mobile-nav e o "fechar"
+   um link para "#": :target abre o menu com o mesmo aspeto. */
+.mobile-nav:target { visibility: visible; }
+.mobile-nav:target .mobile-nav__scrim { opacity: 1; }
+.mobile-nav:target .mobile-nav__panel { transform: translateX(0); }
 
 .mobile-nav__head { display: flex; justify-content: space-between; align-items: center; }
 .mobile-nav__logo { display: block; width: 46px; }

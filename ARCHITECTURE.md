@@ -14,12 +14,14 @@ gestão de encomendas reais.
   secção 2b — que também não usa dependências, só `fs`/`path`/`vm`).
 - **47 páginas `.html` estáticas e pré-renderizadas.** Cada página já traz
   o conteúdo principal no próprio HTML (não há um `<main id="app">` vazio
-  à espera de ser preenchido por JavaScript). **Atenção:** o cabeçalho, o
-  menu (incluindo o menu mobile) e o rodapé ainda são montados por
-  JavaScript em `#header-host`/`#footer-host` — com JavaScript desativado
-  vê-se o conteúdo de cada página, mas sem navegação nem rodapé. As
-  páginas de carrinho, checkout, favoritos, contacto e avaliações dependem
-  também de JavaScript para o seu conteúdo interativo.
+  à espera de ser preenchido por JavaScript). O cabeçalho, o menu mobile e
+  o rodapé também vêm escritos no HTML (`#header-host`/`#footer-host`,
+  gerados por `tools/gerar-paginas.js`); `header.js`/`footer.js` só os
+  **hidratam** (ligam eventos, badges, newsletter). Com JavaScript
+  desativado, a navegação e todos os links funcionam — o botão do menu
+  mobile é um link para `#mobile-nav`, que o CSS abre com `:target`. O que
+  continua a precisar de JavaScript: carrinho/drawer, pesquisa, favoritos,
+  checkout, formulários de contacto e avaliações, e os filtros da loja.
 - **Sem router client-side.** Não existe navegação por hash nem History
   API: cada link aponta diretamente para o ficheiro `.html` de destino
   (`loja.html`, `produto-<slug>.html`, `loja.html?categoria=...`, etc.) e o

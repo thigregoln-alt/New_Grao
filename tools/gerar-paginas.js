@@ -366,6 +366,91 @@ function buildSitemap() {
    o gerador duas vezes seguidas não altera nada na segunda.
    ------------------------------------------------------------------------- */
 const CSS_FILES = ['tokens', 'base', 'layout', 'components', 'animations', 'pages', 'overrides'];
+const BRAND = GDM.content.BRAND;
+const icon = GDM.icons.icon;
+
+/* Cabeçalho, menu mobile e rodapé escritos no próprio HTML (navegação sem
+   JavaScript, sem salto de layout, menu visível para crawlers). Tem de
+   produzir exatamente a mesma marcação que o fallback de
+   js/components/header.js e footer.js — esses ficheiros só ligam os
+   eventos (hydrate) quando a marcação já existe. */
+const NAV_LINKS = [
+  ['index.html', 'Início'], ['loja.html', 'Loja'], ['inspiracao.html', 'Inspiração'],
+  ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto'],
+];
+
+function routeLink(href, label, currentFile) {
+  return '<a href="' + href + '" data-route-link=""' + (href === currentFile ? ' aria-current="page"' : '') + '>' + escText(label) + '</a>';
+}
+
+function navListHtml(cls, currentFile) {
+  return '<ul class="' + cls + '">' + NAV_LINKS.map(([href, label]) => '<li>' + routeLink(href, label, currentFile) + '</li>').join('') + '</ul>';
+}
+
+function headerHtml(currentFile) {
+  const wa = 'https://wa.me/' + BRAND.whatsapp;
+  const header =
+    '<header class="site-header" id="site-header"><div class="container header-bar">' +
+      '<a href="index.html" class="header-brand" aria-label="Grão de Mostarda Personalizados — Início"><span class="header-brand__logo"><img src="assets/logo-grao-de-mostarda.png" alt="" loading="eager"></span><span class="header-brand__wordmark"><strong>Grão de Mostarda</strong><span>Personalizados</span></span></a>' +
+      navListHtml('main-nav', currentFile) +
+      '<div class="header-actions">' +
+        '<button class="icon-btn" type="button" aria-label="Pesquisar" data-header-action="search">' + icon('search') + '</button>' +
+        '<a class="icon-btn" href="favoritos.html" aria-label="Ver favoritos" data-header-action="favorites">' + icon('heart') + '<span class="icon-btn__badge" style="display: none;">0</span></a>' +
+        '<button class="icon-btn" type="button" aria-label="Abrir carrinho" data-header-action="cart">' + icon('cart') + '<span class="icon-btn__badge" style="display: none;">0</span></button>' +
+        '<a class="icon-btn nav-toggle" href="#mobile-nav" role="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav" data-header-action="menu">' + icon('menu') + '</a>' +
+      '</div>' +
+    '</div></header>';
+  const mobileNav =
+    '<div class="mobile-nav" data-open="false" id="mobile-nav"><div class="mobile-nav__scrim"></div><div class="mobile-nav__panel">' +
+      '<div class="mobile-nav__head"><span class="mobile-nav__logo"><img src="assets/logo-grao-de-mostarda.png" alt="Grão de Mostarda" loading="lazy"></span>' +
+        '<a class="icon-btn" href="#" role="button" aria-label="Fechar menu" style="color:var(--cream-100)" data-mobile-nav-close="">' + icon('close') + '</a></div>' +
+      navListHtml('mobile-nav__list', currentFile) +
+      '<a class="btn btn--whatsapp btn--block" href="' + escAttr(wa) + '" target="_blank" rel="noopener">' + icon('whatsapp') + '<span>Falar no WhatsApp</span></a>' +
+    '</div></div>';
+  return header + mobileNav;
+}
+
+function footerHtml(currentFile) {
+  const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
+  const mail = escAttr('mailto:' + BRAND.email);
+  const insta = escAttr(BRAND.instagramUrl);
+  const col = (title, links) => '<div class="footer-col"><h4>' + escText(title) + '</h4><ul>' +
+    links.map(([href, label]) => '<li>' + routeLink(href, label, currentFile) + '</li>').join('') + '</ul></div>';
+  return '<footer class="site-footer">' +
+    '<div class="footer-visual"><div class="container footer-visual__inner"><p class="footer-visual__kicker">GRÃO DE MOSTARDA  /  PORTUGAL  /  2026</p><button class="footer-visual__top" type="button" aria-label="Voltar ao topo">↑</button></div></div>' +
+    '<div class="container footer-main"><div class="footer-cols">' +
+      '<div class="footer-brand"><div class="footer-logo-card"><img src="assets/logo-grao-de-mostarda.png" alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"></div>' +
+        '<p class="footer-brand__tagline">Fé · Amor · Propósito</p>' +
+        '<p class="footer-brand__desc">Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã, feitos à mão, um de cada vez.</p>' +
+        '<div class="social-row">' +
+          '<a class="social-row__link social-row__link--whatsapp" href="' + wa + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon('whatsapp') + '</a>' +
+          '<a class="social-row__link social-row__link--instagram" href="' + insta + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon('instagram') + '</a>' +
+          '<a class="social-row__link social-row__link--mail" href="' + mail + '" aria-label="E-mail">' + icon('mail') + '</a>' +
+        '</div></div>' +
+      col('Navegação', [['loja.html', 'Loja'], ['inspiracao.html', 'Inspiração'], ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto']]) +
+      col('Ajuda', [['envios.html', 'Envios & Prazos'], ['trocas.html', 'Trocas & Devoluções'], ['faq.html', 'Perguntas Frequentes']]) +
+      '<div class="footer-col footer-col--contact footer-col--newsletter-bottom"><h4>Contacto</h4><ul>' +
+        '<li><a href="' + mail + '">' + escText(BRAND.email) + '</a></li>' +
+        '<li><a href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></li>' +
+        '<li><a href="' + insta + '" target="_blank" rel="noopener">Instagram</a></li></ul>' +
+        '<p class="footer-contact-note">Respondemos normalmente em menos de 24 horas úteis.</p>' +
+        '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
+          '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p></div>' +
+        '</div></div>' +
+    '</div></div>' +
+    '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
+      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + '</p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
+    '</footer>';
+}
+
+/* Substitui o conteúdo de <div id="..."> (que pode ter divs aninhadas). */
+function replaceHostContent(html, hostId, inner) {
+  const open = '<div id="' + hostId + '">';
+  const start = html.indexOf(open);
+  if (start === -1) return html;
+  const end = findBlockEnd(html, start, 'div');
+  return html.slice(0, start) + open + inner + '</div>' + html.slice(end);
+}
 
 /* Bloco de recursos do <head> (ícone, preload das fontes, CSS): reescrito
    sempre de raiz entre o <link rel="icon"> e o último <link rel="stylesheet">. */
@@ -379,7 +464,11 @@ function headAssets() {
   ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=9">')).join('\n');
 }
 
-function regenerateChrome(html) {
+function regenerateChrome(html, file) {
+  const currentFile = /^produto-/.test(file) ? '' : file;
+  html = replaceHostContent(html, 'header-host', headerHtml(currentFile));
+  html = replaceHostContent(html, 'footer-host', footerHtml(currentFile));
+
   const assetsStart = html.indexOf('<link rel="icon"');
   const lastCss = html.lastIndexOf('<link rel="stylesheet"');
   if (assetsStart !== -1 && lastCss !== -1) {
@@ -424,7 +513,7 @@ function main() {
       after = buildNewProductPage(product, donorSlug);
       createdCount++;
     }
-    writeIfChanged(filePath, before, regenerateChrome(after));
+    writeIfChanged(filePath, before, regenerateChrome(after, path.basename(filePath)));
   });
 
   existingSlugs.filter((s) => !catalogSlugs.includes(s)).forEach((s) => {
@@ -441,7 +530,7 @@ function main() {
       let after = before;
       if (file === 'loja.html') after = regenerateShop(after);
       if (file === 'index.html') after = regenerateFeatured(after);
-      writeIfChanged(filePath, before, regenerateChrome(after));
+      writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
 
   const sitemapPath = rp('sitemap.xml');

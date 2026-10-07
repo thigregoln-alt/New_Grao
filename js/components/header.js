@@ -38,7 +38,7 @@
   /* Pesquisa: overlay centrado (tipo "command palette"), não um dropdown
      dentro do cabeçalho — fica fora do <header> (anexado a root, como o
      mobile-nav) para não ficar preso ao overflow/posicionamento dele. */
-  function buildSearchOverlay(root) {
+  function buildSearchOverlay(root, before) {
     const icon = document.createElement('span');
     icon.className = 'search-overlay__icon';
     icon.innerHTML = GDM.icons.icon('search');
@@ -67,7 +67,7 @@
     scrim.addEventListener('click', closeSearch);
 
     searchPanel = el('div', { class: 'search-overlay', 'data-open': 'false' }, [scrim, box]);
-    root.appendChild(searchPanel);
+    root.insertBefore(searchPanel, before || null);
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && searchPanel.getAttribute('data-open') === 'true') closeSearch();
     });
@@ -105,7 +105,11 @@
     if (searchReleaseFocus) searchReleaseFocus();
   }
 
-  function mount(root) {
+  /* A marcação do cabeçalho e do menu mobile já vem no HTML de cada página
+     (escrita por tools/gerar-paginas.js — manter as duas versões iguais).
+     buildHeader/buildMobileNav só correm como fallback, se uma página não
+     a trouxer; em ambos os casos os eventos são ligados por hydrate(). */
+  function buildHeader() {
     const logo = el('a', { href: '#/', class: 'header-brand', 'aria-label': 'Grão de Mostarda Personalizados — Início' });
     const logoImg = document.createElement('span');
     logoImg.className = 'header-brand__logo';
@@ -122,38 +126,56 @@
 
     const nav = navList('main-nav');
 
-    const searchBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Pesquisar' });
+    const searchBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Pesquisar', 'data-header-action': 'search' });
     searchBtn.innerHTML = GDM.icons.icon('search');
-    searchBtn.addEventListener('click', toggleSearch);
 
-    const favLink = el('a', { class: 'icon-btn', href: '#/favoritos', 'aria-label': 'Ver favoritos' });
+    const favLink = el('a', { class: 'icon-btn', href: '#/favoritos', 'aria-label': 'Ver favoritos', 'data-header-action': 'favorites' });
     favLink.innerHTML = GDM.icons.icon('heart');
-    favBadge = el('span', { class: 'icon-btn__badge' });
-    favLink.appendChild(favBadge);
+    favLink.appendChild(el('span', { class: 'icon-btn__badge' }));
 
-    const cartBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Abrir carrinho' });
+    const cartBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Abrir carrinho', 'data-header-action': 'cart' });
     cartBtn.innerHTML = GDM.icons.icon('cart');
-    cartBadge = el('span', { class: 'icon-btn__badge' });
-    cartBtn.appendChild(cartBadge);
-    cartBtn.addEventListener('click', function () { GDM.components.cartDrawer.open(cartBtn); });
+    cartBtn.appendChild(el('span', { class: 'icon-btn__badge' }));
 
-    const navToggle = el('button', { class: 'icon-btn nav-toggle', type: 'button', 'aria-label': 'Abrir menu', 'aria-expanded': 'false' });
+    const navToggle = el('a', { class: 'icon-btn nav-toggle', href: '#mobile-nav', role: 'button', 'aria-label': 'Abrir menu', 'aria-expanded': 'false', 'aria-controls': 'mobile-nav', 'data-header-action': 'menu' });
     navToggle.innerHTML = GDM.icons.icon('menu');
-    navToggle.addEventListener('click', function () { openMobileNav(navToggle); });
 
     const actions = el('div', { class: 'header-actions' }, [searchBtn, favLink, cartBtn, navToggle]);
 
     const bar = el('div', { class: 'container header-bar' }, [logo, nav, actions]);
-    const headerEl = el('header', { class: 'site-header', id: 'site-header' }, [bar]);
-    root.appendChild(headerEl);
+    return el('header', { class: 'site-header', id: 'site-header' }, [bar]);
+  }
 
-    buildSearchOverlay(root);
-    buildMobileNav(root);
+  function hydrate(root) {
+    const headerEl = root.querySelector('.site-header');
+    const searchBtn = headerEl.querySelector('[data-header-action="search"]');
+    const cartBtn = headerEl.querySelector('[data-header-action="cart"]');
+    const navToggle = headerEl.querySelector('[data-header-action="menu"]');
+    favBadge = headerEl.querySelector('[data-header-action="favorites"] .icon-btn__badge');
+    cartBadge = cartBtn.querySelector('.icon-btn__badge');
+
+    searchBtn.addEventListener('click', toggleSearch);
+    cartBtn.addEventListener('click', function () { GDM.components.cartDrawer.open(cartBtn); });
+    /* Sem JavaScript, o botão do menu é um link para #mobile-nav (o CSS
+       abre o menu com :target). Com JavaScript, o drawer é controlado aqui. */
+    navToggle.addEventListener('click', function (e) { e.preventDefault(); openMobileNav(navToggle); });
+
+    mobileNavEl = root.querySelector('#mobile-nav');
+    buildSearchOverlay(root, mobileNavEl);
+    hydrateMobileNav();
 
     GDM.bus.on('favorites:change', updateFavBadge);
     GDM.bus.on('cart:change', updateCartBadge);
     updateFavBadge(GDM.favorites.list());
     updateCartBadge(GDM.cart.getState());
+  }
+
+  function mount(root) {
+    if (!root.querySelector('.site-header')) {
+      root.appendChild(buildHeader());
+      root.appendChild(buildMobileNav());
+    }
+    hydrate(root);
   }
 
   function updateFavBadge(list) {
@@ -167,10 +189,9 @@
     cartBadge.style.display = count ? 'flex' : 'none';
   }
 
-  function buildMobileNav(root) {
-    const closeBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Fechar menu', style: 'color:var(--cream-100)' });
+  function buildMobileNav() {
+    const closeBtn = el('a', { class: 'icon-btn', href: '#', role: 'button', 'aria-label': 'Fechar menu', style: 'color:var(--cream-100)', 'data-mobile-nav-close': '' });
     closeBtn.innerHTML = GDM.icons.icon('close');
-    closeBtn.addEventListener('click', closeMobileNav);
     const logoImg = document.createElement('span');
     logoImg.className = 'mobile-nav__logo';
     logoImg.appendChild(el('img', {
@@ -180,16 +201,19 @@
     }));
     const head = el('div', { class: 'mobile-nav__head' }, [logoImg, closeBtn]);
     const list = navList('mobile-nav__list');
-    list.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMobileNav); });
     const waLink = el('a', {
       class: 'btn btn--whatsapp btn--block', href: 'https://wa.me/' + GDM.content.BRAND.whatsapp, target: '_blank', rel: 'noopener',
     });
     waLink.innerHTML = GDM.icons.icon('whatsapp') + '<span>Falar no WhatsApp</span>';
     const panel = el('div', { class: 'mobile-nav__panel' }, [head, list, waLink]);
     const scrim = el('div', { class: 'mobile-nav__scrim' });
-    scrim.addEventListener('click', closeMobileNav);
-    mobileNavEl = el('div', { class: 'mobile-nav', 'data-open': 'false', id: 'mobile-nav' }, [scrim, panel]);
-    root.appendChild(mobileNavEl);
+    return el('div', { class: 'mobile-nav', 'data-open': 'false', id: 'mobile-nav' }, [scrim, panel]);
+  }
+
+  function hydrateMobileNav() {
+    mobileNavEl.querySelector('[data-mobile-nav-close]').addEventListener('click', function (e) { e.preventDefault(); closeMobileNav(); });
+    mobileNavEl.querySelector('.mobile-nav__scrim').addEventListener('click', closeMobileNav);
+    mobileNavEl.querySelectorAll('.mobile-nav__list a').forEach(function (a) { a.addEventListener('click', closeMobileNav); });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && mobileNavEl.getAttribute('data-open') === 'true') closeMobileNav();
     });

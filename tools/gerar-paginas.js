@@ -644,6 +644,9 @@ function replaceHostContent(html, hostId, inner) {
 function headAssets(scripts) {
   return [
     '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
+    // atalho no ecrã inicial (iOS usa o apple-touch-icon; Android o manifest)
+    '<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">',
+    '<link rel="manifest" href="site.webmanifest">',
     // só a fonte do corpo e a dos títulos (subconjunto latin) — as -ext só
     // descarregam se a página tiver caracteres fora do latin básico
     '<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>',

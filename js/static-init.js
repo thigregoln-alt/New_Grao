@@ -253,7 +253,9 @@
           panel.innerHTML='<div class="stack" style="gap:8px"><p>Produção em 3 a 7 dias úteis. Envio pelos CTT, com portes grátis acima de €50.</p><p><a href="envios.html">Ver prazos de envio completos</a></p><p><a href="trocas.html">Ver política de trocas e devoluções</a></p></div>';
         } else if(idx===2){
           panel.innerHTML='';
-          panel.appendChild(renderProductReviews());
+          var wait=document.createElement('p');
+          wait.textContent='As avaliações estão a chegar em breve.';
+          panel.appendChild(wait);
         }
       });
     });
@@ -323,7 +325,6 @@
       list.sort(function(a,b){
         if(ord==='preco-asc') return a.price-b.price;
         if(ord==='preco-desc') return b.price-a.price;
-        if(ord==='avaliacao') return GDM.reviews.summaryFor(b.id).avg-GDM.reviews.summaryFor(a.id).avg;
         return (b.featured?1:0)-(a.featured?1:0);
       });
 
@@ -519,7 +520,7 @@
        GDM.content.REVIEWS ou submetidas pelo formulário) é que este bloco
        é substituído pela grelha ordenada + paginação — nunca com dados
        inventados. */
-    var all = GDM.reviews.all();
+    var all = [];
     if (!all.length) return;
 
     var sorted = all.slice().sort(function (a, b) {

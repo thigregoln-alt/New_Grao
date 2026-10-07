@@ -47,7 +47,6 @@
     const bodyChildren = [
       el('span', { class: 'product-card__cat', text: product.categoryLabel }),
       title,
-      (function () { const s = GDM.reviews.summaryFor(product.id); return GDM.components.ratingBlock(s.avg, s.count); })(),
     ];
     if (opts.hero) {
       bodyChildren.push(el('p', { class: 'product-card__desc', text: product.description }));

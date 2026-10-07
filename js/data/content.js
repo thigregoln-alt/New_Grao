@@ -1,6 +1,7 @@
 /* ==========================================================================
-   Conteúdo institucional — depoimentos, FAQ, envios, devoluções, inspiração,
-   avaliações-semente. Texto estático, sem dados de utilizador.
+   Conteúdo institucional — depoimentos, FAQ, envios, devoluções, inspiração.
+   Texto estático, sem dados de utilizador. (As avaliações vivem no
+   Supabase — ver js/state/reviews.js.)
    ========================================================================== */
 (function (GDM) {
   'use strict';
@@ -111,25 +112,6 @@
     { title: 'Levar a Palavra consigo', verse: '"A tua palavra é lâmpada para os meus pés."', ref: 'Salmos 119:105', text: 'Um porta-chaves gravado é um lembrete discreto, presente em cada porta que se abre.', category: 'porta-chaves' },
   ];
 
-  /* AVALIAÇÕES-SEMENTE — o site ainda não foi publicado, por isso ainda não
-     existem avaliações reais de clientes. NÃO preencher este array com
-     avaliações inventadas: o ateliê pediu explicitamente para não mostrar
-     avaliações falsas como se fossem reais. A página de Avaliações
-     (js/pages/reviews.js) mostra um estado vazio honesto enquanto este
-     array estiver vazio, e passa a listar automaticamente qualquer
-     avaliação que aqui for adicionada — sem precisar de mexer em mais
-     nenhum ficheiro.
-     Para acrescentar uma avaliação real recolhida por WhatsApp, Instagram,
-     etc., adicionar um objeto neste formato (copiar o exemplo comentado
-     abaixo, substituindo pelos dados reais):
-     { id: 'rv-01', productId: 'can-01', author: 'Rita F.', rating: 5,
-       date: '2026-06-12', title: 'Superou expectativas',
-       body: 'Texto real da avaliação do cliente.', verified: true }
-     — productId tem de corresponder a um id existente em GDM.catalog.PRODUCTS
-     (ver js/data/products.js); date no formato AAAA-MM-DD; verified indica
-     se foi uma compra confirmada pelo ateliê. */
-  const REVIEWS = [];
-
   /* PROJETOS — o que o ateliê está a construir para além da loja em si.
      Página distinta de "Inspiração" (versículos/histórias por categoria).
      Fica isolado aqui para o cliente conseguir atualizar facilmente mais
@@ -179,5 +161,5 @@
     ],
   };
 
-  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, REVIEWS, PROJECTS, PRIVACY_POLICY, TERMS };
+  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, PROJECTS, PRIVACY_POLICY, TERMS };
 })(window.GDM = window.GDM || {});

@@ -572,10 +572,10 @@ function cspContent() {
 let cspCache = null;
 
 function regenerateChrome(html, file) {
-  // CSP logo a seguir ao viewport (a CSP só se aplica ao que vem depois dela)
+  // CSP e política de referrer logo a seguir ao viewport (a CSP só se aplica ao que vem depois dela)
   if (cspCache === null) cspCache = cspContent();
   html = html.replace(/<meta http-equiv="Content-Security-Policy" content="[^"]*">\n/, '').replace(/<meta name="referrer" content="[^"]*">\n/, '');
-  html = html.replace(/(<meta name="viewport" content="[^"]*">\n)/, '$1<meta http-equiv="Content-Security-Policy" content="' + cspCache + '">\n');
+  html = html.replace(/(<meta name="viewport" content="[^"]*">\n)/, '$1<meta http-equiv="Content-Security-Policy" content="' + cspCache + '">\n<meta name="referrer" content="strict-origin-when-cross-origin">\n');
 
   // recolhe os <script src="js/…"> (no fim do <body> ou já no <head>) pela ordem atual
   const scripts = [];

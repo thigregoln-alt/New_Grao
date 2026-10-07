@@ -5,6 +5,9 @@
   'use strict';
   const { el } = GDM.security;
   const B = GDM.content.BRAND;
+  /* Formulário de newsletter e "Cancelar subscrição" só com
+     GDM.content.NEWSLETTER.ativa (ainda não há serviço de envio real). */
+  const NEWSLETTER_ATIVA = !!(GDM.content.NEWSLETTER && GDM.content.NEWSLETTER.ativa);
   GDM.components = GDM.components || {};
 
   const NEWSLETTER_COPY = 'Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.';
@@ -109,7 +112,7 @@
         el('li', {}, [el('a', { href: B.instagramUrl, target: '_blank', rel: 'noopener', text: 'Instagram' })]),
       ]),
       el('p', { class: 'footer-contact-note', text: 'Respondemos normalmente em menos de 24 horas úteis.' }),
-      el('div', { class: 'footer-newsletter-mini' }, [
+      !NEWSLETTER_ATIVA ? null : el('div', { class: 'footer-newsletter-mini' }, [
         newsletterTitle,
         newsletterCopy,
         buildNewsletterForm('footer', 'pill'),
@@ -181,7 +184,7 @@
           // obrigatório para quem vende ao consumidor em Portugal
           el('a', { href: 'https://www.livroreclamacoes.pt/', target: '_blank', rel: 'noopener', text: 'Livro de Reclamações' }),
         ]),
-        unsubscribeBtn,
+        NEWSLETTER_ATIVA ? unsubscribeBtn : null,
       ]),
     ]);
 
@@ -193,7 +196,8 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     root.querySelectorAll('.newsletter-form').forEach(function (form) { wireNewsletterForm(form.parentNode); });
-    root.querySelector('.footer-unsub-btn').addEventListener('click', function () {
+    const unsubscribeBtn = root.querySelector('.footer-unsub-btn');
+    if (unsubscribeBtn) unsubscribeBtn.addEventListener('click', function () {
       if (GDM.newsletter.status()) {
         GDM.newsletter.unsubscribe();
         GDM.components.toast.show('Subscrição da newsletter cancelada.', 'info');

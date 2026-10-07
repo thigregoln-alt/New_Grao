@@ -697,6 +697,10 @@ function headerHtml(currentFile) {
   return header + mobileNav;
 }
 
+/* Newsletter só aparece com GDM.content.NEWSLETTER.ativa === true (ainda não
+   há serviço de envio — ver ARCHITECTURE.md). */
+const NEWSLETTER_ATIVA = !!(GDM.content.NEWSLETTER && GDM.content.NEWSLETTER.ativa);
+
 function footerHtml(currentFile) {
   const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
   const mail = escAttr('mailto:' + BRAND.email);
@@ -721,12 +725,12 @@ function footerHtml(currentFile) {
         '<li><a href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></li>' +
         '<li><a href="' + insta + '" target="_blank" rel="noopener">Instagram</a></li></ul>' +
         '<p class="footer-contact-note">Respondemos normalmente em menos de 24 horas úteis.</p>' +
-        '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
+        (!NEWSLETTER_ATIVA ? '' : '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
           '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p><p class="newsletter-privacy">Ao subscrever aceita a <a href="privacidade.html" data-route-link="">Política de Privacidade</a>.</p></div>' +
-        '</div></div>' +
+        '</div>') + '</div>' +
     '</div></div>' +
     '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
-      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
+      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p>' + (NEWSLETTER_ATIVA ? '<button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button>' : '') + '</div></div>' +
     '</footer>';
 }
 

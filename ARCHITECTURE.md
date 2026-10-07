@@ -184,9 +184,25 @@ segurança, fica como trabalho futuro.
   por preencher, o site mostra "As avaliações estão a chegar em breve".
   Nunca há avaliações inventadas. Guia completo: `docs/AVALIACOES.md`.
   `GDM.content.TESTIMONIALS` continua vazio de propósito.
-- **Newsletter**: valida o formato do e-mail e guarda localmente que este
-  dispositivo já subscreveu — não existe envio real de e-mails de boas-vindas
-  nem lista de contactos centralizada (ver secção 4).
+- **Newsletter: desligada.** O formulário guardava o e-mail só no
+  `localStorage` do visitante e ninguém o recebia, por isso saiu do site até
+  haver um serviço real. Interruptor: `GDM.content.NEWSLETTER = { ativa: false }`
+  em `js/data/content.js`. Com `false`, o gerador não escreve o bloco
+  "Fica a par" nem o botão "Cancelar subscrição da newsletter" no rodapé, e
+  `footer.js` também não os monta no fallback. O código fica pronto:
+  `js/state/newsletter.js`, `newsletterForm`/`wireNewsletterForm` em
+  `footer.js` e o molde em `tools/gerar-paginas.js`. A Política de
+  Privacidade diz que a newsletter ainda não está disponível.
+  **Para voltar a ligar:**
+  1. escolher o serviço (Brevo, Buttondown…) e criar a lista;
+  2. mudar `GDM.newsletter.subscribe` (`js/state/newsletter.js`) para enviar
+     o e-mail ao serviço (atualizar também o `connect-src` da CSP no
+     gerador, ou usar o formulário alojado do serviço);
+  3. pôr `NEWSLETTER = { ativa: true }`;
+  4. atualizar a Política de Privacidade (`PRIVACY_POLICY`): que dados, que
+     serviço os aloja, como cancelar;
+  5. correr `node tools/gerar-paginas.js` e fazer push. O rodapé volta a
+     ficar exatamente como estava.
 - **Checkout**: formulário totalmente validado (nome, e-mail, telefone,
   morada, código postal); gera um resumo da encomenda e abre um link
   `wa.me` (WhatsApp) ou `mailto:` pré-preenchido com todos os dados, para o

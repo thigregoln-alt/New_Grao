@@ -783,6 +783,48 @@ function replaceMain(html, main) {
   return html.slice(0, start) + main + html.slice(end);
 }
 
+/* -------------------------------------------------------------------------
+   contacto.html — o <main> já vem com a página final (antes vinha vazio e o
+   JS desenhava tudo depois de pintado: o rodapé saltava, CLS ~0,9). Tem de
+   ser exatamente a mesma marcação que js/pages/contact.js (buildPage), que
+   agora só a hidrata.
+   ------------------------------------------------------------------------- */
+function contactField(id, label, opts) {
+  opts = opts || {};
+  const control = opts.textarea
+    ? '<textarea id="' + id + '" name="' + id + '" aria-describedby="' + id + '-error" placeholder="" required="true" maxlength="' + (opts.maxLength || 600) + '"></textarea>'
+    : '<input id="' + id + '" name="' + id + '" type="' + (opts.type || 'text') + '" aria-describedby="' + id + '-error" placeholder="" required="true" maxlength="200" autocomplete="' + (opts.autocomplete || 'on') + '">';
+  return '<div class="field"><label for="' + id + '">' + escText(label) + ' *</label>' + control + '<p class="field__error" id="' + id + '-error" aria-live="polite"></p></div>';
+}
+
+function contactMain() {
+  const method = (idx, label, value) => '<div class="contact-v5__method"><span class="contact-v5__method-index">' + idx + '</span><div class="stack" style="gap:2px"><strong>' + label + '</strong>' + value + '</div></div>';
+  const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
+  return '<main id="app" tabindex="-1"><section class="section section--tight"><div class="container contact-v5">' +
+    '<div class="contact-v5__hero"><div class="stack" style="gap:14px"><p class="eyebrow contact-v5__kicker">Fale connosco</p><h1>Vamos conversar.</h1><p>Diga-nos o que precisa, conte-nos a ideia ou envie uma dúvida sobre a sua encomenda. Tratamos cada pedido com atenção de atelier.</p></div>' +
+      '<div class="contact-v5__aside"><strong>Resposta humana, não automática.</strong><p>Preferimos mensagens claras e conversas simples. Assim conseguimos responder com contexto e ajudar mais depressa.</p></div></div>' +
+    '<div class="contact-v5__layout">' +
+      '<div class="contact-v5__form"><div class="contact-v5__form-head"><div class="stack" style="gap:7px"><p class="eyebrow">01 · Mensagem</p><h2>Escreva-nos</h2></div><span class="contact-v5__form-note">Campos obrigatórios *</span></div>' +
+        '<form class="stack" novalidate="true"><div class="contact-v5__field-grid">' +
+          contactField('ct-name', 'Nome', { autocomplete: 'name' }) +
+          contactField('ct-email', 'E-mail', { type: 'email', autocomplete: 'email' }) +
+          '<div class="contact-v5__field--full">' + contactField('ct-subject', 'Assunto') + '</div>' +
+          '<div class="contact-v5__field--full">' + contactField('ct-message', 'Mensagem', { textarea: true, maxLength: 600 }) + '</div>' +
+        '</div><div class="contact-v5__submit"><button class="btn btn--primary" type="submit">Enviar mensagem</button><p class="contact-v5__microcopy">A mensagem abre o seu programa de e-mail já preenchido.</p></div>' +
+        '<p role="status" class="newsletter-status"></p></form></div>' +
+      '<aside class="contact-v5__info"><div class="contact-v5__brand"><span class="contact-v5__brand-logo">' + logoPicture('190px', ' alt="Grão de Mostarda" width="666" height="375" loading="lazy"') + '</span><small>Atendimento personalizado · normalmente em menos de 24 horas úteis</small></div>' +
+        '<blockquote class="contact-v5__verse">' + escText('"' + BRAND.verse.slice(0, 108) + '…"') + '<cite>' + escText(BRAND.verseRef) + '</cite></blockquote>' +
+        '<div class="contact-v5__methods">' +
+          method('01', 'WhatsApp', '<a href="' + wa + '" target="_blank" rel="noopener">' + escText(BRAND.whatsappDisplay) + '</a>') +
+          method('02', 'E-mail', '<a href="' + escAttr('mailto:' + BRAND.email) + '">' + escText(BRAND.email) + '</a>') +
+          method('03', 'Instagram', '<a href="' + escAttr(BRAND.instagramUrl) + '" target="_blank" rel="noopener">' + escText(BRAND.instagram) + '</a>') +
+          method('04', 'Horário', '<span>Segunda a sexta · 9h–18h</span>') +
+        '</div><a class="btn btn--whatsapp btn--block contact-v5__wa" href="' + wa + '" target="_blank" rel="noopener">Falar agora no WhatsApp</a></aside>' +
+    '</div>' +
+    '<div class="contact-v5__bottom"><div class="stack" style="gap:3px"><strong>Mais rápido pelo WhatsApp.</strong><p>Para dúvidas urgentes sobre encomendas, é o canal mais direto.</p></div><span class="eyebrow">Grão de Mostarda · Atendimento</span></div>' +
+    '</div></section></main>';
+}
+
 function regenerateTerms(html) {
   return replaceMain(html, legalMain(
     { eyebrow: 'Condições de compra', title: 'Termos e Condições', lede: 'As regras claras de como funciona uma encomenda no nosso ateliê.' },
@@ -1008,6 +1050,7 @@ function main() {
       if (file === 'loja.html') after = regenerateShopJsonLd(regenerateShop(after));
       if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
       if (file === 'termos.html') after = regenerateTerms(after);
+      if (file === 'contacto.html') after = replaceMain(after, contactMain());
       if (file === 'privacidade.html') after = regeneratePrivacy(after);
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });

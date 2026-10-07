@@ -17,17 +17,19 @@
     ]);
   }
 
-  function render(container) {
-    container.innerHTML = '';
+  function validEmail(v) {
+    return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.';
+  }
 
+  /* A marcação da página já vem no HTML (escrita por tools/gerar-paginas.js
+     — manter as duas versões iguais), para o conteúdo inicial ser o final e
+     o rodapé não saltar. buildPage só corre como fallback, se a marcação
+     não existir; em ambos os casos os eventos são ligados por hydrate(). */
+  function buildPage() {
     const nameField = GDM.formHelpers.field({ id: 'ct-name', label: 'Nome', required: true, autocomplete: 'name' });
-    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email', validate: function (v) {
-      return GDM.format.isValidEmail(v) ? '' : 'Introduza um e-mail válido.';
-    }});
+    const emailField = GDM.formHelpers.field({ id: 'ct-email', label: 'E-mail', type: 'email', required: true, autocomplete: 'email' });
     const subjectField = GDM.formHelpers.field({ id: 'ct-subject', label: 'Assunto', required: true });
     const messageField = GDM.formHelpers.field({ id: 'ct-message', label: 'Mensagem', as: 'textarea', required: true, maxLength: 600 });
-    const fields = [nameField, emailField, subjectField, messageField];
-    const validateAll = GDM.formHelpers.wireForm(fields);
     const status = el('p', { role: 'status', class: 'newsletter-status' });
 
     const submitBtn = el('button', { class: 'btn btn--primary', type: 'submit', text: 'Enviar mensagem' });
@@ -38,16 +40,6 @@
       status,
     ]);
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!validateAll()) { GDM.components.toast.show('Reveja os campos assinalados.', 'error'); return; }
-      const subject = GDM.formHelpers.readValue(subjectField);
-      const body = 'Nome: ' + GDM.formHelpers.readValue(nameField) + '\nE-mail: ' + GDM.formHelpers.readValue(emailField) + '\n\n' + GDM.formHelpers.readValue(messageField);
-      window.location.href = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-      status.textContent = 'A abrir o seu programa de e-mail com a mensagem preenchida…';
-      status.classList.add('newsletter-status--ok');
-      GDM.components.toast.show('Mensagem preparada para envio.', 'success');
-    });
 
     const info = el('aside', { class: 'contact-v5__info' }, [
       el('div', { class: 'contact-v5__brand' }, [
@@ -109,7 +101,48 @@
       bottom,
     ]);
 
-    container.appendChild(el('section', { class: 'section section--tight' }, [shell]));
+    return el('section', { class: 'section section--tight' }, [shell]);
+  }
+
+  /* Liga um campo já existente na página à validação genérica de
+     formHelpers (as mesmas propriedades que formHelpers.field põe). */
+  function adoptField(id, validate) {
+    const input = document.getElementById(id);
+    const wrap = input.closest('.field');
+    wrap.__gdmInput = input;
+    wrap.__gdmError = document.getElementById(id + '-error');
+    wrap.__gdmValidate = validate;
+    wrap.__gdmRequired = input.required;
+    return wrap;
+  }
+
+  function hydrate(container) {
+    const nameField = adoptField('ct-name');
+    const emailField = adoptField('ct-email', validEmail);
+    const subjectField = adoptField('ct-subject');
+    const messageField = adoptField('ct-message');
+    const validateAll = GDM.formHelpers.wireForm([nameField, emailField, subjectField, messageField]);
+    const form = container.querySelector('.contact-v5__form form');
+    const status = form.querySelector('[role="status"]');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!validateAll()) { GDM.components.toast.show('Reveja os campos assinalados.', 'error'); return; }
+      const subject = GDM.formHelpers.readValue(subjectField);
+      const body = 'Nome: ' + GDM.formHelpers.readValue(nameField) + '\nE-mail: ' + GDM.formHelpers.readValue(emailField) + '\n\n' + GDM.formHelpers.readValue(messageField);
+      window.location.href = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      status.textContent = 'A abrir o seu programa de e-mail com a mensagem preenchida…';
+      status.classList.add('newsletter-status--ok');
+      GDM.components.toast.show('Mensagem preparada para envio.', 'success');
+    });
+  }
+
+  function render(container) {
+    if (!container.querySelector('.contact-v5')) {
+      container.innerHTML = '';
+      container.appendChild(buildPage());
+    }
+    hydrate(container);
   }
 
   GDM.pages.contact = { render: render };

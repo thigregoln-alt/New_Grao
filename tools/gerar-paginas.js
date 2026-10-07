@@ -85,6 +85,44 @@ function findBlockEnd(html, openIdx, tagName) {
   }
 }
 
+/* -------------------------------------------------------------------------
+   Ilustrações de produto em ficheiro (assets/art/<slug>.svg) em vez de SVG
+   inline repetido em cada página: o browser descarrega cada uma uma vez e
+   guarda-a em cache. Os SVGs não dependem de CSS da página (cores fixas,
+   sem currentColor nem variáveis), por isso ficam iguais dentro de <img>.
+   ------------------------------------------------------------------------- */
+const artFiles = new Map(); // caminho absoluto -> conteúdo, escritos no fim por main()
+
+/* Os ids internos (gradientes/padrões) vêm de um contador global — são
+   renumerados por ficheiro para o resultado ser sempre o mesmo. */
+function normalizeSvgIds(svg) {
+  const ids = [];
+  svg.replace(/ id="([^"]+)"/g, (_m, id) => { if (!ids.includes(id)) ids.push(id); return _m; });
+  ids.forEach((id, i) => {
+    const next = 'a' + (i + 1);
+    svg = svg.split(' id="' + id + '"').join(' id="' + next + '"').split('url(#' + id + ')').join('url(#' + next + ')');
+  });
+  return svg;
+}
+
+function artPath(product, variant) {
+  const name = product.slug + (variant ? '-' + variant : '') + '.svg';
+  if (!artFiles.has(name)) {
+    const art = GDM.categoryArt.productArt(variant ? Object.assign({}, product, { slug: product.slug + '-' + variant }) : product);
+    // tamanho intrínseco explícito: sem ele o browser assume 300×150 dentro de <img>
+    artFiles.set(name, normalizeSvgIds(art).replace('<svg viewBox="0 0 400 500"', '<svg width="400" height="500" viewBox="0 0 400 500"') + '\n');
+  }
+  return 'assets/art/' + name;
+}
+
+/* <img> de uma ilustração. opts.priority = primeira fila / imagem principal
+   (eager + fetchpriority alta); sem isso, lazy. */
+function artImg(product, opts) {
+  opts = opts || {};
+  const loading = opts.priority ? ' loading="eager" fetchpriority="high"' : (opts.eager ? '' : ' loading="lazy"');
+  return '<img class="product-art" src="' + artPath(product, opts.variant) + '" width="400" height="500" alt="' + escAttr(product.name) + ' — pré-visualização ilustrada"' + loading + ' decoding="async">';
+}
+
 let warnings = [];
 function warn(msg) { warnings.push(msg); console.warn('AVISO: ' + msg); }
 
@@ -92,10 +130,16 @@ function warn(msg) { warnings.push(msg); console.warn('AVISO: ' + msg); }
    Cartão de produto (usado na loja, no destaque da Início e em "também
    vai gostar"): só troca texto/atributos — nunca toca no SVG interno.
    ------------------------------------------------------------------------- */
-function patchCard(html, cardOpenIdx, product) {
+function patchCard(html, cardOpenIdx, product, mediaOpts) {
   const cardEnd = findBlockEnd(html, cardOpenIdx, 'article');
   if (cardEnd === -1) return null;
   let card = html.slice(cardOpenIdx, cardEnd);
+
+  const mediaStart = card.indexOf('<div class="product-card__media">');
+  if (mediaStart !== -1) {
+    const mediaEnd = findBlockEnd(card, mediaStart, 'div');
+    card = card.slice(0, mediaStart) + '<div class="product-card__media">' + artImg(product, mediaOpts) + '</div>' + card.slice(mediaEnd);
+  }
 
   const badgesHtml = '<div class="product-card__badges">' +
     (product.featured ? '<span class="badge badge--gold">Destaque</span>' : '') +
@@ -131,7 +175,7 @@ function patchCard(html, cardOpenIdx, product) {
 function buildCard(product, opts) {
   opts = opts || {};
   const href = 'produto-' + product.slug + '.html';
-  const media = '<div class="product-card__media">' + GDM.categoryArt.productArt(product) + '</div>';
+  const media = '<div class="product-card__media">' + artImg(product, opts.media) + '</div>';
   const fav = '<button class="product-card__fav" type="button" aria-pressed="false" aria-label="Adicionar aos favoritos">' + GDM.icons.icon('heart') + '</button>';
   const badges = '<div class="product-card__badges">' +
     (product.featured ? '<span class="badge badge--gold">Destaque</span>' : '') +
@@ -154,7 +198,7 @@ function buildCard(product, opts) {
    presente no HTML não bater certo com expectedSlugs (produto novo,
    removido ou secção reordenada), devolve null para o chamador decidir
    regenerar a secção inteira. */
-function patchCardSequence(html, startIdx, endIdx, expectedProducts) {
+function patchCardSequence(html, startIdx, endIdx, expectedProducts, mediaOptsFor) {
   const region = html.slice(startIdx, endIdx);
   const hrefs = [...region.matchAll(/<h3 class="product-card__title"><a href="produto-([^"]+)\.html">/g)].map((m) => m[1]);
   const expectedSlugs = expectedProducts.map((p) => p.slug);
@@ -170,7 +214,7 @@ function patchCardSequence(html, startIdx, endIdx, expectedProducts) {
     idx = findBlockEnd(out, idx, 'article');
   }
   for (let i = positions.length - 1; i >= 0; i--) {
-    const patched = patchCard(out, positions[i], expectedProducts[i]);
+    const patched = patchCard(out, positions[i], expectedProducts[i], mediaOptsFor ? mediaOptsFor(i) : null);
     if (patched === null) return null;
     out = patched;
   }
@@ -245,13 +289,8 @@ function regenerateProductPage(product, existingHtml) {
   html = html.replace(/<p class="product-info__desc">[^<]*<\/p>/, '<p class="product-info__desc">' + escText(product.description) + '</p>');
   html = html.replace(/(<input type="number" min="1" max=")\d+("[^>]*>)/, '$1' + product.stock + '$2');
 
-  // aria-labels da galeria (nome do produto) — mesmo texto no principal e nas 3 miniaturas
-  const oldNameMatch = html.match(/aria-label="([^"]+) — pré-visualização ilustrada"/);
-  if (oldNameMatch && oldNameMatch[1] !== escAttr(name)) {
-    const oldNameAttr = oldNameMatch[1];
-    html = html.split('aria-label="' + oldNameAttr + ' — pré-visualização ilustrada"').join('aria-label="' + escAttr(name) + ' — pré-visualização ilustrada"');
-    html = html.split('de ' + oldNameAttr.replace(/&quot;/g, '"').replace(/&amp;/g, '&') + '"').join('de ' + name.replace(/"/g, '\\"') + '"');
-  }
+  // galeria (imagem principal + 3 miniaturas) — sempre reescrita de raiz
+  html = regenerateGallery(html, product);
 
   // separador "Descrição" (texto longo)
   html = html.replace(/<div class="detail-tabs__panel"><p>[^<]*<\/p><\/div>/, '<div class="detail-tabs__panel"><p>' + escText(product.long) + '</p></div>');
@@ -294,16 +333,15 @@ function buildNewProductPage(product, donorSlug) {
 }
 
 function regenerateGallery(html, product) {
-  const variants = [product, Object.assign({}, product, { slug: product.slug + '-b' }), Object.assign({}, product, { slug: product.slug + '-c' })];
-  const mainSvg = GDM.categoryArt.productArt(variants[0]);
+  const variants = ['', 'b', 'c'];
   const mainStart = html.indexOf('<div class="product-gallery__main">');
   const mainEnd = findBlockEnd(html, mainStart, 'div');
-  const mainBlock = '<div class="product-gallery__main">' + mainSvg + '</div>';
+  const mainBlock = '<div class="product-gallery__main">' + artImg(product, { priority: true }) + '</div>';
 
   const thumbsStart = html.indexOf('<div class="product-gallery__thumbs">');
   const thumbsEnd = findBlockEnd(html, thumbsStart, 'div');
   const thumbsInner = variants.map((v, idx) =>
-    '<button type="button" aria-current="' + (idx === 0 ? 'true' : 'false') + '" aria-label="Ver imagem ' + (idx + 1) + ' de ' + escAttr(product.name) + '">' + GDM.categoryArt.productArt(v) + '</button>'
+    '<button type="button" aria-current="' + (idx === 0 ? 'true' : 'false') + '" aria-label="Ver imagem ' + (idx + 1) + ' de ' + escAttr(product.name) + '">' + artImg(product, { variant: v, eager: true }) + '</button>'
   ).join('');
   const thumbsBlock = '<div class="product-gallery__thumbs">' + thumbsInner + '</div>';
 
@@ -319,10 +357,11 @@ function regenerateShop(html) {
   const ordered = PRODUCTS.slice().sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
   const gridOpenIdx = html.indexOf('<div class="grid-auto">');
   const gridEndIdx = findBlockEnd(html, gridOpenIdx, 'div');
-  const patched = patchCardSequence(html, gridOpenIdx, gridEndIdx, ordered);
+  const firstRow = (i) => ({ priority: i < 4 });
+  const patched = patchCardSequence(html, gridOpenIdx, gridEndIdx, ordered, firstRow);
   if (patched !== null) return patched;
   warn('loja.html: composição da grelha mudou (produto novo/removido/destaque alterado) — grelha regenerada com novos ids internos de SVG (sem impacto visual).');
-  const cardsHtml = ordered.map((p, i) => buildCard(p, { reveal: 'fade', revealIndex: i % 6 })).join('');
+  const cardsHtml = ordered.map((p, i) => buildCard(p, { reveal: 'fade', revealIndex: i % 6, media: firstRow(i) })).join('');
   return html.slice(0, gridOpenIdx) + '<div class="grid-auto">' + cardsHtml + '</div>' + html.slice(gridEndIdx);
 }
 
@@ -551,6 +590,15 @@ function main() {
       if (file === 'index.html') after = regenerateFeatured(after);
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
+
+  if (!fs.existsSync(rp('assets', 'art'))) fs.mkdirSync(rp('assets', 'art'));
+  [...artFiles.keys()].sort().forEach((name) => {
+    const filePath = rp('assets', 'art', name);
+    writeIfChanged(filePath, fs.existsSync(filePath) ? readText(filePath) : null, artFiles.get(name));
+  });
+  fs.readdirSync(rp('assets', 'art')).filter((f) => !artFiles.has(f)).forEach((f) => {
+    warn('assets/art/' + f + ' já não é usada por nenhuma página — não foi apagada, revê manualmente.');
+  });
 
   const sitemapPath = rp('sitemap.xml');
   writeIfChanged(sitemapPath, readText(sitemapPath), buildSitemap());

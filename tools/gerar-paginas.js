@@ -550,7 +550,33 @@ function headAssets(scripts) {
     .join('\n');
 }
 
+/* Content-Security-Policy por <meta> (o GitHub Pages não deixa definir
+   cabeçalhos HTTP). 'unsafe-inline' só nos estilos, por causa dos
+   style="…" do HTML e dos que el() cria; nenhum <script> inline é executado
+   (os blocos JSON-LD não são código). connect-src inclui o projeto Supabase
+   das avaliações quando js/data/reviewsConfig.js tiver o url preenchido. */
+function cspContent() {
+  let supabase = '';
+  const cfgPath = rp('js', 'data', 'reviewsConfig.js');
+  if (fs.existsSync(cfgPath)) {
+    const ctx = { window: { GDM: {} } };
+    vm.createContext(ctx);
+    vm.runInContext(fs.readFileSync(cfgPath, 'utf8'), ctx, { filename: 'js/data/reviewsConfig.js' });
+    const url = (ctx.window.GDM.reviewsConfig && ctx.window.GDM.reviewsConfig.url) || '';
+    const m = String(url).match(/^https:\/\/[a-z0-9-]+\.supabase\.co/);
+    if (m) supabase = ' ' + m[0];
+    else if (url) warn('reviewsConfig.url não parece um URL do Supabase (https://<projeto>.supabase.co) — ficou fora da CSP.');
+  }
+  return "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'" + supabase + "; object-src 'none'; base-uri 'self'; form-action 'self'";
+}
+let cspCache = null;
+
 function regenerateChrome(html, file) {
+  // CSP logo a seguir ao viewport (a CSP só se aplica ao que vem depois dela)
+  if (cspCache === null) cspCache = cspContent();
+  html = html.replace(/<meta http-equiv="Content-Security-Policy" content="[^"]*">\n/, '').replace(/<meta name="referrer" content="[^"]*">\n/, '');
+  html = html.replace(/(<meta name="viewport" content="[^"]*">\n)/, '$1<meta http-equiv="Content-Security-Policy" content="' + cspCache + '">\n');
+
   // recolhe os <script src="js/…"> (no fim do <body> ou já no <head>) pela ordem atual
   const scripts = [];
   html = html.replace(/<script src="(js\/[^"?]+)(?:\?[^"]*)?"(?: defer)?><\/script>\n?/g, function (_m, src) {

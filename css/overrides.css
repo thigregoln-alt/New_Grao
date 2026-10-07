@@ -471,6 +471,9 @@ footer a:hover{color:var(--gold-300)}
   display:flex;
   align-items:flex-end;
   position:relative;
+  /* Fotografia do rodapé (Unsplash, licença Unsplash) alojada no próprio site:
+     antes vinha de images.unsplash.com, o que enviava o IP do visitante a
+     terceiros e é bloqueado pela Content-Security-Policy. */
   background:linear-gradient(180deg,
       rgba(28,17,8,.05) 0%,
       rgba(28,17,8,.10) 30%,
@@ -481,7 +484,18 @@ footer a:hover{color:var(--gold-300)}
       rgba(20,12,7,.62) 0%,
       rgba(20,12,7,.08) 52%,
       rgba(20,12,7,.60) 100%),
-    url('https://images.unsplash.com/photo-1782774407033-9e045ff83749?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=84&w=2200') center 38% / cover no-repeat;
+    url('../assets/footer-visual.jpg') center 38% / cover no-repeat;
+  background:linear-gradient(180deg,
+      rgba(28,17,8,.05) 0%,
+      rgba(28,17,8,.10) 30%,
+      rgba(28,17,8,.34) 55%,
+      rgba(28,17,8,.78) 78%,
+      #1c1108 100%),
+    linear-gradient(90deg,
+      rgba(20,12,7,.62) 0%,
+      rgba(20,12,7,.08) 52%,
+      rgba(20,12,7,.60) 100%),
+    image-set(url('../assets/footer-visual.avif') type('image/avif'), url('../assets/footer-visual.webp') type('image/webp'), url('../assets/footer-visual.jpg') type('image/jpeg')) center 38% / cover no-repeat;
 }
 
 .footer-visual::after{

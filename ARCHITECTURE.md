@@ -13,11 +13,13 @@ gestão de encomendas reais.
   `tools/gerar-paginas.js`, é uma ferramenta de desenvolvimento — ver
   secção 2b — que também não usa dependências, só `fs`/`path`/`vm`).
 - **47 páginas `.html` estáticas e pré-renderizadas.** Cada página já traz
-  o conteúdo final no próprio HTML (não há um `<main id="app">` vazio à
-  espera de ser preenchido por JavaScript) — abrir qualquer página com
-  JavaScript desativado mostra o conteúdo na mesma. O JavaScript entra só
-  para tornar a página interativa (carrinho, favoritos, filtros, formulários,
-  drawers, animações), nunca para gerar a marcação inicial.
+  o conteúdo principal no próprio HTML (não há um `<main id="app">` vazio
+  à espera de ser preenchido por JavaScript). **Atenção:** o cabeçalho, o
+  menu (incluindo o menu mobile) e o rodapé ainda são montados por
+  JavaScript em `#header-host`/`#footer-host` — com JavaScript desativado
+  vê-se o conteúdo de cada página, mas sem navegação nem rodapé. As
+  páginas de carrinho, checkout, favoritos, contacto e avaliações dependem
+  também de JavaScript para o seu conteúdo interativo.
 - **Sem router client-side.** Não existe navegação por hash nem History
   API: cada link aponta diretamente para o ficheiro `.html` de destino
   (`loja.html`, `produto-<slug>.html`, `loja.html?categoria=...`, etc.) e o

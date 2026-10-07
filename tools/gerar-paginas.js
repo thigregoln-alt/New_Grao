@@ -365,7 +365,27 @@ function buildSitemap() {
    <head>, <main> e a envolvente do <body>. Cada passo é idempotente — correr
    o gerador duas vezes seguidas não altera nada na segunda.
    ------------------------------------------------------------------------- */
+const CSS_FILES = ['tokens', 'base', 'layout', 'components', 'animations', 'pages', 'overrides'];
+
+/* Bloco de recursos do <head> (ícone, preload das fontes, CSS): reescrito
+   sempre de raiz entre o <link rel="icon"> e o último <link rel="stylesheet">. */
+function headAssets() {
+  return [
+    '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
+    // só a fonte do corpo e a dos títulos (subconjunto latin) — as -ext só
+    // descarregam se a página tiver caracteres fora do latin básico
+    '<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>',
+    '<link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>',
+  ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=9">')).join('\n');
+}
+
 function regenerateChrome(html) {
+  const assetsStart = html.indexOf('<link rel="icon"');
+  const lastCss = html.lastIndexOf('<link rel="stylesheet"');
+  if (assetsStart !== -1 && lastCss !== -1) {
+    const assetsEnd = html.indexOf('>', lastCss) + 1;
+    html = html.slice(0, assetsStart) + headAssets() + html.slice(assetsEnd);
+  }
   // <main> sem aria-live: anunciava a página inteira a cada alteração. As
   // regiões vivas certas são o toast e os role="status" de cada formulário.
   html = html.replace(/<main id="app" tabindex="-1" aria-live="polite">/, '<main id="app" tabindex="-1">');

@@ -35,14 +35,39 @@
     return lines.join('\n');
   }
 
-  function confirmationView(orderId) {
+  /* O carrinho NÃO é esvaziado ao abrir o WhatsApp/e-mail: o popup pode ter
+     sido bloqueado ou não haver programa de e-mail, e o pedido perdia-se.
+     Só é esvaziado quando a pessoa confirma "Já enviei o pedido" (ou segue
+     para "Continuar a comprar"). sendUrl (com a mensagem completa) vive só
+     em memória, nesta vista — nunca vai para o localStorage. */
+  function confirmationView(orderId, mode, sendUrl) {
+    const isWhatsapp = mode === 'whatsapp';
     const wrap = el('div', { class: 'order-confirm', 'data-reveal': 'scale' });
     const svg = document.createElement('div');
     svg.innerHTML = '<svg class="success-check" width="72" height="72" viewBox="0 0 72 72" fill="none"><circle cx="36" cy="36" r="32" stroke="#4c7a4f" stroke-width="4"/><path d="M22 37l10 10 18-20" stroke="#4c7a4f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     wrap.appendChild(svg);
     wrap.appendChild(el('h2', { text: 'Pedido preparado!' }));
     wrap.appendChild(el('p', { text: 'A sua encomenda ' + orderId + ' está pronta a enviar para o ateliê. Assim que recebermos a mensagem, confirmamos consigo o pagamento.', style: 'max-width:52ch' }));
-    wrap.appendChild(el('a', { class: 'btn btn--dark', href: '#/loja', text: 'Continuar a comprar' }));
+    const status = el('p', { role: 'status', style: 'max-width:52ch', text: (isWhatsapp ? 'Se o WhatsApp não abriu' : 'Se o seu programa de e-mail não abriu') + ', use o botão abaixo. O carrinho só é esvaziado quando confirmar que enviou o pedido.' });
+    wrap.appendChild(status);
+
+    const reopen = el('a', isWhatsapp
+      ? { class: 'btn btn--whatsapp', href: sendUrl, target: '_blank', rel: 'noopener' }
+      : { class: 'btn btn--outline', href: sendUrl });
+    reopen.innerHTML = GDM.icons.icon(isWhatsapp ? 'whatsapp' : 'mail');
+    reopen.appendChild(el('span', { text: isWhatsapp ? 'Abrir novamente o WhatsApp' : 'Abrir novamente o e-mail' }));
+    const sentBtn = el('button', { class: 'btn btn--primary', type: 'button', text: 'Já enviei o pedido' });
+    const continueLink = el('a', { class: 'btn btn--dark', href: '#/loja', text: 'Continuar a comprar' });
+    const actions = el('div', { class: 'cluster', style: 'gap:12px;justify-content:center' }, [reopen, sentBtn, continueLink]);
+    wrap.appendChild(actions);
+
+    sentBtn.addEventListener('click', function () {
+      GDM.cart.clear();
+      status.textContent = 'Obrigado! O carrinho foi esvaziado — vamos responder-lhe em breve.';
+      reopen.remove();
+      sentBtn.remove();
+    });
+    continueLink.addEventListener('click', function () { GDM.cart.clear(); });
     return wrap;
   }
 
@@ -128,15 +153,17 @@
       const orderId = buildOrderId();
       const message = buildMessage(orderId, customer, freshState);
 
+      let sendUrl;
       if (submitMode === 'whatsapp') {
-        window.open('https://wa.me/' + B.whatsapp + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
+        sendUrl = 'https://wa.me/' + B.whatsapp + '?text=' + encodeURIComponent(message);
+        window.open(sendUrl, '_blank', 'noopener');
       } else {
         const subject = 'Nova encomenda ' + orderId + ' — Grão de Mostarda';
-        window.location.href = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message);
+        sendUrl = 'mailto:' + B.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message);
+        window.location.href = sendUrl;
       }
-      GDM.cart.clear();
       inner.innerHTML = '';
-      inner.appendChild(confirmationView(orderId));
+      inner.appendChild(confirmationView(orderId, submitMode, sendUrl));
       GDM.components.initScrollReveal();
     });
 

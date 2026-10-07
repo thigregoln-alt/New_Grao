@@ -34,6 +34,14 @@
     document.addEventListener(type, fixLinkOnInteraction, true);
   });
 
+  /* Loja aberta em vários separadores: quando outro separador altera o
+     carrinho ou os favoritos, o evento 'storage' chega aqui e reemitimos a
+     mudança no bus para o badge, o drawer e as páginas se atualizarem. */
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'gdm:cart' || e.key === null) GDM.bus.emit('cart:change', GDM.cart.getState());
+    if (e.key === 'gdm:favorites' || e.key === null) GDM.bus.emit('favorites:change', GDM.favorites.list());
+  });
+
   function markActive() {
     var page = document.body.getAttribute('data-gdm-page') || '/';
     var normalized = page === 'produto' ? '' : page;

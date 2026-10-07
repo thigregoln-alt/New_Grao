@@ -6,12 +6,16 @@
   const KEY = 'favorites';
 
   function validateShape(parsed) {
-    return Array.isArray(parsed) && parsed.every(function (id) { return typeof id === 'string'; });
+    return Array.isArray(parsed);
   }
 
+  /* Filtra item a item (um id estragado não apaga a lista inteira) e
+     remove ids repetidos ou que já não existam no catálogo. */
   function load() {
     const stored = GDM.storage.read(KEY, validateShape) || [];
-    return stored.filter(function (id) { return !!GDM.catalog.getById(id); });
+    return stored.filter(function (id, idx) {
+      return typeof id === 'string' && stored.indexOf(id) === idx && !!GDM.catalog.getById(id);
+    });
   }
 
   function persist(ids) {

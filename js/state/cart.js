@@ -21,20 +21,31 @@
   }
 
   function validateShape(parsed) {
-    return Array.isArray(parsed) && parsed.every(isValidRawLine);
+    return Array.isArray(parsed);
   }
 
   function loadRaw() {
     const stored = GDM.storage.read(KEY, validateShape);
     if (!stored) return [];
-    // Descarta linhas cujo produto já não exista no catálogo atual, e
-    // recorta a quantidade ao stock real disponível — nunca confia no
-    // número guardado além do que o catálogo permite hoje.
+    // Valida linha a linha: uma linha estragada cai sozinha e as válidas
+    // ficam (antes, uma só linha inválida apagava o carrinho inteiro).
+    // Descarta linhas cujo produto já não exista no catálogo atual, junta
+    // linhas repetidas do mesmo produto somando a quantidade, e recorta a
+    // quantidade ao stock real disponível — nunca confia no número guardado
+    // além do que o catálogo permite hoje.
+    const seen = {};
     return stored.reduce(function (acc, line) {
+      if (!isValidRawLine(line)) return acc;
       const product = GDM.catalog.getById(line.productId);
       if (!product) return acc;
-      const safeQty = Math.max(1, Math.min(line.qty, product.stock, MAX_QTY_PER_LINE));
-      acc.push({ productId: line.productId, qty: safeQty });
+      const limit = Math.min(product.stock, MAX_QTY_PER_LINE);
+      if (seen[line.productId]) {
+        seen[line.productId].qty = Math.max(1, Math.min(seen[line.productId].qty + line.qty, limit));
+        return acc;
+      }
+      const entry = { productId: line.productId, qty: Math.max(1, Math.min(line.qty, limit)) };
+      seen[line.productId] = entry;
+      acc.push(entry);
       return acc;
     }, []);
   }

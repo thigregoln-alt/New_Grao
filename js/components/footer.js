@@ -28,7 +28,12 @@
       ]),
       btn,
     ]);
-    return el('div', { class: variant === 'pill' ? 'newsletter-pill-wrap' : '' }, [form, status]);
+    const privacy = el('p', { class: 'newsletter-privacy' }, [
+      'Ao subscrever aceita a ',
+      el('a', { href: '#/privacidade', 'data-route-link': '', text: 'Política de Privacidade' }),
+      '.',
+    ]);
+    return el('div', { class: variant === 'pill' ? 'newsletter-pill-wrap' : '' }, [form, status, privacy]);
   }
 
   function wireNewsletterForm(wrap) {
@@ -64,7 +69,8 @@
       const result = GDM.newsletter.subscribe(input.value);
       if (result.ok) {
         showSubscribed(result.record);
-        GDM.components.toast.show('Inscrição na newsletter confirmada.', 'success');
+        // honesto: ainda não há serviço de envio ligado (o e-mail fica só neste browser)
+        GDM.components.toast.show('Obrigado! Avisamos assim que a newsletter arrancar.', 'success');
       } else {
         status.className = 'newsletter-status newsletter-status--error';
         status.textContent = result.error;

@@ -2273,6 +2273,11 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
 }
 
 
+/* Linha da Política de Privacidade por baixo do campo da newsletter */
+.newsletter-privacy{margin-top:8px;font-size:12px;line-height:1.5;color:rgba(244,234,214,.56)}
+.newsletter-privacy a{color:rgba(244,234,214,.82);text-decoration:underline;text-underline-offset:2px}
+.newsletter-privacy a:hover{color:var(--cream-050)}
+
 /* ---------------------------------------------------------------------
    Movimento reduzido — tem de ficar no FIM do ficheiro: várias regras
    acima declaram transition com !important e um seletor mais específico

@@ -21,6 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const rp = (...segments) => path.join(ROOT, ...segments);
@@ -412,6 +413,16 @@ function buildSitemap() {
    o gerador duas vezes seguidas não altera nada na segunda.
    ------------------------------------------------------------------------- */
 const CSS_FILES = ['tokens', 'base', 'layout', 'components', 'animations', 'pages', 'overrides'];
+
+/* ?v=<hash> calculado do conteúdo de cada CSS/JS (com quebras de linha
+   normalizadas, para dar o mesmo em Windows e no GitHub): muda sozinho
+   sempre que o ficheiro muda, e o GitHub Pages nunca serve uma versão antiga
+   da cache. Depois de editar qualquer CSS/JS, correr o gerador. */
+const versionCache = {};
+function assetVersion(rel) {
+  if (!versionCache[rel]) versionCache[rel] = crypto.createHash('sha256').update(readText(rp(rel))).digest('hex').slice(0, 8);
+  return versionCache[rel];
+}
 const BRAND = GDM.content.BRAND;
 const icon = GDM.icons.icon;
 
@@ -534,8 +545,8 @@ function headAssets(scripts) {
     // descarregam se a página tiver caracteres fora do latin básico
     '<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>',
-  ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=9">'))
-    .concat(scripts.map((src) => '<script src="' + src + '?v=3" defer></script>'))
+  ].concat(CSS_FILES.map((name) => '<link rel="stylesheet" href="css/' + name + '.css?v=' + assetVersion('css/' + name + '.css') + '">'))
+    .concat(scripts.map((src) => '<script src="' + src + '?v=' + assetVersion(src) + '" defer></script>'))
     .join('\n');
 }
 

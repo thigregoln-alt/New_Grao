@@ -11,7 +11,7 @@ gestão de encomendas reais.
   bibliotecas externas, sem passo de build (webpack/vite/etc.), sem `npm
   install` no site em si (o único script Node do repositório,
   `tools/gerar-paginas.js`, é uma ferramenta de desenvolvimento — ver
-  secção 2b — que também não usa dependências, só `fs`/`path`/`vm`).
+  secção 2b — que também não usa dependências, só `fs`/`path`/`vm`/`crypto`, módulos do próprio Node).
 - **47 páginas `.html` estáticas e pré-renderizadas.** Cada página já traz
   o conteúdo principal no próprio HTML (não há um `<main id="app">` vazio
   à espera de ser preenchido por JavaScript). O cabeçalho, o menu mobile e

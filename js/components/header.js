@@ -113,11 +113,7 @@
     const logo = el('a', { href: '#/', class: 'header-brand', 'aria-label': 'Grão de Mostarda Personalizados — Início' });
     const logoImg = document.createElement('span');
     logoImg.className = 'header-brand__logo';
-    logoImg.appendChild(el('img', {
-      src: 'assets/logo-grao-de-mostarda.png',
-      alt: '',
-      loading: 'eager',
-    }));
+    logoImg.appendChild(GDM.components.logoPicture('(max-width: 420px) 64px, 92px', { alt: '', width: '666', height: '375', loading: 'eager' }));
     logo.appendChild(logoImg);
     logo.appendChild(el('span', { class: 'header-brand__wordmark' }, [
       el('strong', { text: 'Grão de Mostarda' }),
@@ -194,11 +190,7 @@
     closeBtn.innerHTML = GDM.icons.icon('close');
     const logoImg = document.createElement('span');
     logoImg.className = 'mobile-nav__logo';
-    logoImg.appendChild(el('img', {
-      src: 'assets/logo-grao-de-mostarda.png',
-      alt: 'Grão de Mostarda',
-      loading: 'lazy',
-    }));
+    logoImg.appendChild(GDM.components.logoPicture('46px', { alt: 'Grão de Mostarda', width: '666', height: '375', loading: 'lazy' }));
     const head = el('div', { class: 'mobile-nav__head' }, [logoImg, closeBtn]);
     const list = navList('mobile-nav__list');
     const waLink = el('a', {

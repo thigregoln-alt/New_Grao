@@ -425,6 +425,20 @@ const NAV_LINKS = [
   ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto'],
 ];
 
+/* Logótipo: AVIF/WebP em 4 larguras (gerados a partir do PNG original,
+   ver ARCHITECTURE.md) + o PNG como último recurso. sizes = largura com que
+   cada uso é mostrado no CSS. O mesmo <picture> é construído em
+   js/components/ui.js (logoPicture) para o fallback em JavaScript. */
+const LOGO_WIDTHS = [96, 192, 384, 666];
+function logoPicture(sizes, imgAttrs) {
+  const srcset = (ext) => LOGO_WIDTHS.map((w) => 'assets/logo-grao-de-mostarda-' + w + '.' + ext + ' ' + w + 'w').join(', ');
+  return '<picture>' +
+    '<source type="image/avif" srcset="' + srcset('avif') + '" sizes="' + sizes + '">' +
+    '<source type="image/webp" srcset="' + srcset('webp') + '" sizes="' + sizes + '">' +
+    '<img src="assets/logo-grao-de-mostarda.png"' + imgAttrs + '>' +
+    '</picture>';
+}
+
 function routeLink(href, label, currentFile) {
   return '<a href="' + href + '" data-route-link=""' + (href === currentFile ? ' aria-current="page"' : '') + '>' + escText(label) + '</a>';
 }
@@ -437,7 +451,7 @@ function headerHtml(currentFile) {
   const wa = 'https://wa.me/' + BRAND.whatsapp;
   const header =
     '<header class="site-header" id="site-header"><div class="container header-bar">' +
-      '<a href="index.html" class="header-brand" aria-label="Grão de Mostarda Personalizados — Início"><span class="header-brand__logo"><img src="assets/logo-grao-de-mostarda.png" alt="" loading="eager"></span><span class="header-brand__wordmark"><strong>Grão de Mostarda</strong><span>Personalizados</span></span></a>' +
+      '<a href="index.html" class="header-brand" aria-label="Grão de Mostarda Personalizados — Início"><span class="header-brand__logo">' + logoPicture('(max-width: 420px) 64px, 92px', ' alt="" width="666" height="375" loading="eager"') + '</span><span class="header-brand__wordmark"><strong>Grão de Mostarda</strong><span>Personalizados</span></span></a>' +
       navListHtml('main-nav', currentFile) +
       '<div class="header-actions">' +
         '<button class="icon-btn" type="button" aria-label="Pesquisar" data-header-action="search">' + icon('search') + '</button>' +
@@ -448,7 +462,7 @@ function headerHtml(currentFile) {
     '</div></header>';
   const mobileNav =
     '<div class="mobile-nav" data-open="false" id="mobile-nav"><div class="mobile-nav__scrim"></div><div class="mobile-nav__panel">' +
-      '<div class="mobile-nav__head"><span class="mobile-nav__logo"><img src="assets/logo-grao-de-mostarda.png" alt="Grão de Mostarda" loading="lazy"></span>' +
+      '<div class="mobile-nav__head"><span class="mobile-nav__logo">' + logoPicture('46px', ' alt="Grão de Mostarda" width="666" height="375" loading="lazy"') + '</span>' +
         '<a class="icon-btn" href="#" role="button" aria-label="Fechar menu" style="color:var(--cream-100)" data-mobile-nav-close="">' + icon('close') + '</a></div>' +
       navListHtml('mobile-nav__list', currentFile) +
       '<a class="btn btn--whatsapp btn--block" href="' + escAttr(wa) + '" target="_blank" rel="noopener">' + icon('whatsapp') + '<span>Falar no WhatsApp</span></a>' +
@@ -465,7 +479,7 @@ function footerHtml(currentFile) {
   return '<footer class="site-footer">' +
     '<div class="footer-visual"><div class="container footer-visual__inner"><p class="footer-visual__kicker">GRÃO DE MOSTARDA  /  PORTUGAL  /  2026</p><button class="footer-visual__top" type="button" aria-label="Voltar ao topo">↑</button></div></div>' +
     '<div class="container footer-main"><div class="footer-cols">' +
-      '<div class="footer-brand"><div class="footer-logo-card"><img src="assets/logo-grao-de-mostarda.png" alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"></div>' +
+      '<div class="footer-brand"><div class="footer-logo-card">' + logoPicture('112px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"') + '</div>' +
         '<p class="footer-brand__tagline">Fé · Amor · Propósito</p>' +
         '<p class="footer-brand__desc">Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã, feitos à mão, um de cada vez.</p>' +
         '<div class="social-row">' +
@@ -487,6 +501,16 @@ function footerHtml(currentFile) {
     '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
       '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + '</p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
     '</footer>';
+}
+
+/* index.html — logótipo grande do hero (fora do molde comum). */
+function regenerateHeroLogo(html) {
+  const open = '<div class="hero__logo"><span class="hero__logo-shadow"></span>';
+  const start = html.indexOf(open);
+  if (start === -1) return html;
+  const end = findBlockEnd(html, start, 'div');
+  const img = logoPicture('(max-width: 650px) 260px, (max-width: 1200px) 40vw, 480px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="480" height="270" loading="eager" fetchpriority="high" class="hero-float hero-float--slow"');
+  return html.slice(0, start) + open + img + '</div>' + html.slice(end);
 }
 
 /* Substitui o conteúdo de <div id="..."> (que pode ter divs aninhadas). */
@@ -587,7 +611,7 @@ function main() {
       const before = readText(filePath);
       let after = before;
       if (file === 'loja.html') after = regenerateShop(after);
-      if (file === 'index.html') after = regenerateFeatured(after);
+      if (file === 'index.html') after = regenerateHeroLogo(regenerateFeatured(after));
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
 

@@ -38,6 +38,9 @@ body {
 
 img, svg { display: block; max-width: 100%; }
 img { height: auto; }
+/* <picture> só escolhe o ficheiro (AVIF/WebP/PNG) — não gera caixa própria,
+   para o <img> lá dentro ficar com o mesmo layout que tinha sozinho. */
+picture { display: contents; }
 
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: none; }

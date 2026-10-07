@@ -233,6 +233,21 @@
     return wrap;
   }
 
+  /** Logótipo em <picture> (AVIF/WebP em várias larguras + PNG). sizes =
+   *  largura com que é mostrado; attrs = atributos do <img>. Mesma marcação
+   *  que tools/gerar-paginas.js escreve no HTML estático. */
+  function logoPicture(sizes, attrs) {
+    const widths = [96, 192, 384, 666];
+    const srcset = function (ext) {
+      return widths.map(function (w) { return 'assets/logo-grao-de-mostarda-' + w + '.' + ext + ' ' + w + 'w'; }).join(', ');
+    };
+    return el('picture', {}, [
+      el('source', { type: 'image/avif', srcset: srcset('avif'), sizes: sizes }),
+      el('source', { type: 'image/webp', srcset: srcset('webp'), sizes: sizes }),
+      el('img', Object.assign({ src: 'assets/logo-grao-de-mostarda.png' }, attrs)),
+    ]);
+  }
+
   function breadcrumb(items) {
     const nodes = [];
     items.forEach(function (item, idx) {
@@ -245,6 +260,7 @@
 
   GDM.components.pageHero = pageHero;
   GDM.components.breadcrumb = breadcrumb;
+  GDM.components.logoPicture = logoPicture;
   GDM.components.enhanceSelect = enhanceSelect;
   GDM.components.starRow = starRow;
   GDM.components.ratingBlock = ratingBlock;

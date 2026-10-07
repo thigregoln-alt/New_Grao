@@ -132,13 +132,7 @@
     const brandBlock = el('div', { class: 'footer-brand' }, [
       (function () {
         const d = el('div', { class: 'footer-logo-card' });
-        d.appendChild(el('img', {
-          src: 'assets/logo-grao-de-mostarda.png',
-          alt: 'Grão de Mostarda — Editora Gráfica Cristã',
-          width: '220',
-          height: '124',
-          loading: 'lazy',
-        }));
+        d.appendChild(GDM.components.logoPicture('112px', { alt: 'Grão de Mostarda — Editora Gráfica Cristã', width: '220', height: '124', loading: 'lazy' }));
         return d;
       })(),
       el('p', { class: 'footer-brand__tagline', text: 'Fé · Amor · Propósito' }),

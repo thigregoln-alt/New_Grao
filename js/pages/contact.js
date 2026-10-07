@@ -54,7 +54,7 @@
         (function () {
           const s = document.createElement('span');
           s.className = 'contact-v5__brand-logo';
-          s.appendChild(el('img', { src: 'assets/logo-grao-de-mostarda.png', alt: 'Grão de Mostarda', loading: 'lazy' }));
+          s.appendChild(GDM.components.logoPicture('190px', { alt: 'Grão de Mostarda', width: '666', height: '375', loading: 'lazy' }));
           return s;
         })(),
         el('small', { text: 'Atendimento personalizado · normalmente em menos de 24 horas úteis' }),

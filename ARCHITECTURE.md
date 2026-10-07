@@ -74,6 +74,14 @@ tools/
   gerar-paginas.js        Ver secção 2b
 assets/
   favicon.svg
+  fonts/                  DM Sans e Manrope (woff2, latin + latin-ext) — ver README.md lá dentro
+  art/                    Ilustrações de produto (<slug>.svg, <slug>-b/-c.svg das
+                          miniaturas) — escritas por tools/gerar-paginas.js, não editar à mão
+  logo-grao-de-mostarda.png         Original (fallback do <picture>)
+  logo-grao-de-mostarda-<96|192|384|666>.<avif|webp>
+                          Versões leves do logótipo, geradas a partir do PNG
+                          (sharp, fora do repositório); se o PNG mudar, gerar de novo
+  og-image.png            Pré-visualização de partilha (PNG de paleta, ~30 KB)
 ```
 
 ## 2a. Que JavaScript cada página carrega

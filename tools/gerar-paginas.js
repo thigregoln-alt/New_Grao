@@ -634,15 +634,15 @@ function buildNotFoundPage() {
 function legalMain(hero, data, extra) {
   extra = extra || [];
   const sections = extra.filter((s) => s.first)
-    .concat(data.sections.map((s) => ({ title: escText(s.title), html: '<p style="color:var(--ink-700)">' + escText(s.text) + '</p>' })))
+    .concat(data.sections.map((s) => ({ id: s.id, title: escText(s.title), html: '<p style="color:var(--ink-700)">' + escText(s.text) + '</p>' })))
     .concat(extra.filter((s) => !s.first));
   return '<main id="app" tabindex="-1">' +
     '<div class="page-hero"><div class="container stack" style="gap:10px;align-items:center"><p class="eyebrow">' + hero.eyebrow + '</p><h1>' + hero.title + '</h1><p style="max-width:60ch;margin-inline:auto;color:var(--ink-700)">' + hero.lede + '</p></div></div>' +
     '<section class="section"><div class="container" style="padding-bottom:0"><p style="color:var(--ink-500);font-size:var(--fs-sm)">Última atualização: ' + GDM.format.dateLabel(data.updated) + '</p></div>' +
     '<div class="container content-layout"><nav class="content-toc" aria-label="Índice da página">' +
-      sections.map((s, i) => '<a href="#sec-' + i + '">' + s.title + '</a>').join('') + '</nav>' +
+      sections.map((s, i) => '<a href="#' + (s.id || 'sec-' + i) + '">' + s.title + '</a>').join('') + '</nav>' +
     '<div class="stack" style="gap:40px">' +
-      sections.map((s, i) => '<div id="sec-' + i + '" data-reveal="fade" class="" style="--reveal-index: ' + (i % 6) + ';"><h2 style="margin-bottom:16px">' + s.title + '</h2>' + s.html + '</div>').join('') +
+      sections.map((s, i) => '<div id="' + (s.id || 'sec-' + i) + '" data-reveal="fade" class="" style="--reveal-index: ' + (i % 6) + ';"><h2 style="margin-bottom:16px">' + s.title + '</h2>' + s.html + '</div>').join('') +
     '</div></div></section></main>';
 }
 

@@ -42,7 +42,11 @@ function loadModule(rel) {
 const GDM = sandbox.window.GDM;
 const PRODUCTS = GDM.catalog.PRODUCTS;
 const CATEGORIES = GDM.catalog.CATEGORIES;
-const SITE_URL = GDM.content.BRAND.siteUrl;
+/* Domínio do site: ÚNICA fonte é BRAND.siteUrl em js/data/content.js. Todos
+   os URLs absolutos (canonical, og:url, imagens de partilha, JSON-LD,
+   sitemap.xml e robots.txt) são escritos a partir daqui — para mudar de
+   domínio basta mudar siteUrl e correr este gerador. */
+const SITE_URL = GDM.content.BRAND.siteUrl.replace(/\/$/, '');
 
 /* Lê um ficheiro de texto com as quebras de linha normalizadas para \n
    (no Windows o git pode ter feito checkout com \r\n). Os ficheiros
@@ -529,6 +533,31 @@ function regenerateHeroLogo(html) {
   return html.slice(0, start) + open + img + '</div>' + html.slice(end);
 }
 
+/* Reescreve um bloco <script type="application/ld+json" id="ld-<id>"> (dados
+   estruturados), sempre a partir de SITE_URL e dos dados do site. */
+function setJsonLd(html, id, obj) {
+  return html.replace(new RegExp('(<script type="application/ld\\+json" id="ld-' + id + '" data-gdm-ld="">)([\\s\\S]*?)(</script>)'), (_m, open, _mid, close) => open + JSON.stringify(obj) + close);
+}
+
+function regenerateHomeJsonLd(html) {
+  return setJsonLd(html, 'organization', {
+    '@context': 'https://schema.org', '@type': 'Organization',
+    name: BRAND.name, url: SITE_URL + '/', logo: SITE_URL + '/assets/og-image.png',
+    sameAs: [BRAND.instagramUrl],
+    contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: '+' + BRAND.whatsapp, email: BRAND.email, areaServed: 'PT' },
+  });
+}
+
+function regenerateShopJsonLd(html) {
+  return setJsonLd(html, 'breadcrumb', {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL + '/' },
+      { '@type': 'ListItem', position: 2, name: 'Loja', item: SITE_URL + '/loja.html' },
+    ],
+  });
+}
+
 /* Substitui o conteúdo de <div id="..."> (que pode ter divs aninhadas). */
 function replaceHostContent(html, hostId, inner) {
   const open = '<div id="' + hostId + '">';
@@ -581,6 +610,12 @@ let cspCache = null;
 const NOINDEX = ['admin.html', '404.html'];
 
 function regenerateChrome(html, file) {
+  // URLs absolutos da página, sempre a partir de SITE_URL
+  const pageUrl = SITE_URL + '/' + (file === 'index.html' ? '' : file);
+  html = html.replace(/<link rel="canonical" href="[^"]*">/, '<link rel="canonical" href="' + pageUrl + '">')
+    .replace(/<meta property="og:url" content="[^"]*">/, '<meta property="og:url" content="' + pageUrl + '">')
+    .replace(/<meta property="og:image" content="[^"]*">/, '<meta property="og:image" content="' + SITE_URL + '/assets/og-image.png">')
+    .replace(/<meta name="twitter:image" content="[^"]*">/, '<meta name="twitter:image" content="' + SITE_URL + '/assets/og-image.png">');
   // CSP e política de referrer logo a seguir ao viewport (a CSP só se aplica ao que vem depois dela)
   if (cspCache === null) cspCache = cspContent();
   html = html.replace(/<meta http-equiv="Content-Security-Policy" content="[^"]*">\n/, '').replace(/<meta name="referrer" content="[^"]*">\n/, '').replace(/<meta name="robots" content="[^"]*">\n/, '');
@@ -657,8 +692,8 @@ function main() {
       const filePath = rp(file);
       const before = readText(filePath);
       let after = before;
-      if (file === 'loja.html') after = regenerateShop(after);
-      if (file === 'index.html') after = regenerateHeroLogo(regenerateFeatured(after));
+      if (file === 'loja.html') after = regenerateShopJsonLd(regenerateShop(after));
+      if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
 
@@ -670,6 +705,9 @@ function main() {
   fs.readdirSync(rp('assets', 'art')).filter((f) => !artFiles.has(f)).forEach((f) => {
     warn('assets/art/' + f + ' já não é usada por nenhuma página — não foi apagada, revê manualmente.');
   });
+
+  const robotsPath = rp('robots.txt');
+  writeIfChanged(robotsPath, readText(robotsPath), 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
   const sitemapPath = rp('sitemap.xml');
   writeIfChanged(sitemapPath, readText(sitemapPath), buildSitemap());

@@ -293,8 +293,13 @@ function regenerateProductPage(product, existingHtml) {
   // galeria (imagem principal + 3 miniaturas) — sempre reescrita de raiz
   html = regenerateGallery(html, product);
 
+  // separadores (padrão WAI-ARIA "tabs"): os 3 controlam o mesmo painel, cujo
+  // conteúdo static-init.js troca; só o separador ativo está na ordem do Tab
+  const tabs = [['tab-descricao', 'Descrição'], ['tab-envio', 'Envio &amp; Trocas'], ['tab-avaliacoes', 'Avaliações']];
+  html = html.replace(/<div class="detail-tabs__nav"[^>]*>[\s\S]*?<\/div>/, '<div class="detail-tabs__nav" role="tablist" aria-label="Informação do produto">' +
+    tabs.map(([id, label], i) => '<button type="button" role="tab" id="' + id + '" aria-selected="' + (i === 0) + '" aria-controls="detail-panel" tabindex="' + (i === 0 ? '0' : '-1') + '">' + label + '</button>').join('') + '</div>');
   // separador "Descrição" (texto longo)
-  html = html.replace(/<div class="detail-tabs__panel"><p>[^<]*<\/p><\/div>/, '<div class="detail-tabs__panel"><p>' + escText(product.long) + '</p></div>');
+  html = html.replace(/<div class="detail-tabs__panel"[^>]*><p>[^<]*<\/p><\/div>/, '<div class="detail-tabs__panel" id="detail-panel" role="tabpanel" aria-labelledby="tab-descricao" tabindex="0"><p>' + escText(product.long) + '</p></div>');
 
   // "também vai gostar"
   const related = relatedFor(product);

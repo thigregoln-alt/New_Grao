@@ -58,6 +58,18 @@
     return root;
   }
 
+  /** Dá foco a um elemento de uma lista que acabou de abrir. As listas abrem
+   *  com transição de visibility (ainda "hidden" no primeiro frame), e um
+   *  elemento escondido não aceita foco — tenta de novo nos frames seguintes. */
+  function focusWhenVisible(node) {
+    let tries = 0;
+    (function attempt() {
+      if (!node) return;
+      node.focus();
+      if (document.activeElement !== node && tries++ < 20) requestAnimationFrame(attempt);
+    })();
+  }
+
   /** Foco preso dentro de um elemento (drawers/modais). Devolve função de limpeza. */
   function trapFocus(container) {
     function handler(e) {
@@ -189,7 +201,7 @@
       valueEl.textContent = opt ? opt.textContent : '';
       menu.innerHTML = '';
       Array.prototype.forEach.call(select.options, function (o) {
-        const row = el('button', { type: 'button', class: 'gdm-select__option', role: 'option', 'aria-selected': String(o.selected), text: o.textContent });
+        const row = el('button', { type: 'button', class: 'gdm-select__option', role: 'option', 'aria-selected': String(o.selected), tabindex: '-1', text: o.textContent });
         row.addEventListener('click', function () {
           if (select.value !== o.value) {
             select.value = o.value;
@@ -207,15 +219,13 @@
     toggle.addEventListener('click', function () {
       if (wrap.getAttribute('data-open') === 'true') { closeMenu(); return; }
       sync(); openMenu();
-      const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
-      if (current) current.focus();
+      focusWhenVisible(menu.querySelector('[aria-selected="true"]') || menu.firstElementChild);
     });
     toggle.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         sync(); openMenu();
-        const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
-        if (current) current.focus();
+        focusWhenVisible(menu.querySelector('[aria-selected="true"]') || menu.firstElementChild);
       }
     });
     menu.addEventListener('keydown', function (e) {
@@ -224,6 +234,8 @@
       if (e.key === 'Escape') { e.preventDefault(); closeMenu(); toggle.focus(); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); (opts[idx + 1] || opts[0]).focus(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); (opts[idx - 1] || opts[opts.length - 1]).focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
       else if (e.key === 'Tab') { closeMenu(); }
     });
     document.addEventListener('click', function (e) {
@@ -281,6 +293,7 @@
   GDM.components.ratingBlock = ratingBlock;
   GDM.components.buildAccordion = buildAccordion;
   GDM.components.trapFocus = trapFocus;
+  GDM.components.focusWhenVisible = focusWhenVisible;
   GDM.components.setBackgroundInert = setBackgroundInert;
   GDM.components.updateActiveNav = updateActiveNav;
   GDM.components.closeAllOverlays = closeAllOverlays;

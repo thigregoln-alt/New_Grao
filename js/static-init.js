@@ -218,13 +218,32 @@
       return wrap;
     }
 
-    document.querySelectorAll('.detail-tabs__nav button').forEach(function(btn, idx, arr){
+    /* Separadores com o padrão WAI-ARIA "tabs": só o separador ativo está na
+       ordem do Tab (tabindex 0); ←/→ (com volta), Home e End mudam de
+       separador e mostram logo o painel (ativação automática). */
+    var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.detail-tabs__nav [role="tab"], .detail-tabs__nav button'));
+    function selectTab(idx, moveFocus){
+      tabButtons[idx].click();
+      if(moveFocus) tabButtons[idx].focus();
+    }
+    tabButtons.forEach(function(btn, idx, arr){
       if(btn.dataset.gdmHydrated) return;
       btn.dataset.gdmHydrated='1';
+      btn.addEventListener('keydown',function(e){
+        var next=null;
+        if(e.key==='ArrowRight') next=(idx+1)%arr.length;
+        else if(e.key==='ArrowLeft') next=(idx-1+arr.length)%arr.length;
+        else if(e.key==='Home') next=0;
+        else if(e.key==='End') next=arr.length-1;
+        if(next===null) return;
+        e.preventDefault();
+        selectTab(next, true);
+      });
       btn.addEventListener('click',function(){
-        arr.forEach(function(b,i){b.setAttribute('aria-selected',String(i===idx))});
+        arr.forEach(function(b,i){b.setAttribute('aria-selected',String(i===idx)); b.setAttribute('tabindex', i===idx ? '0' : '-1');});
         var panel=document.querySelector('.detail-tabs__panel');
         if(!panel)return;
+        if(btn.id) panel.setAttribute('aria-labelledby', btn.id);
         if(idx===0){
           panel.innerHTML='';
           var p=document.createElement('p');
@@ -363,6 +382,8 @@
       menu.className = 'shop-sort-menu';
       menu.setAttribute('role','listbox');
       menu.setAttribute('aria-label','Ordenar por');
+      menu.id = 'shop-sort-menu';
+      toggle.setAttribute('aria-controls', menu.id);
 
       Object.keys(sortLabels).forEach(function(key){
         var option = document.createElement('button');
@@ -370,6 +391,7 @@
         option.className='shop-sort-option';
         option.setAttribute('role','option');
         option.setAttribute('data-sort-value', key);
+        option.setAttribute('tabindex','-1');
         option.innerHTML='<span class="shop-sort-option__mark" aria-hidden="true"></span><span class="shop-sort-option__text"></span>';
         option.querySelector('.shop-sort-option__text').textContent=sortLabels[key];
         option.addEventListener('click',function(e){
@@ -377,8 +399,39 @@
           e.stopPropagation();
           closeSort();
           writeState({ordenar:key});
+          toggle.focus();
         });
         menu.appendChild(option);
+      });
+
+      /* Teclado (padrão WAI-ARIA listbox): ↑/↓ no botão abrem a lista na
+         opção atual; dentro da lista ↑/↓/Home/End mudam de opção,
+         Enter/Espaço escolhem, Esc fecha e devolve o foco ao botão. */
+      function focusOption(which){
+        var opts = Array.prototype.slice.call(menu.querySelectorAll('.shop-sort-option'));
+        var idx = opts.indexOf(document.activeElement);
+        var current = menu.querySelector('[aria-selected="true"]') || opts[0];
+        var target = which === 'current' ? current
+          : which === 'first' ? opts[0]
+          : which === 'last' ? opts[opts.length - 1]
+          : which === 'next' ? (opts[idx + 1] || opts[opts.length - 1])
+          : (opts[idx - 1] || opts[0]);
+        GDM.components.focusWhenVisible(target);
+      }
+      toggle.addEventListener('keydown',function(e){
+        if(e.key!=='ArrowDown' && e.key!=='ArrowUp') return;
+        e.preventDefault();
+        // ao abrir, o clique já põe o foco na opção atual (depois de a lista ficar visível)
+        if(sortWrap.dataset.open!=='true') { toggle.click(); return; }
+        focusOption('current');
+      });
+      menu.addEventListener('keydown',function(e){
+        if(e.key==='ArrowDown'){ e.preventDefault(); focusOption('next'); }
+        else if(e.key==='ArrowUp'){ e.preventDefault(); focusOption('prev'); }
+        else if(e.key==='Home'){ e.preventDefault(); focusOption('first'); }
+        else if(e.key==='End'){ e.preventDefault(); focusOption('last'); }
+        else if(e.key==='Escape'){ e.preventDefault(); closeSort(); toggle.focus(); }
+        else if(e.key==='Tab'){ closeSort(); }
       });
 
       function closeSort(){
@@ -396,6 +449,7 @@
         });
         sortWrap.dataset.open=String(open);
         toggle.setAttribute('aria-expanded',String(open));
+        if(open) focusOption('current');
       });
       document.addEventListener('click',function(e){ if(!sortWrap.contains(e.target)) closeSort(); });
       document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSort(); });

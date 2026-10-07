@@ -1051,6 +1051,9 @@ function main() {
       if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
       if (file === 'termos.html') after = regenerateTerms(after);
       if (file === 'contacto.html') after = replaceMain(after, contactMain());
+      // grelha da Inspiração: colunas de 320px não cabiam num ecrã de 320px
+      // (scroll horizontal de 20px) — passam a nunca ser mais largas que o ecrã
+      if (file === 'inspiracao.html') after = after.split('grid-template-columns:repeat(auto-fill,minmax(320px,1fr))').join('grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))');
       if (file === 'privacidade.html') after = regeneratePrivacy(after);
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });

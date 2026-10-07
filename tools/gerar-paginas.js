@@ -6,6 +6,12 @@
    páginas da raiz (<head>, cabeçalho, rodapé — ver regenerateChrome).
 
    Uso:  node tools/gerar-paginas.js
+         node tools/gerar-paginas.js --com-avaliacoes
+           (lê as avaliações APROVADAS do Supabase e escreve-as em HTML
+           estático na ficha de cada produto — as 5 mais recentes — e no
+           JSON-LD aggregateRating/review, para contarem para o Google.
+           Depois de aprovar avaliações novas: correr com esta opção e
+           fazer push. Sem a opção, o que lá estiver é mantido.)
 
    Como funciona: usa o HTML já existente de cada página como molde e
    substitui só as partes que dependem dos dados do produto (nome, preço,
@@ -277,6 +283,10 @@ function regenerateProductPage(product, existingHtml) {
       shippingDetails: shippingDetailsLd(product.price),
     },
   };
+  // aggregateRating/review: só com avaliações reais aprovadas (--com-avaliacoes);
+  // sem a opção, mantém-se o que já estava na página
+  const reviewsLd = productReviewsStatic(product) ? productReviewsStatic(product).ld : previousReviewsLd(html);
+  Object.assign(productLd, reviewsLd);
   html = setJsonLd(html, 'product', productLd);
 
   const breadcrumbLd = {
@@ -306,7 +316,9 @@ function regenerateProductPage(product, existingHtml) {
     '<span class="badge badge--outline">' + escText(product.categoryLabel) + '</span><h1 class="product-info__title">' + escText(product.name) + '</h1>');
   // linha de avaliações junto ao título (estrelas + média + nº), preenchida
   // pelo JS; o espaço fica reservado para não haver salto de layout
-  const ratingLine = '<p class="product-info__rating" data-gdm-rating="">' + (productReviewsStatic(product) ? productReviewsStatic(product).rating : preservedInner(html, '<p class="product-info__rating" data-gdm-rating="">', 'p')) + '</p>';
+  // (regex e não findBlockEnd: as estrelas têm <path>, que também começa por "<p")
+  const oldRating = html.match(/<p class="product-info__rating" data-gdm-rating="">([\s\S]*?)<\/p>/);
+  const ratingLine = '<p class="product-info__rating" data-gdm-rating="">' + (productReviewsStatic(product) ? productReviewsStatic(product).rating : (oldRating ? oldRating[1] : '')) + '</p>';
   if (html.indexOf('data-gdm-rating') === -1) {
     html = html.replace(/(<h1 class="product-info__title">[^<]*<\/h1>)/, '$1' + ratingLine);
   } else {
@@ -382,10 +394,112 @@ function preservedInner(html, openTag, tagName) {
   return html.slice(start + openTag.length, end - ('</' + tagName + '>').length);
 }
 
-/* Avaliações estáticas de um produto (só com --com-avaliacoes, ver 7.8);
-   null quando não foram pedidas. */
+/* Avaliações estáticas de um produto (só com --com-avaliacoes); null
+   quando não foram pedidas. */
 function productReviewsStatic(product) {
   return staticReviews ? staticReviews.porProduto(product) : null;
+}
+
+function previousReviewsLd(html) {
+  const m = html.match(/<script type="application\/ld\+json" id="ld-product" data-gdm-ld="">([\s\S]*?)<\/script>/);
+  if (!m) return {};
+  try {
+    const old = JSON.parse(m[1]);
+    const keep = {};
+    if (old.aggregateRating) keep.aggregateRating = old.aggregateRating;
+    if (old.review) keep.review = old.review;
+    return keep;
+  } catch (err) { return {}; }
+}
+
+/* -------------------------------------------------------------------------
+   --com-avaliacoes: lê da API do Supabase (fetch nativo do Node 18+) as
+   avaliações aprovadas e prepara, por produto, o HTML estático (linha junto
+   ao título + painel do separador) e o JSON-LD. Todo o texto de visitantes
+   passa por escText/escAttr; o JSON-LD escapa "<" (ldJson).
+   O JavaScript da página continua a ir buscar os dados ao vivo e substitui
+   estes blocos ao carregar (não duplica).
+   ------------------------------------------------------------------------- */
+function starsHtml(value) {
+  let out = '<span class="rating__stars">';
+  for (let i = 1; i <= 5; i++) out += icon('star').replace('<svg ', '<svg aria-hidden="true" class="' + (value >= i - 0.25 ? 'is-filled' : 'is-empty') + '" ');
+  return out + '</span>';
+}
+
+function fmt1(n) { return n.toLocaleString('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+async function loadStaticReviews() {
+  const cfgPath = rp('js', 'data', 'reviewsConfig.js');
+  const ctx = { window: { GDM: {} } };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(cfgPath, 'utf8'), ctx, { filename: 'js/data/reviewsConfig.js' });
+  const cfg = ctx.window.GDM.reviewsConfig || {};
+  const url = String(cfg.url || '').replace(/\/+$/, '');
+  const chave = String(cfg.anonKey || '');
+  if (!url || !chave) { warn('--com-avaliacoes: js/data/reviewsConfig.js por preencher — as avaliações estáticas ficam como estavam.'); return null; }
+  const headers = { apikey: chave };
+  if (!/^sb_publishable_/.test(chave)) headers.Authorization = 'Bearer ' + chave;
+  const linhas = [];
+  try {
+    for (let offset = 0; ; offset += 1000) {
+      const r = await fetch(url + '/rest/v1/avaliacoes?select=id,criada_em,produto_id,autor,classificacao,titulo,texto,compra_verificada,resposta_atelier&order=criada_em.desc&limit=1000&offset=' + offset, { headers });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const pagina = await r.json();
+      linhas.push(...pagina);
+      if (pagina.length < 1000) break;
+    }
+  } catch (err) {
+    warn('--com-avaliacoes: não foi possível ler as avaliações (' + err.message + ') — as avaliações estáticas ficam como estavam.');
+    return null;
+  }
+  const porId = {};
+  linhas.forEach((l) => {
+    if (!l || typeof l.produto_id !== 'string' || !GDM.catalog.getById(l.produto_id)) return;
+    const nota = Number(l.classificacao);
+    if (!Number.isInteger(nota) || nota < 1 || nota > 5 || typeof l.autor !== 'string' || typeof l.texto !== 'string') return;
+    (porId[l.produto_id] = porId[l.produto_id] || []).push(l);
+  });
+  console.log('--com-avaliacoes: ' + linhas.length + ' avaliação(ões) aprovada(s) lida(s).');
+  return {
+    porProduto(product) {
+      const lista = porId[product.id] || [];
+      if (!lista.length) return { rating: '', panel: '', ld: {} };
+      const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      let soma = 0;
+      lista.forEach((l) => { dist[l.classificacao]++; soma += l.classificacao; });
+      const media = soma / lista.length;
+      const n = lista.length;
+      const ultimas = lista.slice(0, 5);
+      const data = (iso) => GDM.format.dateLabel(iso);
+      const card = (l) => '<div class="review-card"><div class="review-card__head"><div class="review-card__author"><strong>' + escText(l.autor) + '</strong>' +
+        (l.compra_verificada === true ? '<span class="badge badge--gold">Compra verificada</span>' : '') + '</div>' +
+        '<span style="color:var(--ink-500);font-size:var(--fs-xs)">' + escText(data(l.criada_em)) + '</span></div>' +
+        starsHtml(l.classificacao) +
+        (l.titulo ? '<p style="font-weight:700">' + escText(l.titulo) + '</p>' : '') +
+        '<p style="color:var(--ink-700)">' + escText(l.texto) + '</p>' +
+        (l.resposta_atelier ? '<div class="review-card__reply"><strong>Resposta do ateliê</strong><p>' + escText(l.resposta_atelier) + '</p></div>' : '') +
+        '</div>';
+      const summary = '<div class="panel reviews-summary"><div class="reviews-score stack" style="gap:6px;align-items:center"><p class="reviews-score__num">' + fmt1(media) + '</p>' + starsHtml(media) +
+        '<p style="color:var(--ink-500);font-size:var(--fs-xs)">' + n + (n === 1 ? ' avaliação' : ' avaliações') + '</p></div><div>' +
+        [5, 4, 3, 2, 1].map((st) => '<div class="dist-row"><span>' + st + ' ★</span><div class="dist-bar"><div class="dist-bar__fill" style="width:' + Math.round(dist[st] / n * 100) + '%"></div></div><span>' + dist[st] + '</span></div>').join('') +
+        '</div></div>';
+      return {
+        rating: starsHtml(media) + '<span>' + fmt1(media) + '</span><a href="#panel-avaliacoes">(' + n + (n === 1 ? ' avaliação)' : ' avaliações)') + '</a>',
+        panel: summary + '<div class="stack" style="gap:16px;margin-top:20px">' + ultimas.map(card).join('') + '</div>' +
+          '<a class="btn btn--outline btn--sm" style="margin-top:16px" href="avaliacoes.html?produto=' + product.slug + '">Ver todas as avaliações</a>',
+        ld: {
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: media.toFixed(2), reviewCount: n, bestRating: 5, worstRating: 1 },
+          review: ultimas.map((l) => Object.assign({
+            '@type': 'Review',
+            author: { '@type': 'Person', name: l.autor },
+            datePublished: String(l.criada_em).slice(0, 10),
+            reviewBody: l.texto,
+            reviewRating: { '@type': 'Rating', ratingValue: l.classificacao, bestRating: 5, worstRating: 1 },
+          }, l.titulo ? { name: l.titulo } : {})),
+        },
+      };
+    },
+  };
 }
 
 function buildNewProductPage(product, donorSlug) {
@@ -910,4 +1024,7 @@ function main() {
   if (warnings.length) console.log(warnings.length + ' aviso(s) — ver acima.');
 }
 
-main();
+(async function () {
+  if (process.argv.includes('--com-avaliacoes')) staticReviews = await loadStaticReviews();
+  main();
+})();

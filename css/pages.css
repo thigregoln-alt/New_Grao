@@ -438,6 +438,14 @@
 .rv-stars legend { font-size: var(--fs-xs); font-weight: 700; color: var(--ink-700); margin-bottom: 4px; padding: 0; }
 .rv-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .detail-tabs__panel[hidden] { display: none; }
+
+/* Barra fixa "Adicionar ao carrinho" (ficha de produto, só telemóvel) */
+.sticky-buy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--surface-page); border-top: 1px solid var(--border-soft); box-shadow: 0 -8px 24px rgba(43, 24, 16, 0.08); }
+.sticky-buy[hidden] { display: none; }
+.sticky-buy__info { flex: 1; min-width: 0; }
+.sticky-buy__name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sticky-buy__price { font-size: var(--fs-xs); color: var(--ink-700); }
+@media (min-width: 768px) { .sticky-buy { display: none !important; } }
 .product-info__rating { min-height: 24px; display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: var(--fs-sm); color: var(--ink-700); }
 .product-info__rating a { color: var(--gold-800); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 .product-card__rating { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); color: var(--ink-500); white-space: nowrap; }

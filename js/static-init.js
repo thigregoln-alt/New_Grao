@@ -138,6 +138,24 @@
       add.addEventListener('click',function(){ var q=Math.max(1,Math.min(product.stock,parseInt(qty.value,10)||1)); GDM.cart.addItem(product.id,q); if(GDM.components.toast) GDM.components.toast.show('Artigo adicionado ao carrinho.','success'); });
       add.dataset.gdmHydrated='1';
     }
+    /* Telemóvel: barra fixa no fundo com "Adicionar ao carrinho" quando o
+       botão principal já ficou para trás no scroll (padrão Apple/Shopify).
+       Fica dentro do <main>, por isso também fica inerte com o drawer aberto. */
+    var app = document.getElementById('app');
+    if (add && app && 'IntersectionObserver' in window && !document.querySelector('.sticky-buy')) {
+      var bar = GDM.security.el('div', { class: 'sticky-buy', hidden: true }, [
+        GDM.security.el('div', { class: 'sticky-buy__info' }, [
+          GDM.security.el('p', { class: 'sticky-buy__name', text: product.name }),
+          GDM.security.el('p', { class: 'sticky-buy__price', text: GDM.format.currency(product.price) }),
+        ]),
+        GDM.security.el('button', { class: 'btn btn--primary btn--sm', type: 'button', text: 'Adicionar ao carrinho', onclick: function(){ add.click(); } }),
+      ]);
+      app.appendChild(bar);
+      new IntersectionObserver(function(entries){
+        var e = entries[0];
+        bar.hidden = e.isIntersecting || e.boundingClientRect.top > 0;
+      }).observe(add);
+    }
     var fav = Array.prototype.find.call(document.querySelectorAll('.product-info .btn'), function(b){ return b.textContent.indexOf('Guardar nos favoritos')!==-1 || b.textContent.indexOf('Remover dos favoritos')!==-1; });
     if (fav && !fav.dataset.gdmHydrated) {
       /* Estado inicial vindo dos favoritos deste browser (o HTML estático

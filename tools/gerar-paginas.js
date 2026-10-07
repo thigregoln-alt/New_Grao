@@ -759,6 +759,10 @@ function regenerateChrome(html, file) {
     scripts.push(src);
     return '';
   });
+  // a configuração das avaliações tem de carregar antes de js/state/reviews.js
+  if (scripts.includes('js/state/reviews.js') && !scripts.includes('js/data/reviewsConfig.js')) {
+    scripts.splice(scripts.indexOf('js/state/reviews.js'), 0, 'js/data/reviewsConfig.js');
+  }
   const currentFile = /^produto-/.test(file) ? '' : file;
   html = replaceHostContent(html, 'header-host', headerHtml(currentFile));
   html = replaceHostContent(html, 'footer-host', footerHtml(currentFile));

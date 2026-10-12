@@ -445,6 +445,11 @@
 .free-ship__fill { display: block; height: 100%; background: var(--gold-500); transition: width var(--dur-med) var(--ease-out); }
 .free-ship--done .free-ship__fill { background: var(--success-600); }
 
+/* Nota "Quer um nome, data ou versículo gravado?" (produtos com gravacao) */
+.product-info__engraving { margin-top: 16px; }
+.product-info__engraving > span { flex-shrink: 0; display: inline-flex; }
+.product-info__engraving a { color: var(--gold-800); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+
 .product-info__share { margin-top: 12px; }
 .product-info__share a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-700); text-decoration: underline; text-underline-offset: 3px; }
 .product-info__share svg { width: 18px; height: 18px; }

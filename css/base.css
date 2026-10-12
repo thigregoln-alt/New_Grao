@@ -48,6 +48,10 @@ a { color: inherit; text-decoration: none; }
 
 ul, ol { list-style: none; padding: 0; }
 
+/* O atributo hidden tem de ganhar sempre — sem isto, classes como .btn ou
+   .cluster (display:flex) voltavam a mostrar o elemento escondido. */
+[hidden] { display: none !important; }
+
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 700;

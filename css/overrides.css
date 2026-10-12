@@ -2279,6 +2279,20 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
 .newsletter-privacy a:hover{color:var(--cream-050)}
 
 /* ---------------------------------------------------------------------
+   Hero da Início em portátil: logótipo, eyebrow, título, versículo e
+   botões têm de caber na primeira vista (1366×768, 1440×900…). Os
+   tamanhos passam a depender também da altura do ecrã (svh, com vh antes
+   para browsers antigos). O espaço vertical fica só no padding do .hero —
+   o .hero__content continua sem padding próprio. No telemóvel (até 700px)
+   nada muda.
+   --------------------------------------------------------------------- */
+@media (min-width: 701px) {
+  .hero { padding-block: clamp(2rem, 6vh, 6rem); padding-block: clamp(2rem, 6svh, 6rem); }
+  .hero__logo { width: clamp(220px, min(40vw, 46vh), 480px); width: clamp(220px, min(40vw, 46svh), 480px); }
+  .hero__title { font-size: clamp(2.5rem, min(5vw, 7.5vh), 4.7rem); font-size: clamp(2.5rem, min(5vw, 7.5svh), 4.7rem); }
+}
+
+/* ---------------------------------------------------------------------
    Movimento reduzido — tem de ficar no FIM do ficheiro: várias regras
    acima declaram transition com !important e um seletor mais específico
    do que o * do bloco geral, por isso o drawer do carrinho e alguns campos

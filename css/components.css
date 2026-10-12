@@ -157,6 +157,9 @@
 .rating__stars svg { width: 14px; height: 14px; }
 .rating__stars svg.is-filled { fill: var(--gold-600); stroke: var(--gold-600); }
 .rating__stars svg.is-empty { fill: none; stroke: var(--border-soft); }
+/* meia estrela: contorno vazio + metade esquerda (2.º path) preenchida */
+.rating__stars svg.is-half { fill: none; stroke: var(--border-soft); }
+.rating__stars svg.is-half .star-half { fill: var(--gold-600); stroke: var(--gold-600); }
 
 /* ---- Quantity stepper ---- */
 .qty-stepper {

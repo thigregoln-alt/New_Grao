@@ -18,6 +18,14 @@
 
 [data-reveal-group] > * { transition-delay: calc(var(--reveal-index, 0) * 70ms); }
 
+/* As entradas laterais começam deslocadas 32px para o lado; num ecrã
+   estreito isso passava a margem direita e criava scroll horizontal (era
+   o bloco de texto da história na Início e no Sobre, +12px). A <section>
+   que as contém recorta só na horizontal — clip, ao contrário de hidden,
+   não cria uma área de scroll. */
+section:has([data-reveal="left"]),
+section:has([data-reveal="right"]) { overflow-x: clip; }
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
 }

@@ -342,6 +342,22 @@ function regenerateProductPage(product, existingHtml) {
   html = html.replace(/<a class="btn btn--whatsapp" href="[^"]*"( target="_blank" rel="noopener">[\s\S]*?<span>Perguntar no WhatsApp<\/span><\/a>)/,
     (_m, rest) => '<a class="btn btn--whatsapp" href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(askText)) + '"' + rest);
 
+  // Produtos com gravação (products.js → gravacao: true): nota logo abaixo
+  // dos botões a explicar como pedir o texto. Sem campo de texto no site —
+  // a personalização combina-se pelo WhatsApp depois da encomenda.
+  html = html.replace(/<div class="manual-pay-note product-info__engraving">[\s\S]*?<\/p><\/div>/, '');
+  if (product.gravacao) {
+    const engraveText = 'Olá! Encomendei / quero encomendar «' + product.name + '» e gostava de pedir a gravação: ';
+    const note = '<div class="manual-pay-note product-info__engraving"><span>' + icon('handmade') + '</span><p><strong>Quer um nome, data ou versículo gravado?</strong> Depois de fazer a encomenda, diga-nos o texto pelo ' +
+      '<a href="' + escAttr('https://wa.me/' + BRAND.whatsapp + '?text=' + encodeURIComponent(engraveText)) + '" target="_blank" rel="noopener">WhatsApp</a>' +
+      ' — confirmamos tudo consigo antes de começar a produzir.</p></div>';
+    const actionsStartE = html.indexOf('<div class="product-info__actions">');
+    if (actionsStartE !== -1) {
+      const actionsEndE = findBlockEnd(html, actionsStartE, 'div');
+      html = html.slice(0, actionsEndE) + note + html.slice(actionsEndE);
+    }
+  }
+
   // "Partilhar no WhatsApp": link discreto por baixo dos botões
   const share = '<p class="product-info__share"><a href="' + escAttr('https://wa.me/?text=' + encodeURIComponent(product.name + ' — ' + canonical)) + '" target="_blank" rel="noopener">' + icon('whatsapp') + '<span>Partilhar no WhatsApp</span></a></p>';
   if (html.indexOf('class="product-info__share"') !== -1) {
@@ -437,9 +453,16 @@ function previousReviewsLd(html) {
    O JavaScript da página continua a ir buscar os dados ao vivo e substitui
    estes blocos ao carregar (não duplica).
    ------------------------------------------------------------------------- */
-function starsHtml(value) {
-  let out = '<span class="rating__stars">';
-  for (let i = 1; i <= 5; i++) out += icon('star').replace('<svg ', '<svg aria-hidden="true" class="' + (value >= i - 0.25 ? 'is-filled' : 'is-empty') + '" ');
+// igual a starRow (js/components/ui.js): x,25–x,75 conta como meia estrela
+function starsHtml(value, label) {
+  let out = '<span class="rating__stars" role="img" aria-label="' + escAttr(label || (value.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' de 5 estrelas')) + '">';
+  for (let i = 1; i <= 5; i++) {
+    const filled = value >= i - 0.25;
+    const half = !filled && value >= i - 0.75;
+    let svg = icon('star').replace('<svg ', '<svg aria-hidden="true" class="' + (filled ? 'is-filled' : half ? 'is-half' : 'is-empty') + '" ');
+    if (half) svg = svg.replace('</svg>', '<path class="star-half" d="M12 2.8 9.3 9.1l-6.8.6 5.2 4.5-1.6 6.7L12 17.6Z"/></svg>');
+    out += svg;
+  }
   return out + '</span>';
 }
 
@@ -496,12 +519,12 @@ async function loadStaticReviews() {
         '<p style="color:var(--ink-700)">' + escText(l.texto) + '</p>' +
         (l.resposta_atelier ? '<div class="review-card__reply"><strong>Resposta do ateliê</strong><p>' + escText(l.resposta_atelier) + '</p></div>' : '') +
         '</div>';
-      const summary = '<div class="panel reviews-summary"><div class="reviews-score stack" style="gap:6px;align-items:center"><p class="reviews-score__num">' + fmt1(media) + '</p>' + starsHtml(media) +
+      const summary = '<div class="panel reviews-summary"><div class="reviews-score stack" style="gap:6px;align-items:center"><p class="reviews-score__num">' + fmt1(media) + '</p>' + starsHtml(media, 'Média de ' + media.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' em 5 estrelas') +
         '<p style="color:var(--ink-500);font-size:var(--fs-xs)">' + n + (n === 1 ? ' avaliação' : ' avaliações') + '</p></div><div>' +
         [5, 4, 3, 2, 1].map((st) => '<div class="dist-row"><span>' + st + ' ★</span><div class="dist-bar"><div class="dist-bar__fill" style="width:' + Math.round(dist[st] / n * 100) + '%"></div></div><span>' + dist[st] + '</span></div>').join('') +
         '</div></div>';
       return {
-        rating: starsHtml(media) + '<span>' + fmt1(media) + '</span><a href="#panel-avaliacoes">(' + n + (n === 1 ? ' avaliação)' : ' avaliações)') + '</a>',
+        rating: starsHtml(media, 'Média de ' + media.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' em 5 estrelas') + '<span>' + fmt1(media) + '</span><a href="#panel-avaliacoes">(' + n + (n === 1 ? ' avaliação)' : ' avaliações)') + '</a>',
         panel: summary + '<div class="stack" style="gap:16px;margin-top:20px">' + ultimas.map(card).join('') + '</div>' +
           '<a class="btn btn--outline btn--sm" style="margin-top:16px" href="avaliacoes.html?produto=' + product.slug + '">Ver todas as avaliações</a>',
         ld: {
@@ -681,6 +704,10 @@ function headerHtml(currentFile) {
   return header + mobileNav;
 }
 
+/* Newsletter só aparece com GDM.content.NEWSLETTER.ativa === true (ainda não
+   há serviço de envio — ver ARCHITECTURE.md). */
+const NEWSLETTER_ATIVA = !!(GDM.content.NEWSLETTER && GDM.content.NEWSLETTER.ativa);
+
 function footerHtml(currentFile) {
   const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
   const mail = escAttr('mailto:' + BRAND.email);
@@ -705,12 +732,12 @@ function footerHtml(currentFile) {
         '<li><a href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></li>' +
         '<li><a href="' + insta + '" target="_blank" rel="noopener">Instagram</a></li></ul>' +
         '<p class="footer-contact-note">Respondemos normalmente em menos de 24 horas úteis.</p>' +
-        '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
+        (!NEWSLETTER_ATIVA ? '' : '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
           '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p><p class="newsletter-privacy">Ao subscrever aceita a <a href="privacidade.html" data-route-link="">Política de Privacidade</a>.</p></div>' +
-        '</div></div>' +
+        '</div>') + '</div>' +
     '</div></div>' +
     '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
-      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p><button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button></div></div>' +
+      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p>' + (NEWSLETTER_ATIVA ? '<button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button>' : '') + '</div></div>' +
     '</footer>';
 }
 
@@ -781,6 +808,48 @@ function replaceMain(html, main) {
   const start = html.indexOf('<main id="app"');
   const end = html.indexOf('</main>', start) + '</main>'.length;
   return html.slice(0, start) + main + html.slice(end);
+}
+
+/* -------------------------------------------------------------------------
+   contacto.html — o <main> já vem com a página final (antes vinha vazio e o
+   JS desenhava tudo depois de pintado: o rodapé saltava, CLS ~0,9). Tem de
+   ser exatamente a mesma marcação que js/pages/contact.js (buildPage), que
+   agora só a hidrata.
+   ------------------------------------------------------------------------- */
+function contactField(id, label, opts) {
+  opts = opts || {};
+  const control = opts.textarea
+    ? '<textarea id="' + id + '" name="' + id + '" aria-describedby="' + id + '-error" placeholder="" required="true" maxlength="' + (opts.maxLength || 600) + '"></textarea>'
+    : '<input id="' + id + '" name="' + id + '" type="' + (opts.type || 'text') + '" aria-describedby="' + id + '-error" placeholder="" required="true" maxlength="200" autocomplete="' + (opts.autocomplete || 'on') + '">';
+  return '<div class="field"><label for="' + id + '">' + escText(label) + ' *</label>' + control + '<p class="field__error" id="' + id + '-error" aria-live="polite"></p></div>';
+}
+
+function contactMain() {
+  const method = (idx, label, value) => '<div class="contact-v5__method"><span class="contact-v5__method-index">' + idx + '</span><div class="stack" style="gap:2px"><strong>' + label + '</strong>' + value + '</div></div>';
+  const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
+  return '<main id="app" tabindex="-1"><section class="section section--tight"><div class="container contact-v5">' +
+    '<div class="contact-v5__hero"><div class="stack" style="gap:14px"><p class="eyebrow contact-v5__kicker">Fale connosco</p><h1>Vamos conversar.</h1><p>Diga-nos o que precisa, conte-nos a ideia ou envie uma dúvida sobre a sua encomenda. Tratamos cada pedido com atenção de atelier.</p></div>' +
+      '<div class="contact-v5__aside"><strong>Resposta humana, não automática.</strong><p>Preferimos mensagens claras e conversas simples. Assim conseguimos responder com contexto e ajudar mais depressa.</p></div></div>' +
+    '<div class="contact-v5__layout">' +
+      '<div class="contact-v5__form"><div class="contact-v5__form-head"><div class="stack" style="gap:7px"><p class="eyebrow">01 · Mensagem</p><h2>Escreva-nos</h2></div><span class="contact-v5__form-note">Campos obrigatórios *</span></div>' +
+        '<form class="stack" novalidate="true"><div class="contact-v5__field-grid">' +
+          contactField('ct-name', 'Nome', { autocomplete: 'name' }) +
+          contactField('ct-email', 'E-mail', { type: 'email', autocomplete: 'email' }) +
+          '<div class="contact-v5__field--full">' + contactField('ct-subject', 'Assunto') + '</div>' +
+          '<div class="contact-v5__field--full">' + contactField('ct-message', 'Mensagem', { textarea: true, maxLength: 600 }) + '</div>' +
+        '</div><div class="contact-v5__submit"><button class="btn btn--primary" type="submit">Enviar mensagem</button><p class="contact-v5__microcopy">A mensagem abre o seu programa de e-mail já preenchido.</p></div>' +
+        '<p role="status" class="newsletter-status"></p></form></div>' +
+      '<aside class="contact-v5__info"><div class="contact-v5__brand"><span class="contact-v5__brand-logo">' + logoPicture('190px', ' alt="Grão de Mostarda" width="666" height="375" loading="lazy"') + '</span><small>Atendimento personalizado · normalmente em menos de 24 horas úteis</small></div>' +
+        '<blockquote class="contact-v5__verse">' + escText('"' + BRAND.verse.slice(0, 108) + '…"') + '<cite>' + escText(BRAND.verseRef) + '</cite></blockquote>' +
+        '<div class="contact-v5__methods">' +
+          method('01', 'WhatsApp', '<a href="' + wa + '" target="_blank" rel="noopener">' + escText(BRAND.whatsappDisplay) + '</a>') +
+          method('02', 'E-mail', '<a href="' + escAttr('mailto:' + BRAND.email) + '">' + escText(BRAND.email) + '</a>') +
+          method('03', 'Instagram', '<a href="' + escAttr(BRAND.instagramUrl) + '" target="_blank" rel="noopener">' + escText(BRAND.instagram) + '</a>') +
+          method('04', 'Horário', '<span>Segunda a sexta · 9h–18h</span>') +
+        '</div><a class="btn btn--whatsapp btn--block contact-v5__wa" href="' + wa + '" target="_blank" rel="noopener">Falar agora no WhatsApp</a></aside>' +
+    '</div>' +
+    '<div class="contact-v5__bottom"><div class="stack" style="gap:3px"><strong>Mais rápido pelo WhatsApp.</strong><p>Para dúvidas urgentes sobre encomendas, é o canal mais direto.</p></div><span class="eyebrow">Grão de Mostarda · Atendimento</span></div>' +
+    '</div></section></main>';
 }
 
 function regenerateTerms(html) {
@@ -1008,6 +1077,10 @@ function main() {
       if (file === 'loja.html') after = regenerateShopJsonLd(regenerateShop(after));
       if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
       if (file === 'termos.html') after = regenerateTerms(after);
+      if (file === 'contacto.html') after = replaceMain(after, contactMain());
+      // grelha da Inspiração: colunas de 320px não cabiam num ecrã de 320px
+      // (scroll horizontal de 20px) — passam a nunca ser mais largas que o ecrã
+      if (file === 'inspiracao.html') after = after.split('grid-template-columns:repeat(auto-fill,minmax(320px,1fr))').join('grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))');
       if (file === 'privacidade.html') after = regeneratePrivacy(after);
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });

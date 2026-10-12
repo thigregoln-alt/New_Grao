@@ -13,7 +13,8 @@
      POST /rest/v1/avaliacoes          só produto_id, autor, classificacao,
                                        titulo, texto, referencia_encomenda
                                        (estado, compra_verificada, … -> 401);
-                                       validações do SQL -> 400; fica pendente
+                                       validações do SQL -> 400; fica pendente;
+                                       >30 pendentes nos últimos 10 min -> 400
      PATCH/DELETE                      sempre 401 (sem policy para o público)
      GET  /rest/v1/resumo_avaliacoes   média/contagem/distribuição das aprovadas
    Pedidos sem o cabeçalho apikey certo -> 401.
@@ -145,6 +146,9 @@ const servidor = http.createServer(async (req, res) => {
       if (Object.keys(corpo).some((k) => !INSERIVEIS.includes(k))) return negado(res);
       const erro = validarLinha(corpo);
       if (erro) return responder(res, 400, { code: '23514', message: 'violates check constraint "avaliacoes_' + erro + '_check"' });
+      // trigger avaliacoes_limite_pendentes do SQL
+      const recentes = linhas.filter((l) => l.estado === 'pendente' && Date.parse(l.criada_em) > Date.now() - 10 * 60 * 1000).length;
+      if (recentes > 30) return responder(res, 400, { code: 'P0001', message: 'Demasiadas avaliações pendentes recentes — tente mais tarde.' });
       linhas.push(novaLinha(corpo));
       if (/return=representation/.test(req.headers.prefer || '')) return negado(res); // sem select em estado/referencia
       return responder(res, 201);

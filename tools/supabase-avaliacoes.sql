@@ -105,6 +105,46 @@ create trigger avaliacoes_marca_aprovacao
   execute function public.avaliacoes_marca_aprovacao();
 
 -- --------------------------------------------------------------------------
+-- 4b. Travão contra spam direto à API: quem tiver a chave pública pode
+--     chamar a API sem passar pelo site (sem honeypot nem validações do
+--     formulário). Se já existirem mais de 30 avaliações PENDENTES criadas
+--     nos últimos 10 minutos, a inserção é recusada (a API responde 400 e
+--     o site mostra a mensagem de erro normal). Quando o ateliê aprova ou
+--     rejeita, ou passam os 10 minutos, volta a aceitar. Um cliente normal
+--     nunca chega perto deste número.
+--     "security definer": o público não consegue ler as pendentes (RLS +
+--     colunas), por isso a contagem corre com as permissões do dono.
+-- --------------------------------------------------------------------------
+create index if not exists avaliacoes_pendentes_recentes
+  on public.avaliacoes (criada_em)
+  where estado = 'pendente';
+
+create or replace function public.avaliacoes_limite_pendentes()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (select count(*) from public.avaliacoes
+        where estado = 'pendente'
+          and criada_em > now() - interval '10 minutes') > 30 then
+    raise exception 'Demasiadas avaliações pendentes recentes — tente mais tarde.'
+      using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.avaliacoes_limite_pendentes() from public, anon, authenticated;
+
+drop trigger if exists avaliacoes_limite_pendentes on public.avaliacoes;
+create trigger avaliacoes_limite_pendentes
+  before insert on public.avaliacoes
+  for each row
+  execute function public.avaliacoes_limite_pendentes();
+
+-- --------------------------------------------------------------------------
 -- 5. Resumo por produto (média, contagem e distribuição de estrelas), só
 --    com aprovadas — para a ficha, os cartões da loja e a página de
 --    avaliações não terem de descarregar todas as avaliações.

@@ -46,6 +46,10 @@ O script cria a tabela `avaliacoes`, as regras de segurança e a vista
 `resumo_avaliacoes`. Pode ser corrido mais do que uma vez sem estragar
 nada.
 
+Também cria um travão contra spam: se houver mais de 30 avaliações
+pendentes criadas nos últimos 10 minutos, as novas são recusadas até o
+ateliê aprovar/rejeitar algumas ou passarem os 10 minutos.
+
 > O Supabase pode mostrar no **Security Advisor** um aviso
 > "Security Definer View" sobre `resumo_avaliacoes`. É intencional: a vista
 > só mostra contagens e médias das avaliações já aprovadas.

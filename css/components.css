@@ -440,7 +440,7 @@
   margin-bottom: var(--space-2xs);
 }
 
-/* ---- Modal genérico (ex: admin, confirmações) ---- */
+/* ---- Modal genérico (ex: confirmações) ---- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(28,17,8,0.55); display: flex; align-items: center; justify-content: center; padding: var(--space-sm); z-index: 500; }
 .modal { background: var(--surface-raised); border-radius: var(--radius-lg); max-width: 480px; width: 100%; padding: var(--space-lg); max-height: 90vh; overflow-y: auto; }
 

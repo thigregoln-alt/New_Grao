@@ -631,7 +631,7 @@ function buildSitemap(lastmodFor) {
 }
 
 /* -------------------------------------------------------------------------
-   Molde comum a TODAS as páginas (.html na raiz, incluindo admin.html):
+   Molde comum a TODAS as páginas (.html na raiz):
    <head>, <main> e a envolvente do <body>. Cada passo é idempotente — correr
    o gerador duas vezes seguidas não altera nada na segunda.
    ------------------------------------------------------------------------- */
@@ -953,7 +953,7 @@ let cspCache = null;
 
 /* Páginas que nunca devem ser indexadas. Não vão para o robots.txt: um
    Disallow anuncia o caminho e impede o Google de ler este noindex. */
-const NOINDEX = ['admin.html', '404.html'];
+const NOINDEX = ['404.html'];
 
 /* Secções acrescentadas pelo gerador a termos.html (os textos de
    GDM.content.TERMS ficam como estão; first: true = antes deles).
@@ -1066,7 +1066,7 @@ function main() {
     createdCount++;
   }
 
-  // restantes páginas da raiz (loja, início, institucionais, legais, admin, 404…)
+  // restantes páginas da raiz (loja, início, institucionais, legais, 404…)
   fs.readdirSync(ROOT)
     .filter((f) => /\.html$/.test(f) && !/^produto-/.test(f))
     .sort()

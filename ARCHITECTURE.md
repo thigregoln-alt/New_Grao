@@ -45,11 +45,11 @@ gestão de encomendas reais.
 ## 2. Estrutura de ficheiros
 
 ```
-47 páginas HTML estáticas e pré-renderizadas na raiz do repo:
+46 páginas HTML estáticas e pré-renderizadas na raiz do repo:
   index.html, loja.html, carrinho.html, checkout.html, favoritos.html,
   sobre.html, inspiracao.html, projetos.html, faq.html, envios.html,
-  trocas.html, contacto.html, avaliacoes.html, privacidade.html, termos.html,
-  admin.html, e 31 produto-<slug>.html (uma por produto do catálogo)
+  trocas.html, contacto.html, avaliacoes.html, privacidade.html, termos.html
+  e 31 produto-<slug>.html (uma por produto do catálogo)
 css/
   tokens.css             Variáveis de design (cor, tipografia, espaçamento)
   base.css                Reset e tipografia base
@@ -229,11 +229,6 @@ chegar, seria necessário construir (fora do âmbito deste projeto estático):
   partilhado das encomendas — cada visitante só vê o que está no seu
   próprio `localStorage`. Duas pessoas em computadores diferentes não veem
   as encomendas uma da outra.
-- **Página `/admin`**: é uma **maquete visual** pré-renderizada (sem
-  `js/pages/admin.js` — removido por não ser carregado por nenhuma
-  página, secção 2a), sem autenticação, sem sessão, sem dados reais de
-  encomendas — os números e a tabela de "encomendas recentes" aí
-  mostrados são valores de exemplo fixos, marcados como tal no ecrã.
 - **Envio automático de e-mails** (confirmação de encomenda, boas-vindas da
   newsletter, notificações de estado). Hoje qualquer e-mail é aberto no
   cliente de e-mail do próprio utilizador via `mailto:`, nunca enviado pelo

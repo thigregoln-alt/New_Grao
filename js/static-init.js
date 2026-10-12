@@ -7,7 +7,7 @@
     if (path.indexOf('?') !== -1) { q = path.slice(path.indexOf('?')); path = path.slice(0, path.indexOf('?')); }
     path = path.replace(/^#/, '').replace(/\/$/, '') || '/';
     if (path.indexOf('/produto/') === 0) return 'produto-' + path.slice('/produto/'.length) + '.html' + q;
-    var map = {'/':'index.html','/loja':'loja.html','/carrinho':'carrinho.html','/checkout':'checkout.html','/favoritos':'favoritos.html','/sobre':'sobre.html','/inspiracao':'inspiracao.html','/projetos':'projetos.html','/faq':'faq.html','/envios':'envios.html','/trocas':'trocas.html','/contacto':'contacto.html','/avaliacoes':'avaliacoes.html','/privacidade':'privacidade.html','/termos':'termos.html','/admin':'admin.html'};
+    var map = {'/':'index.html','/loja':'loja.html','/carrinho':'carrinho.html','/checkout':'checkout.html','/favoritos':'favoritos.html','/sobre':'sobre.html','/inspiracao':'inspiracao.html','/projetos':'projetos.html','/faq':'faq.html','/envios':'envios.html','/trocas':'trocas.html','/contacto':'contacto.html','/avaliacoes':'avaliacoes.html','/privacidade':'privacidade.html','/termos':'termos.html'};
     return (map[path] || 'index.html') + q;
   }
 

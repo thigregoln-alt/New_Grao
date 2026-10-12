@@ -466,15 +466,6 @@
 .product-card__rating { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); color: var(--ink-500); white-space: nowrap; }
 .product-card__rating svg { width: 13px; height: 13px; fill: var(--gold-600); stroke: var(--gold-600); }
 
-/* ---- Admin (maquete) ---- */
-.admin-banner { background: var(--error-100); color: var(--error-600); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); font-weight: 700; font-size: var(--fs-sm); display: flex; align-items: center; gap: var(--space-2xs); }
-.admin-stats { display: grid; gap: var(--space-md); grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-.admin-stat { background: var(--surface-raised); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-md); }
-.admin-stat strong { display: block; font-family: var(--font-display); font-size: var(--fs-2xl); color: var(--leather-900); }
-.admin-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-.admin-table th, .admin-table td { text-align: left; padding: var(--space-2xs) var(--space-sm); border-bottom: 1px solid var(--border-soft); }
-.admin-table th { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-500); }
-
 /* ---- Newsletter ---- */
 .newsletter-box { display: flex; flex-wrap: wrap; gap: var(--space-md); align-items: center; justify-content: space-between; }
 .newsletter-form { display: flex; gap: var(--space-2xs); flex-wrap: wrap; flex: 1 1 340px; }

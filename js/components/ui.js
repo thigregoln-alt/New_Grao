@@ -6,15 +6,33 @@
   const { el, escapeHTML } = GDM.security;
   GDM.components = GDM.components || {};
 
+  /* Metade esquerda do ícone "star" (mesmos vértices), pintada por cima do
+     contorno vazio para fazer a meia estrela. */
+  const HALF_STAR_PATH = 'M12 2.8 9.3 9.1l-6.8.6 5.2 4.5-1.6 6.7L12 17.6Z';
+
+  /** Estrelas de 0 a 5 em passos de meia: x,25–x,75 conta como meia
+   *  (ex.: 4,3–4,7 → 4 e meia). O aria-label diz o valor real. */
   function starRow(rating, size) {
-    const wrap = el('span', { class: 'rating__stars' });
+    const value = Number(rating) || 0;
+    const wrap = el('span', {
+      class: 'rating__stars',
+      role: 'img',
+      'aria-label': value.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' de 5 estrelas',
+    });
     for (let i = 1; i <= 5; i++) {
-      const filled = rating >= i - 0.25;
+      const filled = value >= i - 0.25;
+      const half = !filled && value >= i - 0.75;
       const span = document.createElement('span');
       span.innerHTML = GDM.icons.icon('star');
       const svg = span.firstElementChild;
       svg.setAttribute('aria-hidden', 'true');
-      svg.classList.add(filled ? 'is-filled' : 'is-empty');
+      svg.classList.add(filled ? 'is-filled' : half ? 'is-half' : 'is-empty');
+      if (half) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'star-half');
+        path.setAttribute('d', HALF_STAR_PATH);
+        svg.appendChild(path);
+      }
       if (size) { svg.style.width = size; svg.style.height = size; }
       wrap.appendChild(svg);
     }

@@ -453,9 +453,16 @@ function previousReviewsLd(html) {
    O JavaScript da página continua a ir buscar os dados ao vivo e substitui
    estes blocos ao carregar (não duplica).
    ------------------------------------------------------------------------- */
-function starsHtml(value) {
-  let out = '<span class="rating__stars">';
-  for (let i = 1; i <= 5; i++) out += icon('star').replace('<svg ', '<svg aria-hidden="true" class="' + (value >= i - 0.25 ? 'is-filled' : 'is-empty') + '" ');
+// igual a starRow (js/components/ui.js): x,25–x,75 conta como meia estrela
+function starsHtml(value, label) {
+  let out = '<span class="rating__stars" role="img" aria-label="' + escAttr(label || (value.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' de 5 estrelas')) + '">';
+  for (let i = 1; i <= 5; i++) {
+    const filled = value >= i - 0.25;
+    const half = !filled && value >= i - 0.75;
+    let svg = icon('star').replace('<svg ', '<svg aria-hidden="true" class="' + (filled ? 'is-filled' : half ? 'is-half' : 'is-empty') + '" ');
+    if (half) svg = svg.replace('</svg>', '<path class="star-half" d="M12 2.8 9.3 9.1l-6.8.6 5.2 4.5-1.6 6.7L12 17.6Z"/></svg>');
+    out += svg;
+  }
   return out + '</span>';
 }
 
@@ -512,12 +519,12 @@ async function loadStaticReviews() {
         '<p style="color:var(--ink-700)">' + escText(l.texto) + '</p>' +
         (l.resposta_atelier ? '<div class="review-card__reply"><strong>Resposta do ateliê</strong><p>' + escText(l.resposta_atelier) + '</p></div>' : '') +
         '</div>';
-      const summary = '<div class="panel reviews-summary"><div class="reviews-score stack" style="gap:6px;align-items:center"><p class="reviews-score__num">' + fmt1(media) + '</p>' + starsHtml(media) +
+      const summary = '<div class="panel reviews-summary"><div class="reviews-score stack" style="gap:6px;align-items:center"><p class="reviews-score__num">' + fmt1(media) + '</p>' + starsHtml(media, 'Média de ' + media.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' em 5 estrelas') +
         '<p style="color:var(--ink-500);font-size:var(--fs-xs)">' + n + (n === 1 ? ' avaliação' : ' avaliações') + '</p></div><div>' +
         [5, 4, 3, 2, 1].map((st) => '<div class="dist-row"><span>' + st + ' ★</span><div class="dist-bar"><div class="dist-bar__fill" style="width:' + Math.round(dist[st] / n * 100) + '%"></div></div><span>' + dist[st] + '</span></div>').join('') +
         '</div></div>';
       return {
-        rating: starsHtml(media) + '<span>' + fmt1(media) + '</span><a href="#panel-avaliacoes">(' + n + (n === 1 ? ' avaliação)' : ' avaliações)') + '</a>',
+        rating: starsHtml(media, 'Média de ' + media.toLocaleString('pt-PT', { maximumFractionDigits: 1 }) + ' em 5 estrelas') + '<span>' + fmt1(media) + '</span><a href="#panel-avaliacoes">(' + n + (n === 1 ? ' avaliação)' : ' avaliações)') + '</a>',
         panel: summary + '<div class="stack" style="gap:16px;margin-top:20px">' + ultimas.map(card).join('') + '</div>' +
           '<a class="btn btn--outline btn--sm" style="margin-top:16px" href="avaliacoes.html?produto=' + product.slug + '">Ver todas as avaliações</a>',
         ld: {

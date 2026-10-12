@@ -95,6 +95,19 @@
     return emptyBlock('As avaliações estão a chegar em breve', 'Estamos a preparar o espaço onde vai poder ler e deixar avaliações das nossas peças.');
   }
 
+  /** Faixa do modo de teste local (imitação no PC, nada vai para a internet). */
+  function testBanner() {
+    return el('p', { class: 'rv-test-banner', role: 'note', text: 'MODO DE TESTE — as avaliações não são guardadas online' });
+  }
+
+  /** No lugar do formulário enquanto o Supabase não estiver configurado. */
+  function closedNotice() {
+    return el('div', { class: 'rv-closed', role: 'status' }, [
+      el('p', { class: 'rv-closed__title', text: 'As avaliações vão abrir em breve' }),
+      el('p', { text: 'Ainda não é possível deixar avaliações no site. Volte daqui a uns dias — vamos adorar saber o que achou da sua peça.' }),
+    ]);
+  }
+
   /** Erro de rede/servidor com "Tentar novamente". */
   function errorBlock(onRetry) {
     const retry = el('button', { class: 'btn btn--outline btn--sm', type: 'button', text: 'Tentar novamente' });
@@ -136,8 +149,9 @@
       label.insertAdjacentHTML('afterbegin', GDM.icons.icon('star'));
       label.firstElementChild.setAttribute('aria-hidden', 'true');
       input.addEventListener('change', function () { valor = i; pintar(i); group.dispatchEvent(new Event('gdm:estrelas')); });
-      label.addEventListener('mouseenter', function () { pintar(i); });
-      label.addEventListener('mouseleave', function () { pintar(valor); });
+      // desativado (ex.: fieldset disabled): as estrelas não reagem ao rato
+      label.addEventListener('mouseenter', function () { if (!input.matches(':disabled')) pintar(i); });
+      label.addEventListener('mouseleave', function () { if (!input.matches(':disabled')) pintar(valor); });
       group.appendChild(input);
       group.appendChild(label);
       labels.push(label);
@@ -154,7 +168,8 @@
   function buildForm(opts) {
     opts = opts || {};
     const abertoEm = Date.now();
-    const configurado = GDM.reviews.configurado();
+    // sem Supabase: nada de formulário desativado — só o aviso
+    if (!GDM.reviews.configurado()) return closedNotice();
 
     const starsError = el('p', { class: 'field__error', id: 'rv-estrelas-error', 'aria-live': 'polite' });
     const stars = starInput('rv-estrelas-error');
@@ -266,11 +281,7 @@
       status.className = 'newsletter-status' + (tipo ? ' newsletter-status--' + tipo : '');
     }
 
-    if (!configurado) {
-      fieldset.disabled = true;
-      mostrarEstado('As avaliações estão a chegar em breve — o formulário ainda não está ativo.');
-      return form;
-    }
+    if (GDM.reviews.modoTeste()) form.insertBefore(testBanner(), fieldset);
 
     let aEnviar = false;
     function enviar() {
@@ -412,6 +423,7 @@
       buildForm({ produtoSlug: filtros.produto }),
     ]);
 
+    if (GDM.reviews.modoTeste()) inner.appendChild(testBanner());
     inner.appendChild(summaryHost);
     inner.appendChild(filterRow);
     inner.appendChild(countLine);
@@ -531,6 +543,7 @@
     emptyBlock: emptyBlock,
     comingSoonBlock: comingSoonBlock,
     errorBlock: errorBlock,
+    testBanner: testBanner,
     skeleton: skeleton,
   };
 })(window.GDM = window.GDM || {});

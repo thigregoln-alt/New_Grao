@@ -437,6 +437,13 @@
 .rv-fieldset:disabled { opacity: 0.6; }
 .rv-stars legend { font-size: var(--fs-xs); font-weight: 700; color: var(--ink-700); margin-bottom: 4px; padding: 0; }
 .rv-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.rv-fieldset:disabled .star-input label { cursor: default; pointer-events: none; }
+/* faixa do modo de teste local (js/state/reviews.js → modoTeste) */
+.rv-test-banner { max-width: none; background: var(--error-100); color: var(--error-600); border: 2px dashed var(--error-600); border-radius: var(--radius-md); padding: var(--space-xs) var(--space-sm); font-weight: 700; font-size: var(--fs-sm); text-align: center; letter-spacing: 0.02em; margin-bottom: var(--space-sm); }
+/* no lugar do formulário enquanto as avaliações não estão ligadas */
+.rv-closed { background: var(--gold-200); border: 1px solid var(--gold-300); border-radius: var(--radius-md); padding: var(--space-md); text-align: center; color: var(--ink-700); }
+.rv-closed p { margin-inline: auto; }
+.rv-closed__title { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; color: var(--leather-900); margin-bottom: var(--space-3xs); }
 .detail-tabs__panel[hidden] { display: none; }
 
 /* Progresso para portes grátis (drawer e carrinho) */

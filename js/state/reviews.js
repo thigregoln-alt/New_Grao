@@ -11,6 +11,11 @@
    Todas as funções devolvem Promises que nunca rejeitam: em caso de
    problema resolvem para { erro: 'mensagem em português' } (com
    semConfiguracao: true se reviewsConfig.js estiver por preencher).
+
+   Modo de teste local: com reviewsConfig.url vazio e a página aberta em
+   127.0.0.1/localhost, fala com a imitação tools/mock-supabase.js em vez do
+   Supabase (ver docs/AVALIACOES.md). Em qualquer outro endereço (site
+   publicado) não muda nada.
    ========================================================================== */
 (function (GDM) {
   'use strict';
@@ -18,6 +23,8 @@
   const TIMEOUT_MS = 8000;
   const CACHE_MS = 5 * 60 * 1000;
   const CACHE_PREFIX = 'gdm:avaliacoes-cache:';
+  const TESTE_URL = 'http://127.0.0.1:54321';
+  const TESTE_CHAVE = 'sb_publishable_teste'; // a mesma de tools/mock-supabase.js
   const COLUNAS = 'id,criada_em,produto_id,autor,classificacao,titulo,texto,compra_verificada,resposta_atelier';
   const ORDENS = {
     recentes: 'criada_em.desc',
@@ -40,17 +47,31 @@
   const memoria = {};
   let avisouConfig = false;
 
+  /** true = sem Supabase configurado e a página está aberta no próprio PC. */
+  function modoTeste() {
+    const c = GDM.reviewsConfig || {};
+    return !String(c.url || '').trim() && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
+  }
+
   function config() {
     const c = GDM.reviewsConfig || {};
+    const teste = modoTeste();
     return {
-      url: String(c.url || '').trim().replace(/\/+$/, ''),
-      chave: String(c.anonKey || '').trim(),
+      url: teste ? TESTE_URL : String(c.url || '').trim().replace(/\/+$/, ''),
+      chave: teste ? TESTE_CHAVE : String(c.anonKey || '').trim(),
       porPagina: Number.isInteger(c.porPagina) && c.porPagina > 0 ? c.porPagina : 8,
     };
   }
 
   function configurado() {
     const c = config();
+    if (modoTeste()) {
+      if (!avisouConfig) {
+        avisouConfig = true;
+        console.info('[avaliações] MODO DE TESTE: a usar a imitação local ' + TESTE_URL + ' (node tools/mock-supabase.js) — nada é guardado online.');
+      }
+      return true;
+    }
     const ok = /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(c.url) && !!c.chave;
     if (!ok && !avisouConfig) {
       avisouConfig = true;
@@ -97,6 +118,7 @@
 
   /* ---- cache de leituras: memória + sessionStorage, 5 minutos ---- */
   function lerCache(chave) {
+    if (modoTeste()) return null; // em teste, mostrar logo as avaliações acabadas de aprovar
     const agora = Date.now();
     if (memoria[chave] && agora - memoria[chave].t < CACHE_MS) return memoria[chave].v;
     try {
@@ -273,5 +295,5 @@
     }).then(function (r) { return r.erro ? r : { ok: true }; });
   }
 
-  GDM.reviews = { configurado: configurado, listar: listar, resumo: resumo, resumoTodos: resumoTodos, validar: validar, enviar: enviar, ORDENS: Object.keys(ORDENS) };
+  GDM.reviews = { configurado: configurado, modoTeste: modoTeste, listar: listar, resumo: resumo, resumoTodos: resumoTodos, validar: validar, enviar: enviar, ORDENS: Object.keys(ORDENS) };
 })(window.GDM = window.GDM || {});

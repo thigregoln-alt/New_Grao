@@ -269,6 +269,7 @@
           var s = res[0], l = res[1];
           reviewsHost.innerHTML = '';
           reviewsHost.style.minHeight = '';
+          if (GDM.reviews.modoTeste()) reviewsHost.appendChild(R.testBanner());
           if (s.erro || l.erro) { reviewsHost.appendChild(R.errorBlock(draw)); reviewsHost.appendChild(formPanel); return; }
           if (!s.contagem) {
             reviewsHost.appendChild(R.emptyBlock('Ainda sem avaliações para este produto', 'Seja o primeiro a avaliar — o formulário está aqui em baixo.'));

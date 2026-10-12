@@ -2,7 +2,9 @@
    Imitação local da API do Supabase usada pelas avaliações — SÓ PARA
    TESTES (não é usada pelo site publicado). Node puro, sem dependências.
 
-   Uso:  node tools/mock-supabase.js [porta]        (porta por defeito 54321)
+   Uso:  node tools/mock-supabase.js [porta] [--aprovar-tudo]
+         (porta por defeito 54321; --aprovar-tudo aprova cada avaliação
+         recebida, para se ver logo o resultado no site)
 
    Imita os endpoints que js/state/reviews.js usa, com as mesmas regras que
    tools/supabase-avaliacoes.sql põe na base de dados real:
@@ -31,7 +33,9 @@
 const http = require('http');
 const crypto = require('crypto');
 
-const PORTA = Number(process.argv[2]) || 54321;
+const ARGS = process.argv.slice(2);
+const PORTA = Number(ARGS.find((a) => /^\d+$/.test(a))) || 54321;
+const APROVAR_TUDO = ARGS.includes('--aprovar-tudo');
 const CHAVE = process.env.MOCK_CHAVE || 'sb_publishable_teste';
 const PUBLICAS = ['id', 'criada_em', 'produto_id', 'autor', 'classificacao', 'titulo', 'texto', 'compra_verificada', 'resposta_atelier'];
 const INSERIVEIS = ['produto_id', 'autor', 'classificacao', 'titulo', 'texto', 'referencia_encomenda'];
@@ -149,7 +153,9 @@ const servidor = http.createServer(async (req, res) => {
       // trigger avaliacoes_limite_pendentes do SQL
       const recentes = linhas.filter((l) => l.estado === 'pendente' && Date.parse(l.criada_em) > Date.now() - 10 * 60 * 1000).length;
       if (recentes > 30) return responder(res, 400, { code: 'P0001', message: 'Demasiadas avaliações pendentes recentes — tente mais tarde.' });
-      linhas.push(novaLinha(corpo));
+      const nova = novaLinha(corpo);
+      if (APROVAR_TUDO) { nova.estado = 'aprovada'; nova.aprovada_em = new Date().toISOString(); }
+      linhas.push(nova);
       if (/return=representation/.test(req.headers.prefer || '')) return negado(res); // sem select em estado/referencia
       return responder(res, 201);
     }
@@ -168,4 +174,4 @@ const servidor = http.createServer(async (req, res) => {
   return responder(res, 404, { message: 'tabela desconhecida' });
 });
 
-servidor.listen(PORTA, '127.0.0.1', () => console.log('mock do Supabase em http://127.0.0.1:' + PORTA + ' (chave: ' + CHAVE + ')'));
+servidor.listen(PORTA, '127.0.0.1', () => console.log('mock do Supabase em http://127.0.0.1:' + PORTA + ' (chave: ' + CHAVE + ')' + (APROVAR_TUDO ? ' — a aprovar tudo automaticamente' : '')));

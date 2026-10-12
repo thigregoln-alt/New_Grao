@@ -947,7 +947,11 @@ function cspContent() {
     if (m) supabase = ' ' + m[0];
     else if (url) warn('reviewsConfig.url não parece um URL do Supabase (https://<projeto>.supabase.co) — ficou fora da CSP.');
   }
-  return "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'" + supabase + "; object-src 'none'; base-uri 'self'; form-action 'self'";
+  /* http://127.0.0.1:54321 = modo de teste das avaliações (tools/mock-supabase.js).
+     127.0.0.1 é sempre o próprio PC de quem visita: não abre ligação a
+     nenhum servidor de fora, e js/state/reviews.js só o usa com a página
+     aberta em 127.0.0.1/localhost e sem Supabase configurado. */
+  return "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'" + supabase + " http://127.0.0.1:54321; object-src 'none'; base-uri 'self'; form-action 'self'";
 }
 let cspCache = null;
 

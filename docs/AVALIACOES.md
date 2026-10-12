@@ -13,8 +13,9 @@ Avaliações, na ficha do produto, nas estrelas dos cartões da loja e na
 página inicial.
 
 Enquanto os passos 1 a 4 não estiverem feitos, o site funciona
-normalmente e mostra "As avaliações estão a chegar em breve" (o formulário
-fica desativado).
+normalmente e mostra "As avaliações estão a chegar em breve" (no lugar do
+formulário aparece o aviso "As avaliações vão abrir em breve"). Para
+experimentar antes disso no próprio PC, ver o passo 8.
 
 ---
 
@@ -191,6 +192,34 @@ Se o site tiver pouco movimento, há duas alternativas:
    O GitHub desativa as tarefas agendadas de repositórios sem commits
    durante 60 dias — se isso acontecer, aparece um aviso no separador
    **Actions** com um botão para as voltar a ativar.
+
+## 8. Testar no PC sem Supabase
+
+Dá para experimentar as avaliações no próprio computador antes de criar o
+projeto no Supabase. Só funciona com `js/data/reviewsConfig.js` **vazio**
+e com o site aberto em `127.0.0.1` ou `localhost`. No site publicado nada
+muda.
+
+1. Num terminal, na pasta do repositório, ligar a imitação da base de
+   dados (aprova sozinha cada avaliação enviada):
+
+   ```
+   node tools/mock-supabase.js --aprovar-tudo
+   ```
+
+2. Noutro terminal, na mesma pasta, servir o site:
+
+   ```
+   python -m http.server 8000
+   ```
+
+3. Abrir <http://127.0.0.1:8000/avaliacoes.html>. Aparece uma faixa
+   **"MODO DE TESTE — as avaliações não são guardadas online"**. Enviar uma
+   avaliação e recarregar a página para a ver publicada.
+
+As avaliações de teste ficam só na memória da imitação: desaparecem ao
+fechar o primeiro terminal (Ctrl+C). Sem `--aprovar-tudo`, ficam pendentes
+como no Supabase a sério.
 
 ## Para quem mexe no código
 

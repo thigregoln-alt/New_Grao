@@ -1168,10 +1168,22 @@ blockquote{border-left:1px solid var(--gdm-gold)!important}
 .hero__verse{border-left:0!important;padding-left:0}
 /* Eyebrow do hero: traço nos dois lados ("— ARTESANATO · FÉ —") em vez do ponto final */
 .hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72}
-/* Ficha de produto: preço e quantidade na mesma linha; se não couberem
-   lado a lado (ecrãs estreitos), a quantidade passa para baixo do preço */
-.product-info__buy-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 28px;margin-block:var(--space-xs)}
-.product-info__buy-row .product-info__price-row{margin-block:0}
+/* Ficha de produto: preço e quantidade na mesma linha. Grelha de 2 linhas:
+   o título "Quantidade" fica sozinho na de cima, e o preço e o box "- 1 +"
+   partilham a de baixo, centrados um com o outro (o .field passa a
+   display:contents para o label e o stepper serem células da grelha).
+   Em ecrãs muito estreitos, a quantidade passa para baixo do preço. */
+.product-info__buy-row{display:grid;grid-template-columns:auto auto;justify-content:start;align-items:center;gap:6px 28px;margin-block:var(--space-xs)}
+.product-info__buy-row .product-info__price-row{grid-column:1;grid-row:2;margin-block:0}
+.product-info__qty{display:contents}
+.product-info__qty label{grid-column:2;grid-row:1}
+.product-info__qty .qty-stepper{grid-column:2;grid-row:2;justify-self:start}
+@media (max-width:359px){
+  .product-info__buy-row{grid-template-columns:auto}
+  .product-info__buy-row .product-info__price-row{grid-column:1;grid-row:1;margin-bottom:6px}
+  .product-info__qty label{grid-column:1;grid-row:2}
+  .product-info__qty .qty-stepper{grid-column:1;grid-row:3}
+}
 
 /* FAQ: elegant rules, functional icon retained */
 .accordion-item{border-color:var(--gdm-line)!important}

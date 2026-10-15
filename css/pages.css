@@ -186,7 +186,10 @@
   .featured-grid { grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(160px, auto); }
   .featured-grid .product-card--hero { grid-column: span 2; grid-row: span 2; }
 }
-.product-card--hero { display: grid; grid-template-rows: 1fr auto; }
+/* minmax(0, 1fr): sem coluna explícita, a coluna implícita crescia até ao
+   min-content do conteúdo, mais largo do que o cartão, e o overflow:hidden
+   cortava o botão "Ver produto" e a descrição do lado direito */
+.product-card--hero { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; }
 .product-card--hero .product-card__media { aspect-ratio: auto; height: 100%; }
 .product-card--hero .product-card__title { font-size: var(--fs-lg); }
 .product-card--hero .product-card__body { gap: var(--space-2xs); }
@@ -453,7 +456,7 @@
 .free-ship--done .free-ship__fill { background: var(--success-600); }
 
 /* Nota "Quer um nome, data ou versículo gravado?" (produtos com gravacao) */
-.product-info__engraving { margin-top: 16px; }
+.product-info__engraving { margin-top: 24px; }
 .product-info__engraving > span { flex-shrink: 0; display: inline-flex; }
 .product-info__engraving a { color: var(--gold-800); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 

@@ -1164,6 +1164,12 @@ hr{border:0;border-top:1px solid var(--line-warm);margin-block:28px}
 .text-block p:not(.eyebrow){line-height:1.72}
 .content-layout p,.panel p,.contact-card p{line-height:1.68}
 blockquote{border-left:1px solid var(--gdm-gold)!important}
+/* O versículo do hero da Início é centrado: sem a linha vertical à esquerda */
+.hero__verse{border-left:0!important;padding-left:0}
+/* Eyebrow do hero: traço nos dois lados ("— ARTESANATO · FÉ —") em vez do ponto final */
+.hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72}
+/* Ficha de produto: seletor de quantidade centrado na coluna */
+.product-info .field:has(> .qty-stepper){margin-inline:auto;align-items:center}
 
 /* FAQ: elegant rules, functional icon retained */
 .accordion-item{border-color:var(--gdm-line)!important}

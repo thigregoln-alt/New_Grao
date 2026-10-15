@@ -456,11 +456,19 @@
 .free-ship--done .free-ship__fill { background: var(--success-600); }
 
 /* Nota "Quer um nome, data ou versículo gravado?" (produtos com gravacao) */
-.product-info__engraving { margin-top: 24px; }
+/* Blocos por baixo de "Adicionar ao carrinho" (nota de gravação, "Partilhar
+   no WhatsApp", itens de informação e as linhas destes) com o mesmo espaço
+   visível entre si: --product-info-after. O link de partilha tem 44px de
+   altura (alvo de toque) com o texto ao centro, por isso desconta-se a folga
+   (44px - 18px do ícone) / 2 = 13px acima e abaixo dele. */
+.product-info { --product-info-after: 28px; }
+.product-info__engraving { margin-top: var(--product-info-after); }
 .product-info__engraving > span { flex-shrink: 0; display: inline-flex; }
 .product-info__engraving a { color: var(--gold-800); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 
-.product-info__share { margin-top: 12px; }
+.product-info__share { margin-top: calc(var(--product-info-after) - 13px); }
+.product-info .trust-row { margin-top: var(--product-info-after); row-gap: var(--product-info-after); }
+.product-info__share + .trust-row { margin-top: calc(var(--product-info-after) - 13px); }
 .product-info__share a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-700); text-decoration: underline; text-underline-offset: 3px; }
 .product-info__share svg { width: 18px; height: 18px; }
 

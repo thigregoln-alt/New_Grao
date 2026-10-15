@@ -1169,20 +1169,25 @@ blockquote{border-left:1px solid var(--gdm-gold)!important}
 /* Eyebrow do hero: traço nos dois lados ("— ARTESANATO · FÉ —") em vez do ponto final */
 .hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72}
 /* Ficha de produto: preço e quantidade na mesma linha. Grelha de 2 linhas:
-   o título "Quantidade" fica sozinho na de cima, e o preço e o box "- 1 +"
-   partilham a de baixo, centrados um com o outro (o .field passa a
-   display:contents para o label e o stepper serem células da grelha).
+   em cima o preço e o box "- 1 +", centrados um com o outro; em baixo
+   "Em stock" (por baixo do preço) e "Quantidade" (por baixo do box, ao
+   centro), à mesma altura e com a mesma letra. O .field é uma subgrid que
+   ocupa as duas linhas, para o label ficar centrado em relação ao box.
    Em ecrãs muito estreitos, a quantidade passa para baixo do preço. */
-.product-info__buy-row{display:grid;grid-template-columns:auto auto;justify-content:start;align-items:center;gap:6px 28px;margin-block:var(--space-xs)}
-.product-info__buy-row .product-info__price-row{grid-column:1;grid-row:2;margin-block:0}
-.product-info__qty{display:contents}
-.product-info__qty label{grid-column:2;grid-row:1}
-.product-info__qty .qty-stepper{grid-column:2;grid-row:2;justify-self:start}
+.product-info__buy-row{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;justify-content:start;align-items:center;gap:8px 28px;margin-block:var(--space-xs)}
+/* o bloco do preço estica à altura do box (preço ao centro, sem perder o
+   alinhamento pela base com o preço antigo), para "Em stock" e "Quantidade"
+   ficarem à mesma distância do que têm por cima */
+.product-info__buy-row .product-info__price-row{grid-column:1;grid-row:1;margin-block:0;align-self:stretch;flex-wrap:wrap;align-content:center}
+.product-info__buy-row .product-info__stock{grid-column:1;grid-row:2}
+/* row-gap:inherit — o .field tem gap:6px próprio, que a subgrid usaria */
+.product-info__qty{grid-column:2;grid-row:1 / 3;display:grid;grid-template-rows:subgrid;row-gap:inherit;justify-items:center;align-items:center}
+.product-info__qty .qty-stepper{grid-row:1}
+.product-info__buy-row .product-info__stock,
+.product-info__qty label{grid-row:2;align-self:start;margin:0;font-size:var(--fs-xs);font-weight:700;line-height:1.4}
 @media (max-width:359px){
-  .product-info__buy-row{grid-template-columns:auto}
-  .product-info__buy-row .product-info__price-row{grid-column:1;grid-row:1;margin-bottom:6px}
-  .product-info__qty label{grid-column:1;grid-row:2}
-  .product-info__qty .qty-stepper{grid-column:1;grid-row:3}
+  .product-info__buy-row{grid-template-columns:auto;grid-template-rows:repeat(4,auto)}
+  .product-info__qty{grid-column:1;grid-row:3 / 5;justify-self:start;margin-top:6px}
 }
 
 /* FAQ: elegant rules, functional icon retained */

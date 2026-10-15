@@ -327,7 +327,18 @@ function regenerateProductPage(product, existingHtml) {
 
   const priceRow = '<div class="product-info__price-row"><span class="product-info__price">' + priceHtml(product.price) + '</span>' +
     (product.oldPrice ? '<span class="product-card__price--old">' + priceHtml(product.oldPrice) + '</span>' : '') + '</div>';
-  html = html.replace(/<div class="product-info__price-row">[\s\S]*?<\/div>/, priceRow);
+  // seletor de quantidade na mesma linha do preço (.product-info__buy-row);
+  // o bloco antigo, que ficava por baixo da descrição, é retirado
+  const qtyField = '<div class="field product-info__qty"><label>Quantidade</label><div class="qty-stepper"><button type="button" aria-label="Diminuir quantidade">−</button>' +
+    '<input type="number" min="1" max="' + product.stock + '" value="1" aria-label="Quantidade"><button type="button" aria-label="Aumentar quantidade">+</button></div></div>';
+  html = html.replace(/<div class="field[^"]*"[^>]*><label>Quantidade<\/label><div class="qty-stepper">[\s\S]*?<\/div><\/div>/, '');
+  const buyRow = '<div class="product-info__buy-row">' + priceRow + qtyField + '</div>';
+  const buyRowStart = html.indexOf('<div class="product-info__buy-row">');
+  if (buyRowStart !== -1) {
+    html = html.slice(0, buyRowStart) + buyRow + html.slice(findBlockEnd(html, buyRowStart, 'div'));
+  } else {
+    html = html.replace(/<div class="product-info__price-row">[\s\S]*?<\/div>/, buyRow);
+  }
 
   const stockOk = product.stock > 5;
   const stockLabel = stockOk ? 'Em stock' : (product.stock > 0 ? 'Últimas unidades (' + product.stock + ')' : 'Esgotado');

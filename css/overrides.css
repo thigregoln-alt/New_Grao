@@ -1168,8 +1168,10 @@ blockquote{border-left:1px solid var(--gdm-gold)!important}
 .hero__verse{border-left:0!important;padding-left:0}
 /* Eyebrow do hero: traço nos dois lados ("— ARTESANATO · FÉ —") em vez do ponto final */
 .hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72}
-/* Ficha de produto: seletor de quantidade centrado na coluna */
-.product-info .field:has(> .qty-stepper){margin-inline:auto;align-items:center}
+/* Ficha de produto: preço e quantidade na mesma linha; se não couberem
+   lado a lado (ecrãs estreitos), a quantidade passa para baixo do preço */
+.product-info__buy-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 28px;margin-block:var(--space-xs)}
+.product-info__buy-row .product-info__price-row{margin-block:0}
 
 /* FAQ: elegant rules, functional icon retained */
 .accordion-item{border-color:var(--gdm-line)!important}

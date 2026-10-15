@@ -21,7 +21,9 @@
   align-items: center;
   max-width: 720px;
 }
-.hero__logo { width: clamp(260px, 40vw, 480px); position: relative; }
+/* max-width: no telemóvel o logótipo nunca passa da largura do ecrã
+   (menos as margens laterais de 16px) */
+.hero__logo { width: clamp(520px, 80vw, 960px); max-width: calc(100vw - 32px); position: relative; }
 /* Sombra de "chão" — elipse desfocada atrás/por baixo do badge, para dar
    sensação de objeto 3D pousado, não colado ao fundo. Fica antes do <img>
    no DOM (não usa z-index negativo, que ficaria escondido atrás do
@@ -34,7 +36,7 @@
   width: 74%;
   height: 16%;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, transparent 72%);
-  filter: blur(7px);
+  filter: blur(14px);
   pointer-events: none;
 }
 .hero__logo img {

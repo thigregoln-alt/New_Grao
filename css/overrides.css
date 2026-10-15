@@ -49,7 +49,7 @@ h1{line-height:.98} h2{line-height:1.02} h3{line-height:1.12}
 .hero__actions .btn{min-height:46px;padding:0 20px;border-radius:999px;font-family:var(--font-body);font-size:12px;font-weight:800;letter-spacing:.01em}
 .hero__actions .btn--primary{background:var(--gold-500);color:var(--leather-950);box-shadow:0 12px 28px rgba(196,149,63,.22)}
 .hero__actions .btn--primary:hover{background:var(--gold-400)}
-.hero__logo img{filter:drop-shadow(0 16px 30px rgba(0,0,0,.38))}
+.hero__logo img{filter:drop-shadow(0 32px 60px rgba(0,0,0,.38))}
 .hero-trust-item{border-color:rgba(230,197,131,.2)}
 .hero-trust-item__label{font-family:var(--font-body)}
 
@@ -2313,7 +2313,7 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
    --------------------------------------------------------------------- */
 @media (min-width: 701px) {
   .hero { padding-block: clamp(2rem, 6vh, 6rem); padding-block: clamp(2rem, 6svh, 6rem); }
-  .hero__logo { width: clamp(220px, min(40vw, 46vh), 480px); width: clamp(220px, min(40vw, 46svh), 480px); }
+  .hero__logo { width: clamp(440px, min(80vw, 92vh), 960px); width: clamp(440px, min(80vw, 92svh), 960px); }
   .hero__title { font-size: clamp(2.5rem, min(5vw, 7.5vh), 4.7rem); font-size: clamp(2.5rem, min(5vw, 7.5svh), 4.7rem); }
 }
 

@@ -761,7 +761,7 @@ function regenerateHeroLogo(html) {
   const start = html.indexOf(open);
   if (start === -1) return html;
   const end = findBlockEnd(html, start, 'div');
-  const img = logoPicture('(max-width: 650px) 260px, (max-width: 1200px) 40vw, 480px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="480" height="270" loading="eager" fetchpriority="high" class="hero-float hero-float--slow"');
+  const img = logoPicture('(max-width: 650px) calc(100vw - 32px), (max-width: 1200px) 80vw, 960px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="480" height="270" loading="eager" fetchpriority="high" class="hero-float hero-float--slow"');
   return html.slice(0, start) + open + img + '</div>' + html.slice(end);
 }
 

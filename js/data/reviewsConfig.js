@@ -11,8 +11,8 @@
   'use strict';
 
   GDM.reviewsConfig = {
-    url: '',      // ex.: https://xxxx.supabase.co — preencher depois de criar o projeto
-    anonKey: '',  // chave "publishable" (sb_publishable_…) ou a antiga "anon public" do Supabase.
+    url: 'https://umozapqpgsflrsrhpyza.supabase.co',
+    anonKey: 'sb_publishable_MfGbK6daM8OZVEZCa2Y8TQ_TikOa927',  // chave "publishable" (sb_publishable_…) ou a antiga "anon public" do Supabase.
                   // É pública por desenho; a segurança está no RLS. NUNCA usar aqui a
                   // chave secreta / service_role.
     porPagina: 8,

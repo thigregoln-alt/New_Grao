@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://graodemostarda.pt/sitemap.xml
+Sitemap: https://graodemostardaecg.com/sitemap.xml

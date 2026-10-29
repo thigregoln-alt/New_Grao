@@ -20,7 +20,7 @@
     accountHolder: 'Margie Macedo',
     verse: 'Se tiverdes fé do tamanho de um grão de mostarda, direis a esta amoreira: desarraiga-te e planta-te no mar; e ela vos obedecerá.',
     verseRef: 'Lucas 17:6 · Mateus 17:20',
-    siteUrl: 'https://graodemostarda.pt', // TODO: confirmar o domínio final de produção e atualizar aqui
+    siteUrl: 'https://graodemostardaecg.com',
     defaultDescription: 'Ateliê português de produtos personalizados com temática cristã: Bíblias, canecas, t-shirts, decoração, cadernos e mais. Feito à mão, um de cada vez — pagamento combinado por WhatsApp.',
   };
 

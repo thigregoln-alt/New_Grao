@@ -112,7 +112,6 @@
         el('li', {}, [el('a', { href: B.instagramUrl, target: '_blank', rel: 'noopener', text: 'Instagram' })]),
       ]),
       el('p', { class: 'footer-contact-note', text: 'Respondemos normalmente em menos de 24 horas úteis.' }),
-      el('button', { class: 'footer-visual__top footer-top-btn', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
       !NEWSLETTER_ATIVA ? null : el('div', { class: 'footer-newsletter-mini' }, [
         newsletterTitle,
         newsletterCopy,
@@ -162,7 +161,10 @@
       contactCol(),
     ]);
 
-    const mainWrap = el('div', { class: 'container footer-main' }, [footerCols]);
+    const mainWrap = el('div', { class: 'container footer-main' }, [
+      footerCols,
+      el('button', { class: 'footer-visual__top footer-top-btn', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
+    ]);
 
     const unsubscribeBtn = el('button', { class: 'footer-unsub-btn', type: 'button', text: 'Cancelar subscrição da newsletter' });
 

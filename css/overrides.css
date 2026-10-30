@@ -2347,3 +2347,9 @@ body[data-gdm-page="/sobre"] .cta-band > :not(.cta-band__circulo){position:relat
 }
 /* Sobre Nós — versículos sem a linha dourada à esquerda */
 body[data-gdm-page="/sobre"] .quote-block{border-left:0!important;border-radius:16px}
+/* Rodapé — logótipo sem o cartão branco
+   (a imagem tem margem transparente à volta, por isso é aumentada e deslocada
+   para o desenho em si ficar com 180px e alinhado à esquerda) */
+.footer-logo{position:relative;width:180px;height:136px}
+.footer-logo img{position:absolute;max-width:none;width:380px;height:auto;left:-103px;top:-32px}
+.footer-logo + .social-row{margin-top:24px!important}

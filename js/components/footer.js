@@ -127,7 +127,6 @@
   function buildFooter() {
     const footerVisual = el('div', { class: 'footer-visual' }, [
       el('div', { class: 'container footer-visual__inner' }, [
-        el('p', { class: 'footer-visual__kicker', text: 'GRÃO DE MOSTARDA  /  PORTUGAL  /  2026' }),
         el('button', { class: 'footer-visual__top', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
       ]),
     ]);
@@ -140,12 +139,10 @@
 
     const brandBlock = el('div', { class: 'footer-brand' }, [
       (function () {
-        const d = el('div', { class: 'footer-logo-card' });
-        d.appendChild(GDM.components.logoPicture('112px', { alt: 'Grão de Mostarda — Editora Gráfica Cristã', width: '220', height: '124', loading: 'lazy' }));
+        const d = el('div', { class: 'footer-logo' });
+        d.appendChild(GDM.components.logoPicture('380px', { alt: 'Grão de Mostarda — Editora Gráfica Cristã', width: '220', height: '124', loading: 'lazy' }));
         return d;
       })(),
-      el('p', { class: 'footer-brand__tagline', text: 'Fé · Amor · Propósito' }),
-      el('p', { class: 'footer-brand__desc', text: 'Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã.' }),
       social,
     ]);
 
@@ -180,9 +177,6 @@
           el('a', { href: '#/privacidade', 'data-route-link': '', text: 'Política de Privacidade' }),
           ' · ',
           el('a', { href: '#/termos', 'data-route-link': '', text: 'Termos e Condições' }),
-          ' · ',
-          // obrigatório para quem vende ao consumidor em Portugal
-          el('a', { href: 'https://www.livroreclamacoes.pt/', target: '_blank', rel: 'noopener', text: 'Livro de Reclamações' }),
         ]),
         NEWSLETTER_ATIVA ? unsubscribeBtn : null,
       ]),

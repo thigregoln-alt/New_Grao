@@ -729,11 +729,9 @@ function footerHtml(currentFile) {
   const col = (title, links) => '<div class="footer-col"><h4>' + escText(title) + '</h4><ul>' +
     links.map(([href, label]) => '<li>' + routeLink(href, label, currentFile) + '</li>').join('') + '</ul></div>';
   return '<footer class="site-footer">' +
-    '<div class="footer-visual"><div class="container footer-visual__inner"><p class="footer-visual__kicker">GRÃO DE MOSTARDA  /  PORTUGAL  /  2026</p><button class="footer-visual__top" type="button" aria-label="Voltar ao topo">↑</button></div></div>' +
+    '<div class="footer-visual"><div class="container footer-visual__inner"><button class="footer-visual__top" type="button" aria-label="Voltar ao topo">↑</button></div></div>' +
     '<div class="container footer-main"><div class="footer-cols">' +
-      '<div class="footer-brand"><div class="footer-logo-card">' + logoPicture('112px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"') + '</div>' +
-        '<p class="footer-brand__tagline">Fé · Amor · Propósito</p>' +
-        '<p class="footer-brand__desc">Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã.</p>' +
+      '<div class="footer-brand"><div class="footer-logo">' + logoPicture('380px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"') + '</div>' +
         '<div class="social-row">' +
           '<a class="social-row__link social-row__link--whatsapp" href="' + wa + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon('whatsapp') + '</a>' +
           '<a class="social-row__link social-row__link--instagram" href="' + insta + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon('instagram') + '</a>' +
@@ -751,7 +749,7 @@ function footerHtml(currentFile) {
         '</div>') + '</div>' +
     '</div></div>' +
     '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
-      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p>' + (NEWSLETTER_ATIVA ? '<button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button>' : '') + '</div></div>' +
+      '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + '</p>' + (NEWSLETTER_ATIVA ? '<button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button>' : '') + '</div></div>' +
     '</footer>';
 }
 

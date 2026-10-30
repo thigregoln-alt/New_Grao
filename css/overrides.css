@@ -2333,15 +2333,15 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
   .shop-toolbar input { transition: none !important; }
 }
 
-/* Sobre Nós — enfeite discreto no bloco final (pontinhos, ramos de mostarda e linha dourada) */
+/* Sobre Nós — enfeite discreto no bloco final (pontinhos, círculos e linha dourada) */
 body[data-gdm-page="/sobre"] .cta-band::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.06;background-image:radial-gradient(rgba(255,255,255,.9) .7px,transparent .7px);background-size:9px 9px}
-body[data-gdm-page="/sobre"] .cta-band > :not(.cta-band__ramo){position:relative;z-index:1}
-.cta-band__ramo{position:absolute;width:280px;height:auto;opacity:.28;pointer-events:none}
-.cta-band__ramo--esq{left:-24px;bottom:18px}
-.cta-band__ramo--dir{right:-24px;top:28px;transform:rotate(180deg)}
+body[data-gdm-page="/sobre"] .cta-band > :not(.cta-band__circulo){position:relative;z-index:1}
+.cta-band__circulo{position:absolute;border-radius:50%;pointer-events:none}
+.cta-band__circulo--baixo{width:150px;height:150px;left:-60px;bottom:-70px;background:rgba(230,197,131,.07)}
+.cta-band__circulo--anel{width:90px;height:90px;left:9%;top:34px;border:1px solid rgba(230,197,131,.16)}
+.cta-band__circulo--ponto{width:14px;height:14px;right:14%;bottom:42px;background:rgba(230,197,131,.22)}
 .cta-band__linha{display:block;width:56px;height:1px;margin:18px auto 20px;background:var(--gold-500)}
 @media (max-width:640px){
-  .cta-band__ramo{width:150px;opacity:.2}
-  .cta-band__ramo--esq{left:-30px;bottom:8px}
-  .cta-band__ramo--dir{right:-30px;top:10px}
+  .cta-band__circulo--anel{width:56px;height:56px;left:16px;top:18px}
+  .cta-band__circulo--ponto{right:22px;bottom:26px}
 }

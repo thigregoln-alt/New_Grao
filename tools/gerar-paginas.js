@@ -729,7 +729,7 @@ function footerHtml(currentFile) {
   const col = (title, links) => '<div class="footer-col"><h4>' + escText(title) + '</h4><ul>' +
     links.map(([href, label]) => '<li>' + routeLink(href, label, currentFile) + '</li>').join('') + '</ul></div>';
   return '<footer class="site-footer">' +
-    '<div class="footer-visual"><div class="container footer-visual__inner"><button class="footer-visual__top" type="button" aria-label="Voltar ao topo">↑</button></div></div>' +
+    '<div class="footer-visual"><div class="container footer-visual__inner"></div></div>' +
     '<div class="container footer-main"><div class="footer-cols">' +
       '<div class="footer-brand"><div class="footer-logo">' + logoPicture('380px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"') + '</div>' +
         '<div class="social-row">' +
@@ -744,6 +744,7 @@ function footerHtml(currentFile) {
         '<li><a href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></li>' +
         '<li><a href="' + insta + '" target="_blank" rel="noopener">Instagram</a></li></ul>' +
         '<p class="footer-contact-note">Respondemos normalmente em menos de 24 horas úteis.</p>' +
+        '<button class="footer-visual__top footer-top-btn" type="button" aria-label="Voltar ao topo">↑</button>' +
         (!NEWSLETTER_ATIVA ? '' : '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
           '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p><p class="newsletter-privacy">Ao subscrever aceita a <a href="privacidade.html" data-route-link="">Política de Privacidade</a>.</p></div>' +
         '</div>') + '</div>' +

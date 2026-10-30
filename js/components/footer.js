@@ -112,6 +112,7 @@
         el('li', {}, [el('a', { href: B.instagramUrl, target: '_blank', rel: 'noopener', text: 'Instagram' })]),
       ]),
       el('p', { class: 'footer-contact-note', text: 'Respondemos normalmente em menos de 24 horas úteis.' }),
+      el('button', { class: 'footer-visual__top footer-top-btn', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
       !NEWSLETTER_ATIVA ? null : el('div', { class: 'footer-newsletter-mini' }, [
         newsletterTitle,
         newsletterCopy,
@@ -126,9 +127,7 @@
      eventos são ligados por hydrate(). */
   function buildFooter() {
     const footerVisual = el('div', { class: 'footer-visual' }, [
-      el('div', { class: 'container footer-visual__inner' }, [
-        el('button', { class: 'footer-visual__top', type: 'button', 'aria-label': 'Voltar ao topo', text: '↑' }),
-      ]),
+      el('div', { class: 'container footer-visual__inner' }),
     ]);
 
     const social = el('div', { class: 'social-row' }, [

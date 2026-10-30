@@ -2352,4 +2352,4 @@ body[data-gdm-page="/sobre"] .quote-block{border-left:0!important;border-radius:
    para o desenho em si ficar com 180px e alinhado à esquerda) */
 .footer-logo{position:relative;width:180px;height:136px}
 .footer-logo img{position:absolute;max-width:none;width:380px;height:auto;left:-103px;top:-32px}
-.footer-logo + .social-row{margin-top:24px!important}
+.footer-logo + .social-row{margin-top:24px!important;width:180px;justify-content:center!important}

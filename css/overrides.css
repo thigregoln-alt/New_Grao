@@ -2332,6 +2332,12 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
   .hero__logo picture { display: block; height: 100%; }
   .hero__logo img { height: 100%; width: auto; max-width: min(80vw, 960px); object-fit: contain; }
 }
+/* Em ecrãs grandes o logótipo é ampliado dentro do seu espaço (a imagem tem
+   margem transparente em cima e em baixo), sem mexer no tamanho das letras. */
+@media (min-width: 701px) {
+  .hero__logo picture { transform: scale(1.45); transform-origin: 50% 50%; }
+  .hero__logo-shadow { bottom: -2%; width: 90%; }
+}
 /* No telemóvel a imagem do logótipo tem muita margem transparente à volta;
    deixa-se a imagem passar da largura (a margem vazia fica cortada pelo
    overflow do .hero) para o desenho em si ficar maior. */

@@ -2332,3 +2332,16 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
   input, textarea, select,
   .shop-toolbar input { transition: none !important; }
 }
+
+/* Sobre Nós — enfeite discreto no bloco final (pontinhos, ramos de mostarda e linha dourada) */
+body[data-gdm-page="/sobre"] .cta-band::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.06;background-image:radial-gradient(rgba(255,255,255,.9) .7px,transparent .7px);background-size:9px 9px}
+body[data-gdm-page="/sobre"] .cta-band > :not(.cta-band__ramo){position:relative;z-index:1}
+.cta-band__ramo{position:absolute;width:280px;height:auto;opacity:.28;pointer-events:none}
+.cta-band__ramo--esq{left:-24px;bottom:18px}
+.cta-band__ramo--dir{right:-24px;top:28px;transform:rotate(180deg)}
+.cta-band__linha{display:block;width:56px;height:1px;margin:18px auto 20px;background:var(--gold-500)}
+@media (max-width:640px){
+  .cta-band__ramo{width:150px;opacity:.2}
+  .cta-band__ramo--esq{left:-30px;bottom:8px}
+  .cta-band__ramo--dir{right:-30px;top:10px}
+}

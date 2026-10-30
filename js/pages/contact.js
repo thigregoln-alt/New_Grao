@@ -70,10 +70,6 @@
         el('h1', { text: 'Vamos conversar.' }),
         el('p', { text: 'Diga-nos o que precisa, conte-nos a ideia ou envie uma dúvida sobre a sua encomenda. Tratamos cada pedido com atenção de atelier.' }),
       ]),
-      el('div', { class: 'contact-v5__aside' }, [
-        el('strong', { text: 'Resposta humana, não automática.' }),
-        el('p', { text: 'Preferimos mensagens claras e conversas simples. Assim conseguimos responder com contexto e ajudar mais depressa.' }),
-      ]),
     ]);
 
     const formPanel = el('div', { class: 'contact-v5__form' }, [

@@ -145,7 +145,7 @@
         return d;
       })(),
       el('p', { class: 'footer-brand__tagline', text: 'Fé · Amor · Propósito' }),
-      el('p', { class: 'footer-brand__desc', text: 'Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã, feitos à mão, um de cada vez.' }),
+      el('p', { class: 'footer-brand__desc', text: 'Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã.' }),
       social,
     ]);
 
@@ -172,7 +172,7 @@
 
     const bottom = el('div', { class: 'container footer-bottom' }, [
       el('div', { class: 'footer-bottom__left' }, [
-        el('p', { 'data-footer-year': '', text: '© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.' }),
+        el('p', { 'data-footer-year': '', text: '© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados.' }),
         el('p', { text: 'Pagamento combinado diretamente por WhatsApp, depois da encomenda.' }),
       ]),
       el('div', { class: 'footer-bottom__right' }, [

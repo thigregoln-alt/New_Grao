@@ -733,7 +733,7 @@ function footerHtml(currentFile) {
     '<div class="container footer-main"><div class="footer-cols">' +
       '<div class="footer-brand"><div class="footer-logo-card">' + logoPicture('112px', ' alt="Grão de Mostarda — Editora Gráfica Cristã" width="220" height="124" loading="lazy"') + '</div>' +
         '<p class="footer-brand__tagline">Fé · Amor · Propósito</p>' +
-        '<p class="footer-brand__desc">Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã, feitos à mão, um de cada vez.</p>' +
+        '<p class="footer-brand__desc">Ateliê de produtos personalizados com propósito — bíblias, canecas, cadernos e decoração cristã.</p>' +
         '<div class="social-row">' +
           '<a class="social-row__link social-row__link--whatsapp" href="' + wa + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon('whatsapp') + '</a>' +
           '<a class="social-row__link social-row__link--instagram" href="' + insta + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon('instagram') + '</a>' +
@@ -750,7 +750,7 @@ function footerHtml(currentFile) {
           '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p><p class="newsletter-privacy">Ao subscrever aceita a <a href="privacidade.html" data-route-link="">Política de Privacidade</a>.</p></div>' +
         '</div>') + '</div>' +
     '</div></div>' +
-    '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados. Feito à mão em Portugal.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
+    '<div class="container footer-bottom"><div class="footer-bottom__left"><p data-footer-year="">© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados.</p><p>Pagamento combinado diretamente por WhatsApp, depois da encomenda.</p></div>' +
       '<div class="footer-bottom__right"><p class="footer-legal-links">' + routeLink('privacidade.html', 'Política de Privacidade', currentFile) + ' · ' + routeLink('termos.html', 'Termos e Condições', currentFile) + ' · <a href="https://www.livroreclamacoes.pt/" target="_blank" rel="noopener">Livro de Reclamações</a></p>' + (NEWSLETTER_ATIVA ? '<button class="footer-unsub-btn" type="button">Cancelar subscrição da newsletter</button>' : '') + '</div></div>' +
     '</footer>';
 }
@@ -843,7 +843,7 @@ function contactMain() {
   const wa = escAttr('https://wa.me/' + BRAND.whatsapp);
   return '<main id="app" tabindex="-1"><section class="section section--tight"><div class="container contact-v5">' +
     '<div class="contact-v5__hero"><div class="stack" style="gap:14px"><p class="eyebrow contact-v5__kicker">Fale connosco</p><h1>Vamos conversar.</h1><p>Diga-nos o que precisa, conte-nos a ideia ou envie uma dúvida sobre a sua encomenda. Tratamos cada pedido com atenção de atelier.</p></div>' +
-      '<div class="contact-v5__aside"><strong>Resposta humana, não automática.</strong><p>Preferimos mensagens claras e conversas simples. Assim conseguimos responder com contexto e ajudar mais depressa.</p></div></div>' +
+      '</div>' +
     '<div class="contact-v5__layout">' +
       '<div class="contact-v5__form"><div class="contact-v5__form-head"><div class="stack" style="gap:7px"><p class="eyebrow">01 · Mensagem</p><h2>Escreva-nos</h2></div><span class="contact-v5__form-note">Campos obrigatórios *</span></div>' +
         '<form class="stack" novalidate="true"><div class="contact-v5__field-grid">' +

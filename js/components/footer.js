@@ -170,7 +170,6 @@
     const bottom = el('div', { class: 'container footer-bottom' }, [
       el('div', { class: 'footer-bottom__left' }, [
         el('p', { 'data-footer-year': '', text: '© ' + new Date().getFullYear() + ' Grão de Mostarda Personalizados.' }),
-        el('p', { text: 'Pagamento combinado diretamente por WhatsApp, depois da encomenda.' }),
       ]),
       el('div', { class: 'footer-bottom__right' }, [
         el('p', { class: 'footer-legal-links' }, [

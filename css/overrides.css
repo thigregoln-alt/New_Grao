@@ -2317,6 +2317,22 @@ body[data-gdm-page="/contacto"] .contact-v5__info{overflow:hidden;}
   .hero__title { font-size: clamp(2.5rem, min(5vw, 7.5vh), 4.7rem); font-size: clamp(2.5rem, min(5vw, 7.5svh), 4.7rem); }
 }
 
+/* Hero da Início ocupa exatamente o ecrã (menos o cabeçalho branco de 77px).
+   O logótipo encolhe sozinho para caber o que sobra depois do texto e dos
+   botões, por isso nada fica de fora ao abrir a página. */
+@media (min-width: 701px) {
+  .hero {
+    height: calc(100vh - 77px); height: calc(100svh - 77px);
+    min-height: 520px;
+    padding-block: clamp(1rem, 3vh, 2.5rem); padding-block: clamp(1rem, 3svh, 2.5rem);
+    display: flex;
+  }
+  .hero__content { height: 100%; margin-inline: auto; justify-content: center; }
+  .hero__logo { flex: 1 1 0; min-height: 0; width: auto; max-width: none; display: flex; justify-content: center; }
+  .hero__logo picture { display: block; height: 100%; }
+  .hero__logo img { height: 100%; width: auto; max-width: min(80vw, 960px); object-fit: contain; }
+}
+
 /* ---------------------------------------------------------------------
    Movimento reduzido — tem de ficar no FIM do ficheiro: várias regras
    acima declaram transition com !important e um seletor mais específico

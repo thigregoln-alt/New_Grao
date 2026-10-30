@@ -2345,3 +2345,5 @@ body[data-gdm-page="/sobre"] .cta-band > :not(.cta-band__circulo){position:relat
   .cta-band__circulo--anel{width:56px;height:56px;left:16px;top:18px}
   .cta-band__circulo--ponto{right:22px;bottom:26px}
 }
+/* Sobre Nós — versículos sem a linha dourada à esquerda */
+body[data-gdm-page="/sobre"] .quote-block{border-left:0!important;border-radius:16px}

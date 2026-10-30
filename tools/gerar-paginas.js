@@ -931,7 +931,7 @@ function replaceHostContent(html, hostId, inner) {
    renderização. Cada página mantém a sua própria lista de scripts. */
 function headAssets(scripts) {
   return [
-    '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
+    '<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-logo.png">',
     // atalho no ecrã inicial (iOS usa o apple-touch-icon; Android o manifest)
     '<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">',
     '<link rel="manifest" href="site.webmanifest">',

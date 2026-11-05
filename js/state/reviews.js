@@ -22,7 +22,6 @@
 
   const TIMEOUT_MS = 8000;
   const CACHE_MS = 5 * 60 * 1000;
-  const CACHE_PREFIX = 'gdm:avaliacoes-cache:';
   const TESTE_URL = 'http://127.0.0.1:54321';
   const TESTE_CHAVE = 'sb_publishable_teste'; // a mesma de tools/mock-supabase.js
   const COLUNAS = 'id,criada_em,produto_id,autor,classificacao,titulo,texto,compra_verificada,resposta_atelier';
@@ -116,26 +115,16 @@
     });
   }
 
-  /* ---- cache de leituras: memória + sessionStorage, 5 minutos ---- */
+  /* ---- cache de leituras: só na memória (um F5 vai sempre buscar as avaliações novas) ---- */
   function lerCache(chave) {
     if (modoTeste()) return null; // em teste, mostrar logo as avaliações acabadas de aprovar
     const agora = Date.now();
     if (memoria[chave] && agora - memoria[chave].t < CACHE_MS) return memoria[chave].v;
-    try {
-      const bruto = window.sessionStorage.getItem(CACHE_PREFIX + chave);
-      if (!bruto) return null;
-      const guardado = JSON.parse(bruto);
-      if (!guardado || typeof guardado.t !== 'number' || agora - guardado.t >= CACHE_MS || !guardado.v || typeof guardado.v !== 'object') return null;
-      memoria[chave] = guardado;
-      return guardado.v;
-    } catch (err) {
-      return null;
-    }
+    return null;
   }
   function guardarCache(chave, valor) {
     const registo = { t: Date.now(), v: valor };
     memoria[chave] = registo;
-    try { window.sessionStorage.setItem(CACHE_PREFIX + chave, JSON.stringify(registo)); } catch (err) { /* sessionStorage indisponível */ }
   }
 
   /* ---- validação do que vem da base de dados (dados hostis por princípio) ---- */

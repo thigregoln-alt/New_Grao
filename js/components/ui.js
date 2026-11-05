@@ -282,7 +282,7 @@
    *  largura com que é mostrado; attrs = atributos do <img>. Mesma marcação
    *  que tools/gerar-paginas.js escreve no HTML estático. */
   function logoPicture(sizes, attrs) {
-    const widths = [96, 192, 384, 666];
+    const widths = [96, 192, 384, 666, 1332, 1998];
     const srcset = function (ext) {
       return widths.map(function (w) { return 'assets/logo-grao-de-mostarda-' + w + '.' + ext + ' ' + w + 'w'; }).join(', ');
     };

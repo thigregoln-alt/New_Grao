@@ -111,7 +111,6 @@
         el('li', {}, [el('a', { href: 'https://wa.me/' + B.whatsapp, target: '_blank', rel: 'noopener', text: 'WhatsApp' })]),
         el('li', {}, [el('a', { href: B.instagramUrl, target: '_blank', rel: 'noopener', text: 'Instagram' })]),
       ]),
-      el('p', { class: 'footer-contact-note', text: 'Respondemos normalmente em menos de 24 horas úteis.' }),
       !NEWSLETTER_ATIVA ? null : el('div', { class: 'footer-newsletter-mini' }, [
         newsletterTitle,
         newsletterCopy,

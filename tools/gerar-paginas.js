@@ -677,7 +677,7 @@ const NAV_LINKS = [
    ver ARCHITECTURE.md) + o PNG como último recurso. sizes = largura com que
    cada uso é mostrado no CSS. O mesmo <picture> é construído em
    js/components/ui.js (logoPicture) para o fallback em JavaScript. */
-const LOGO_WIDTHS = [96, 192, 384, 666];
+const LOGO_WIDTHS = [96, 192, 384, 666, 1332, 1998];
 function logoPicture(sizes, imgAttrs) {
   const srcset = (ext) => LOGO_WIDTHS.map((w) => 'assets/logo-grao-de-mostarda-' + w + '.' + ext + ' ' + w + 'w').join(', ');
   return '<picture>' +
@@ -743,7 +743,6 @@ function footerHtml(currentFile) {
         '<li><a href="' + mail + '">' + escText(BRAND.email) + '</a></li>' +
         '<li><a href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></li>' +
         '<li><a href="' + insta + '" target="_blank" rel="noopener">Instagram</a></li></ul>' +
-        '<p class="footer-contact-note">Respondemos normalmente em menos de 24 horas úteis.</p>' +
         (!NEWSLETTER_ATIVA ? '' : '<div class="footer-newsletter-mini"><h4 class="footer-newsletter__title">Fica a par</h4><p class="footer-newsletter__copy">Novos produtos, histórias do ateliê e promoções ocasionais — sem spam.</p>' +
           '<div class="newsletter-pill-wrap"><form class="newsletter-form newsletter-form--pill" novalidate="true"><div class="field"><label for="footer-email" class="sr-only">E-mail</label><input type="email" name="email" id="footer-email" placeholder="o.seu@email.com" aria-label="O seu e-mail" required="true" autocomplete="email"></div><button class="btn-pill-submit" type="submit" aria-label="Subscrever">' + icon('chevronRight') + '</button></form><p class="newsletter-status" role="status"></p><p class="newsletter-privacy">Ao subscrever aceita a <a href="privacidade.html" data-route-link="">Política de Privacidade</a>.</p></div>' +
         '</div>') + '</div>' +

@@ -605,14 +605,14 @@ function regenerateShop(html) {
    index.html — "Peças mais procuradas"
    ------------------------------------------------------------------------- */
 function regenerateFeatured(html) {
-  const picks = GDM.catalog.featured().slice(0, 5);
-  const gridOpenIdx = html.indexOf('<div class="featured-grid">');
+  const picks = GDM.catalog.featured().slice(0, 4);
+  const gridOpenIdx = html.indexOf('<div class="grid-auto">');
   const gridEndIdx = findBlockEnd(html, gridOpenIdx, 'div');
   const patched = patchCardSequence(html, gridOpenIdx, gridEndIdx, picks);
   if (patched !== null) return patched;
   warn('index.html: "Peças mais procuradas" mudou de composição — secção regenerada com novos ids internos de SVG (sem impacto visual).');
-  const cardsHtml = picks.map((p, i) => buildCard(p, { hero: i === 0, reveal: 'scale', revealIndex: i % 6 })).join('');
-  return html.slice(0, gridOpenIdx) + '<div class="featured-grid">' + cardsHtml + '</div>' + html.slice(gridEndIdx);
+  const cardsHtml = picks.map((p, i) => buildCard(p, { reveal: 'scale', revealIndex: i % 6 })).join('');
+  return html.slice(0, gridOpenIdx) + '<div class="grid-auto">' + cardsHtml + '</div>' + html.slice(gridEndIdx);
 }
 
 /* -------------------------------------------------------------------------

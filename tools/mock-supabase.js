@@ -16,7 +16,11 @@
                                        titulo, texto, referencia_encomenda
                                        (estado, compra_verificada, … -> 401);
                                        validações do SQL -> 400; fica pendente;
-                                       >30 pendentes nos últimos 10 min -> 400
+                                       regras anti-spam da secção 4b -> 400
+                                       com code P0001 e o motivo no hint
+                                       (links, repetida, limite_origem —
+                                       5/hora e 15/dia por IP —, limite_global
+                                       — 30 pendentes nos últimos 10 min)
      PATCH/DELETE                      sempre 401 (sem policy para o público)
      GET  /rest/v1/resumo_avaliacoes   média/contagem/distribuição das aprovadas
    Pedidos sem o cabeçalho apikey certo -> 401.
@@ -41,7 +45,29 @@ const PUBLICAS = ['id', 'criada_em', 'produto_id', 'autor', 'classificacao', 'ti
 const INSERIVEIS = ['produto_id', 'autor', 'classificacao', 'titulo', 'texto', 'referencia_encomenda'];
 
 let linhas = [];
+let envios = []; // { origem, t } — como privado.avaliacoes_envios (aqui com o IP em claro: é só no PC)
 let modo = 'normal';
+
+/* Regras da secção 4b de tools/supabase-avaliacoes.sql (mesma ordem e
+   mesmos números). Devolve o hint do erro, ou '' se passar. */
+function regrasAntiSpam(l, origem) {
+  const agora = Date.now();
+  if (/(https?:\/\/|www\.)/i.test([l.autor, l.titulo, l.texto].filter((x) => x != null).join(' '))) return 'links';
+  const normal = (s) => String(s).trim().toLowerCase();
+  if (linhas.some((x) => normal(x.texto) === normal(l.texto) && Date.parse(x.criada_em) > agora - 24 * 3600 * 1000)) return 'repetida';
+  envios = envios.filter((e) => e.t > agora - 24 * 3600 * 1000);
+  const destaOrigem = envios.filter((e) => e.origem === origem);
+  if (destaOrigem.filter((e) => e.t > agora - 3600 * 1000).length >= 5 || destaOrigem.length >= 15) return 'limite_origem';
+  const recentes = linhas.filter((x) => x.estado === 'pendente' && Date.parse(x.criada_em) > agora - 10 * 60 * 1000).length;
+  if (recentes >= 30) return 'limite_global';
+  return '';
+}
+const MSG_REGRAS = {
+  links: 'As avaliações não podem ter links.',
+  repetida: 'Esta avaliação já foi enviada.',
+  limite_origem: 'Demasiadas avaliações enviadas desta ligação — tente mais tarde.',
+  limite_global: 'Demasiadas avaliações pendentes recentes — tente mais tarde.',
+};
 
 function responder(res, estado, corpo, extra) {
   const cab = Object.assign({
@@ -110,7 +136,7 @@ const servidor = http.createServer(async (req, res) => {
     const corpo = req.method === 'POST' ? await lerCorpo(req) : {};
     const acao = url.pathname.slice('/__admin/'.length);
     if (acao === 'todas') return responder(res, 200, linhas);
-    if (acao === 'limpar') { linhas = []; return responder(res, 200, { ok: true }); }
+    if (acao === 'limpar') { linhas = []; envios = []; return responder(res, 200, { ok: true }); }
     if (acao === 'modo') { modo = corpo.modo || 'normal'; return responder(res, 200, { modo }); }
     if (acao === 'inserir') { const l = novaLinha(corpo); if (l.estado === 'aprovada' && !l.aprovada_em) l.aprovada_em = new Date().toISOString(); linhas.push(l); return responder(res, 200, l); }
     if (acao === 'aprovar') {
@@ -151,8 +177,10 @@ const servidor = http.createServer(async (req, res) => {
       const erro = validarLinha(corpo);
       if (erro) return responder(res, 400, { code: '23514', message: 'violates check constraint "avaliacoes_' + erro + '_check"' });
       // trigger avaliacoes_limite_pendentes do SQL
-      const recentes = linhas.filter((l) => l.estado === 'pendente' && Date.parse(l.criada_em) > Date.now() - 10 * 60 * 1000).length;
-      if (recentes > 30) return responder(res, 400, { code: 'P0001', message: 'Demasiadas avaliações pendentes recentes — tente mais tarde.' });
+      const origem = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const motivo = regrasAntiSpam(corpo, origem);
+      if (motivo) return responder(res, 400, { code: 'P0001', message: MSG_REGRAS[motivo], hint: motivo, details: null });
+      envios.push({ origem: origem, t: Date.now() });
       const nova = novaLinha(corpo);
       if (APROVAR_TUDO) { nova.estado = 'aprovada'; nova.aprovada_em = new Date().toISOString(); }
       linhas.push(nova);

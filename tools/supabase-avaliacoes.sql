@@ -105,19 +105,56 @@ create trigger avaliacoes_marca_aprovacao
   execute function public.avaliacoes_marca_aprovacao();
 
 -- --------------------------------------------------------------------------
--- 4b. Travão contra spam direto à API: quem tiver a chave pública pode
---     chamar a API sem passar pelo site (sem honeypot nem validações do
---     formulário). Se já existirem mais de 30 avaliações PENDENTES criadas
---     nos últimos 10 minutos, a inserção é recusada (a API responde 400 e
---     o site mostra a mensagem de erro normal). Quando o ateliê aprova ou
---     rejeita, ou passam os 10 minutos, volta a aceitar. Um cliente normal
---     nunca chega perto deste número.
+-- 4b. Travões contra spam direto à API: quem tiver a chave pública pode
+--     chamar a API sem passar pelo site (sem honeypot, sem tempo mínimo e
+--     sem o limite por visita do formulário — isso tudo corre no browser).
+--     Por isso estas regras correm AQUI, na base de dados, antes de cada
+--     avaliação nova ser gravada. Se alguma falhar, a API responde 400 com
+--     código P0001 e o "hint" diz qual foi (o site mostra a mensagem certa):
+--
+--     a) 'links'          — nome, título ou texto com links (http://, www.)
+--     b) 'repetida'       — o mesmo texto já foi enviado nas últimas 24 h
+--     c) 'limite_origem'  — a mesma ligação (IP) já enviou 5 avaliações na
+--                           última hora ou 15 nas últimas 24 h
+--     d) 'limite_global'  — já há 30 avaliações PENDENTES dos últimos 10
+--                           minutos (travão de emergência, para o caso de
+--                           muitos IPs diferentes ao mesmo tempo)
+--
+--     Um cliente normal nunca chega perto destes números. Os limites estão
+--     no início da função, para ser fácil mudá-los.
+--
+--     O IP nunca é guardado: guarda-se só um "resumo" (hash SHA-256 do IP
+--     com um segredo que nunca sai da base de dados), apagado ao fim de
+--     24 horas. Serve só para contar envios. Fica no esquema "privado", que
+--     a API não expõe (nem a chave pública nem o site lhe chegam).
+--
 --     "security definer": o público não consegue ler as pendentes (RLS +
---     colunas), por isso a contagem corre com as permissões do dono.
+--     colunas) nem o esquema privado, por isso a função corre com as
+--     permissões do dono.
 -- --------------------------------------------------------------------------
 create index if not exists avaliacoes_pendentes_recentes
   on public.avaliacoes (criada_em)
   where estado = 'pendente';
+
+create schema if not exists privado;
+revoke all on schema privado from public, anon, authenticated;
+
+-- segredo usado no hash do IP (criado uma vez, aleatório)
+create table if not exists privado.segredo (
+  id     boolean primary key default true check (id),
+  valor  text not null default gen_random_uuid()::text
+);
+insert into privado.segredo default values on conflict do nothing;
+
+-- um registo por avaliação aceite: só o hash da ligação e a hora
+create table if not exists privado.avaliacoes_envios (
+  origem     text not null,
+  criada_em  timestamptz not null default now()
+);
+create index if not exists avaliacoes_envios_origem
+  on privado.avaliacoes_envios (origem, criada_em);
+
+revoke all on privado.segredo, privado.avaliacoes_envios from public, anon, authenticated;
 
 create or replace function public.avaliacoes_limite_pendentes()
 returns trigger
@@ -125,13 +162,74 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  -- limites (mudar aqui)
+  max_por_hora   constant int := 5;
+  max_por_dia    constant int := 15;
+  max_pendentes  constant int := 30;
+
+  cabecalhos   json;
+  ip           text;
+  esta_origem  text;
 begin
+  -- Uma avaliação de cada vez: sem isto, dois pedidos ao mesmo tempo
+  -- podiam contar antes de o outro estar gravado e passarem os dois.
+  -- O bloqueio é libertado sozinho no fim de cada pedido.
+  perform pg_advisory_xact_lock(hashtext('avaliacoes_limite'));
+
+  -- a) sem links
+  if concat_ws(' ', new.autor, new.titulo, new.texto) ~* '(https?://|www\.)' then
+    raise exception 'As avaliações não podem ter links.'
+      using errcode = 'P0001', hint = 'links';
+  end if;
+
+  -- b) sem textos repetidos (o mesmo texto, ignorando maiúsculas e espaços)
+  if exists (select 1 from public.avaliacoes
+               where lower(btrim(texto)) = lower(btrim(new.texto))
+                 and criada_em > now() - interval '1 day') then
+    raise exception 'Esta avaliação já foi enviada.'
+      using errcode = 'P0001', hint = 'repetida';
+  end if;
+
+  -- c) limite por ligação. O Supabase passa o IP de quem fez o pedido nos
+  --    cabeçalhos (cf-connecting-ip, posto pela Cloudflare e que o cliente
+  --    não consegue falsificar). Sem IP (ex.: inserção à mão no Table
+  --    Editor), este limite não se aplica — os outros sim.
+  cabecalhos := coalesce(nullif(current_setting('request.headers', true), ''), '{}')::json;
+  ip := nullif(btrim(coalesce(
+          cabecalhos->>'cf-connecting-ip',
+          cabecalhos->>'x-real-ip',
+          split_part(cabecalhos->>'x-forwarded-for', ',', 1))), '');
+
+  if ip is not null then
+    esta_origem := encode(sha256(convert_to((select valor from privado.segredo) || ip, 'UTF8')), 'hex');
+
+    -- limpeza: nada fica guardado mais de 24 horas
+    delete from privado.avaliacoes_envios where criada_em < now() - interval '1 day';
+
+    if (select count(*) from privado.avaliacoes_envios
+          where origem = esta_origem and criada_em > now() - interval '1 hour') >= max_por_hora
+       or (select count(*) from privado.avaliacoes_envios
+             where origem = esta_origem) >= max_por_dia then
+      raise exception 'Demasiadas avaliações enviadas desta ligação — tente mais tarde.'
+        using errcode = 'P0001', hint = 'limite_origem';
+    end if;
+  end if;
+
+  -- d) travão global de emergência (>= 30: no máximo 30, nunca a 31.ª)
   if (select count(*) from public.avaliacoes
         where estado = 'pendente'
-          and criada_em > now() - interval '10 minutes') > 30 then
+          and criada_em > now() - interval '10 minutes') >= max_pendentes then
     raise exception 'Demasiadas avaliações pendentes recentes — tente mais tarde.'
-      using errcode = 'P0001';
+      using errcode = 'P0001', hint = 'limite_global';
   end if;
+
+  -- passou tudo: conta este envio (se a inserção falhar depois, por
+  -- exemplo numa regra da tabela, este registo também é desfeito)
+  if esta_origem is not null then
+    insert into privado.avaliacoes_envios (origem) values (esta_origem);
+  end if;
+
   return new;
 end;
 $$;
@@ -173,9 +271,14 @@ grant select on public.resumo_avaliacoes to anon;
 
 -- --------------------------------------------------------------------------
 -- 6. (Opcional) Apagar sozinho as avaliações rejeitadas com mais de 30
---    dias. Precisa da extensão pg_cron: Database → Extensions → pg_cron →
---    Enable. Depois descomentar as duas linhas abaixo e correr de novo.
---    Sem isto, apagar à mão no Table Editor (ver docs/AVALIACOES.md).
+--    dias e os registos de envios com mais de 24 horas (estes também são
+--    apagados a cada avaliação nova; isto garante-o mesmo sem avaliações).
+--    Precisa da extensão pg_cron: Database → Extensions → pg_cron →
+--    Enable. Depois descomentar as linhas abaixo e correr de novo.
+--    Sem isto, apagar as rejeitadas à mão no Table Editor (ver
+--    docs/AVALIACOES.md).
 -- --------------------------------------------------------------------------
 -- select cron.schedule('apagar-avaliacoes-rejeitadas', '0 3 * * *',
 --   $$delete from public.avaliacoes where estado = 'rejeitada' and criada_em < now() - interval '30 days'$$);
+-- select cron.schedule('apagar-envios-antigos', '15 3 * * *',
+--   $$delete from privado.avaliacoes_envios where criada_em < now() - interval '1 day'$$);

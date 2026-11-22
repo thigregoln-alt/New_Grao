@@ -47,9 +47,29 @@ O script cria a tabela `avaliacoes`, as regras de segurança e a vista
 `resumo_avaliacoes`. Pode ser corrido mais do que uma vez sem estragar
 nada.
 
-Também cria um travão contra spam: se houver mais de 30 avaliações
-pendentes criadas nos últimos 10 minutos, as novas são recusadas até o
-ateliê aprovar/rejeitar algumas ou passarem os 10 minutos.
+Também cria travões contra spam, que correm na própria base de dados (por
+isso funcionam mesmo contra quem chame a API sem passar pelo site). Uma
+avaliação nova é recusada se:
+
+- tiver links (`http://`, `https://`, `www.`) no nome, título ou texto;
+- o mesmo texto já tiver sido enviado nas últimas 24 horas;
+- a mesma ligação (IP) já tiver enviado **5 avaliações na última hora**
+  ou **15 nas últimas 24 horas**;
+- já houver **30 avaliações pendentes** criadas nos últimos 10 minutos
+  (travão de emergência; volta a aceitar quando o ateliê aprovar/rejeitar
+  algumas ou passarem os 10 minutos).
+
+O IP nunca é guardado em claro: só um código derivado dele (hash), na
+tabela `privado.avaliacoes_envios`, que é apagado ao fim de 24 horas e
+não é visível pela API. Os números estão no início da função
+`avaliacoes_limite_pendentes` em `tools/supabase-avaliacoes.sql`, se um
+dia for preciso mudá-los.
+
+Se clientes reais forem bloqueados por engano (por exemplo, várias
+pessoas na mesma rede de empresa), aumentar `max_por_hora` /
+`max_por_dia` e correr o script de novo. Se aparecer spam vindo de muitos
+IPs diferentes, o passo seguinte é um CAPTCHA (ex.: Cloudflare Turnstile)
+verificado numa Edge Function do Supabase.
 
 > O Supabase pode mostrar no **Security Advisor** um aviso
 > "Security Definer View" sobre `resumo_avaliacoes`. É intencional: a vista
@@ -223,7 +243,9 @@ como no Supabase a sério.
 
 ## Para quem mexe no código
 
-- Base de dados e segurança: `tools/supabase-avaliacoes.sql`.
+- Base de dados e segurança: `tools/supabase-avaliacoes.sql` (os travões
+  anti-spam estão na secção 4b; o formulário mostra a mensagem certa pelo
+  `hint` do erro — ver `MSG_REGRAS` em `js/state/reviews.js`).
 - Camada de dados (pedidos, cache de 5 min, timeout de 8 s, validação):
   `js/state/reviews.js`.
 - Formulário, página de avaliações e peças visuais: `js/pages/reviews.js`.

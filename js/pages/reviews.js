@@ -11,6 +11,9 @@
   const { el } = GDM.security;
   GDM.pages = GDM.pages || {};
 
+  /* Travões no browser (limite por visita, tempo mínimo, armadilha para bots):
+     só travam quem usa o formulário. Os que contam a sério estão na base de
+     dados (tools/supabase-avaliacoes.sql, secção 4b). */
   const MAX_ENVIOS_SESSAO = 3;
   const TEMPO_MINIMO_MS = 4000;
   const CHAVE_ENVIOS = 'gdm:avaliacoes-enviadas';

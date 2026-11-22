@@ -23,8 +23,20 @@
     return /^[29]\d{8}$/.test(v) || /^\+\d{8,15}$/.test(v);
   }
 
+  /* Número da encomenda: 8 caracteres aleatórios (crypto, não Date.now —
+     com a hora dava para adivinhar números de outras encomendas). Sem 0/O
+     nem 1/I, para não se confundirem ao ditar ou copiar. Continua a bater
+     com o formato GM-XXXXXX das avaliações (4 a 8 caracteres).
+     Atenção: é gerado no browser, por isso NÃO prova nada sozinho — o ateliê
+     confirma sempre os artigos e os preços antes de combinar o pagamento
+     (ver ARCHITECTURE.md, "Checkout"). */
+  const LETRAS_ENCOMENDA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   function buildOrderId() {
-    return 'GM-' + Date.now().toString(36).toUpperCase().slice(-6);
+    const sorteio = new Uint32Array(8);
+    window.crypto.getRandomValues(sorteio);
+    let codigo = '';
+    sorteio.forEach(function (n) { codigo += LETRAS_ENCOMENDA[n % LETRAS_ENCOMENDA.length]; });
+    return 'GM-' + codigo;
   }
 
   function buildMessage(orderId, customer, state) {
@@ -41,8 +53,9 @@
       '',
       'Artigos:',
     ].filter(function (line) { return line !== null; });
+    // código do produto e preço unitário: o ateliê confere cada linha com a loja
     state.items.forEach(function (item) {
-      lines.push('• ' + item.product.name + ' (x' + item.qty + ') — ' + GDM.format.currency(item.lineTotal));
+      lines.push('• ' + item.product.name + ' [' + item.product.id + '] — ' + item.qty + ' × ' + GDM.format.currency(item.product.price) + ' = ' + GDM.format.currency(item.lineTotal));
     });
     // produtos com gravação (products.js → gravacao: true): o texto combina-se por mensagem
     if (state.items.some(function (item) { return item.product.gravacao; })) {

@@ -38,6 +38,15 @@
     dados: 'Não foi possível guardar a avaliação — reveja os dados e tente novamente.',
     servidor: 'O serviço de avaliações está com problemas. Tente novamente mais tarde.',
   };
+  /* Recusas das regras anti-spam da base de dados (tools/supabase-avaliacoes.sql,
+     secção 4b): a API responde 400 com code P0001 e o motivo no "hint". */
+  const MSG_REGRAS = {
+    links: 'Por segurança, as avaliações não podem ter links (endereços de sites). Retire-os e tente novamente.',
+    repetida: 'Esta avaliação já foi enviada — está à espera de ser revista pelo ateliê.',
+    limite_origem: 'Já recebemos várias avaliações seguidas a partir desta ligação. Tente novamente mais tarde.',
+    limite_global: 'Estamos a receber muitas avaliações neste momento. Tente novamente daqui a 10 minutos.',
+  };
+  const TEM_LINK = /(https?:\/\/|www\.)/i; // a mesma regra da base de dados
 
   /* Limpeza única do sistema antigo (avaliações só no localStorage de quem
      as escrevia — nunca foram vistas por mais ninguém). */
@@ -107,6 +116,13 @@
       clearTimeout(relogio);
       if (resposta.ok) return { resposta: resposta };
       if (resposta.status === 401 || resposta.status === 403) return { erro: MSG.recusado };
+      if (resposta.status === 400) {
+        // pode ser uma das regras anti-spam: ler o motivo para mostrar a mensagem certa
+        return resposta.json().then(function (corpo) {
+          const motivo = corpo && corpo.code === 'P0001' ? corpo.hint : '';
+          return { erro: MSG_REGRAS[motivo] || MSG.dados };
+        }, function () { return { erro: MSG.dados }; });
+      }
       if (resposta.status >= 400 && resposta.status < 500) return { erro: MSG.dados };
       return { erro: MSG.servidor };
     }, function (falha) {
@@ -256,6 +272,7 @@
     if (autor.length < 2 || autor.length > 60) erros.autor = 'Indique um nome com 2 a 60 caracteres.';
     if (titulo.length > 80) erros.titulo = 'O título pode ter no máximo 80 caracteres.';
     if (texto.length < 10 || texto.length > 600) erros.texto = 'Escreva entre 10 e 600 caracteres.';
+    if (TEM_LINK.test(autor + ' ' + titulo + ' ' + texto)) erros.texto = MSG_REGRAS.links;
     if (referencia && !/^GM-[A-Z0-9]{4,8}$/.test(referencia)) erros.referenciaEncomenda = 'Use o formato GM-XXXXXX (o número que recebeu ao encomendar).';
     if (Object.keys(erros).length) return { erros: erros };
     return {

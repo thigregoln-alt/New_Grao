@@ -209,6 +209,28 @@ segurança, fica como trabalho futuro.
   cliente enviar manualmente ao ateliê. **Não existe cobrança automática** —
   o texto do resumo diz sempre explicitamente que o pagamento é confirmado
   à parte.
+
+  **A mensagem que chega ao ateliê não é uma fonte de confiança.** É
+  montada no browser do cliente e qualquer pessoa a pode alterar antes de a
+  enviar (preços, total, número). Não há base de dados de encomendas (ver
+  secção 4). Por isso, antes de combinar o pagamento, o ateliê confirma
+  sempre:
+  1. cada artigo pelo código entre parênteses retos (ex.: `[bib-01]`) e o
+     preço unitário, comparando com a loja (`js/data/products.js`);
+  2. as contas (quantidade × preço, subtotal, portes de
+     `GDM.content.SHIPPING_INFO`);
+  3. que o número `GM-XXXXXXXX` ainda não apareceu noutra encomenda. É
+     aleatório (8 caracteres, `crypto.getRandomValues`, não dá para
+     adivinhar), mas não há nada central a garantir que é único.
+  O valor a pagar é sempre o que o ateliê confirmar, nunca o da mensagem.
+
+  **Dados pessoais no link do WhatsApp (decisão consciente, 2026-11-22).**
+  O link `wa.me` leva a mensagem completa no URL (nome, telefone, e-mail,
+  morada). Pode ficar no histórico do browser e nos registos do WhatsApp,
+  que é quem recebe a mensagem de qualquer forma. Ficou assim porque o
+  ateliê precisa destes dados para enviar a encomenda. Se um dia mudar:
+  tirar e-mail e telefone da mensagem em `buildMessage` (`js/pages/checkout.js`).
+  O link nunca é guardado em `localStorage`.
 - **Pesquisa e filtros da loja**: filtragem e ordenação client-side sobre o
   array de produtos, refletida na própria URL (`loja.html?categoria=...`).
 - **Segurança de entrada**: todo o texto escrito pelo utilizador (pesquisa,
@@ -273,7 +295,9 @@ produto, nunca stock**. Ao ler o carrinho (`GDM.cart.getState()`):
 Isto significa que editar manualmente `localStorage` (ou tentar alterar
 `GDM.catalog` a partir da consola, o que falha por estar congelado) não
 consegue alterar o total apresentado ao utilizador nem o valor comunicado
-ao ateliê no resumo da encomenda.
+ao ateliê no resumo da encomenda. Isto protege contra erros e mexidas no
+browser, **não** contra quem edite o texto da mensagem antes de a enviar
+— para isso, ver a verificação manual em "Checkout" (secção 3).
 
 ## 6a. SEO, dados estruturados e conformidade legal (ronda de Prioridade 1, 2026-09-03)
 

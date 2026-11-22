@@ -679,7 +679,34 @@
     GDM.pages.reviews.render(app);
   }
 
+  /* Proteção contra clickjacking (outro site abrir esta página dentro de um
+     <iframe> invisível para enganar cliques). O normal seria o cabeçalho HTTP
+     "Content-Security-Policy: frame-ancestors 'none'", mas o GitHub Pages não
+     deixa definir cabeçalhos e na <meta> CSP o frame-ancestors é ignorado.
+     Por isso: se a página estiver num iframe, tenta sair dele; se o browser
+     não deixar, esconde a página toda e mostra só um link para a abrir
+     direito. Nada do site é ligado (carrinho, checkout, avaliações).
+     Se o iframe tiver o JavaScript desligado (sandbox), o site também não
+     funciona lá dentro — não há botões com efeito para "roubar". */
+  function dentroDeIframe() {
+    try { return window.top !== window.self; } catch (err) { return true; }
+  }
+  function sairDoIframe() {
+    try { window.top.location.replace(window.location.href); } catch (err) { /* o browser bloqueou */ }
+    var aviso = document.createElement('p');
+    aviso.style.cssText = 'font:16px/1.5 sans-serif;padding:24px;text-align:center';
+    var link = document.createElement('a');
+    link.href = window.location.href;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'Abrir o site Grão de Mostarda numa janela nova';
+    aviso.appendChild(link);
+    document.body.textContent = '';
+    document.body.appendChild(aviso);
+  }
+
   function init(){
+    if (dentroDeIframe()) { sairDoIframe(); return; }
     mountGlobal();
     hydrateFavorites();
     hydrateAccordions();

@@ -111,6 +111,23 @@
     return getState();
   }
 
+  /* Contas (js/state/conta.js): juntar o carrinho guardado na conta ao deste
+     navegador, ou substituí-lo pelo da conta. As linhas recebidas passam
+     pelas mesmas regras de loadRaw (o produto tem de existir, o mesmo
+     produto soma as quantidades, corte ao stock e ao máximo por linha). */
+  function juntar(linhas) {
+    if (!Array.isArray(linhas)) return getState();
+    GDM.storage.write(KEY, getRawLines().concat(linhas));
+    persist(getRawLines());
+    return getState();
+  }
+
+  function substituir(linhas) {
+    GDM.storage.write(KEY, Array.isArray(linhas) ? linhas : []);
+    persist(getRawLines());
+    return getState();
+  }
+
   /** Portes do Envio Normal (CTT) para um subtotal: valor, se é grátis e
    *  quanto falta para portes grátis. Valores em GDM.content.SHIPPING_INFO. */
   function shipping(subtotal) {
@@ -125,5 +142,5 @@
     };
   }
 
-  GDM.cart = { getState, addItem, updateQty, removeItem, clear, shipping, lineKey: lineKey };
+  GDM.cart = { getState, addItem, updateQty, removeItem, clear, shipping, juntar, substituir, lineKey: lineKey };
 })(window.GDM = window.GDM || {});

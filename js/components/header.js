@@ -23,7 +23,7 @@
     { path: '/contacto', label: 'Contacto' },
   ];
 
-  let favBadge, cartBadge, mobileNavEl, searchPanel, releaseFocus, searchReleaseFocus, searchTrigger;
+  let favBadge, cartBadge, accountLink, mobileNavEl, searchPanel, releaseFocus, searchReleaseFocus, searchTrigger;
 
   function navList(extraClass) {
     const ul = el('ul', { class: extraClass || '' });
@@ -134,6 +134,13 @@
     favLink.innerHTML = GDM.icons.icon('heart');
     favLink.appendChild(el('span', { class: 'icon-btn__badge' }));
 
+    // conta: só com as contas ligadas (a mesma regra do gerador)
+    let contaLink = null;
+    if (GDM.contaConfig && GDM.contaConfig.ativa === true) {
+      contaLink = el('a', { class: 'icon-btn icon-btn--account', href: 'conta.html', 'aria-label': 'Entrar ou criar conta', 'data-header-action': 'account' });
+      contaLink.innerHTML = GDM.icons.icon('user');
+    }
+
     const cartBtn = el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Abrir carrinho', 'data-header-action': 'cart' });
     cartBtn.innerHTML = GDM.icons.icon('cart');
     cartBtn.appendChild(el('span', { class: 'icon-btn__badge' }));
@@ -141,7 +148,7 @@
     const navToggle = el('a', { class: 'icon-btn nav-toggle', href: '#mobile-nav', role: 'button', 'aria-label': 'Abrir menu', 'aria-expanded': 'false', 'aria-controls': 'mobile-nav', 'data-header-action': 'menu' });
     navToggle.innerHTML = GDM.icons.icon('menu');
 
-    const actions = el('div', { class: 'header-actions' }, [searchBtn, favLink, cartBtn, navToggle]);
+    const actions = el('div', { class: 'header-actions' }, [searchBtn, favLink, contaLink, cartBtn, navToggle]);
 
     const bar = el('div', { class: 'container header-bar' }, [logo, nav, actions]);
     return el('header', { class: 'site-header', id: 'site-header' }, [bar]);
@@ -169,6 +176,29 @@
     GDM.bus.on('cart:change', updateCartBadge);
     updateFavBadge(GDM.favorites.list());
     updateCartBadge(GDM.cart.getState());
+
+    accountLink = headerEl.querySelector('[data-header-action="account"]');
+    if (accountLink) {
+      GDM.bus.on('conta:change', updateAccount);
+      updateAccount();
+    }
+  }
+
+  /* Ícone da conta: sem sessão, o ícone de pessoa; com sessão, a inicial do
+     nome (ou do e-mail). Lê só o localStorage — nenhum pedido à rede. */
+  function updateAccount() {
+    if (!GDM.conta || !GDM.conta.ativa()) { accountLink.hidden = true; return; }
+    const r = GDM.conta.resumo();
+    accountLink.hidden = false;
+    accountLink.classList.toggle('icon-btn--signed-in', !!r);
+    if (r) {
+      accountLink.setAttribute('aria-label', 'A minha conta (' + r.email + ')');
+      accountLink.textContent = '';
+      accountLink.appendChild(el('span', { class: 'icon-btn__avatar', 'aria-hidden': 'true', text: r.inicial }));
+    } else {
+      accountLink.setAttribute('aria-label', 'Entrar ou criar conta');
+      accountLink.innerHTML = GDM.icons.icon('user');
+    }
   }
 
   function mount(root) {

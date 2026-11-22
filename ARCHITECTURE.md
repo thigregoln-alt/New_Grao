@@ -100,6 +100,7 @@ lógica que não dá para pré-renderizar (o conteúdo depende do que está em
 | `contacto.html`  | `js/pages/contact.js`    |
 | `favoritos.html` | `js/pages/favorites.js`  |
 | `avaliacoes.html`| `js/pages/reviews.js`    |
+| `conta.html`     | `js/pages/account.js` (+ `js/data/contaConfig.js`, `js/state/conta.js`) |
 
 Nenhuma outra página carrega ficheiros de `js/pages/` — os antigos
 `main.js`, `router.js` e os `js/pages/home.js`, `shop.js`, `product.js`,
@@ -184,6 +185,36 @@ segurança, fica como trabalho futuro.
   por preencher, o site mostra "As avaliações estão a chegar em breve".
   Nunca há avaliações inventadas. Guia completo: `docs/AVALIACOES.md`.
   `GDM.content.TESTIMONIALS` continua vazio de propósito.
+- **Contas de cliente (opcionais; desligadas até `js/data/contaConfig.js`
+  ter `ativa: true`).**
+  - Entrada por e-mail com código de 6 dígitos (sem passwords) e, se
+    ligados, Google e Facebook (OAuth com PKCE).
+  - Mesmo projeto Supabase das avaliações. `fetch()` direto à API, sem SDK
+    (`js/state/conta.js`). Página em `conta.html` + `js/pages/account.js`.
+  - Com sessão:
+    - o carrinho e os favoritos são guardados na conta, com 1,5 s de atraso
+      e com `keepalive` ao sair da página;
+    - ao abrir uma página, a conta é lida no máximo 1 vez por minuto;
+    - ao entrar, o carrinho do navegador junta-se ao da conta com as regras
+      de `loadRaw()`;
+    - ao terminar sessão, o carrinho e os favoritos do navegador são limpos.
+  - O checkout vem preenchido com o perfil. Ao confirmar "Já enviei o
+    pedido", a encomenda é gravada no histórico da conta. Se a gravação
+    falhar, nada fica bloqueado.
+  - A mensagem do convidado não mudou.
+  - Segurança na base de dados (`tools/supabase-contas.sql`):
+    - RLS: só as linhas da própria pessoa;
+    - permissões por coluna;
+    - encomendas só se inserem e leem;
+    - limites de tamanho e 10 encomendas por hora;
+    - `apagar_minha_conta()` apaga tudo em cascata.
+  - A sessão fica em `localStorage` (`gdm:sessao`), como no SDK oficial. A
+    CSP `script-src 'self'` e o uso exclusivo de `textContent`/`el()` são
+    a defesa contra quem a tente roubar por XSS.
+  - Com `ativa: false`, o gerador não põe o ícone, os scripts nem a secção
+    da privacidade. A `conta.html` existe sempre, com `noindex` e fora do
+    sitemap.
+  - Guia completo: `docs/CONTAS.md`.
 - **Newsletter: desligada.** O formulário guardava o e-mail só no
   `localStorage` do visitante e ninguém o recebia, por isso saiu do site até
   haver um serviço real. Interruptor: `GDM.content.NEWSLETTER = { ativa: false }`

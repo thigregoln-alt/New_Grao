@@ -504,3 +504,84 @@
   text-align: center;
 }
 .page-hero p { margin-inline: auto; }
+
+/* ==========================================================================
+   Conta de cliente (conta.html — js/pages/account.js) e ligações no
+   cabeçalho e no checkout. Mesmos painéis, botões e tipografia do resto do
+   site; pensado primeiro para 390px.
+   ========================================================================== */
+.account-grid { display: grid; gap: var(--space-md); grid-template-columns: minmax(0, 1fr); max-width: 980px; margin-inline: auto; }
+.account-grid--single { justify-items: center; }
+@media (min-width: 860px) {
+  .account-grid { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: start; }
+  .account-grid--dash { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); max-width: 1120px; }
+  .account-grid--dash .account-card--session { position: sticky; top: 96px; }
+  .account-grid--single { grid-template-columns: 1fr; }
+}
+.account-card { display: flex; flex-direction: column; gap: var(--space-sm); }
+.account-card h2 { font-size: 1.25rem; line-height: 1.25; }
+.account-card .eyebrow { margin-bottom: -6px; }
+.account-card__lede { color: var(--ink-700); font-size: var(--fs-sm); line-height: 1.6; }
+.account-card--guest { background: linear-gradient(160deg, var(--cream-100), var(--cream-200)); }
+
+.account-perks { list-style: none; display: grid; gap: 8px; padding: 0; margin: 0; }
+.account-perks li { display: flex; gap: 10px; align-items: flex-start; font-size: var(--fs-sm); color: var(--ink-700); }
+.account-perks li > span:first-child { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--success-100); color: var(--success-600); display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+.account-perks svg { width: 13px; height: 13px; }
+
+.account-divider { display: flex; align-items: center; gap: 12px; color: var(--ink-500); font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 2px 0; }
+.account-divider::before, .account-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+
+/* Botões de entrada com Google / Facebook (regras de marca de cada um) */
+.btn-social { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; padding-inline: var(--space-md); border-radius: var(--radius-pill); border: 1px solid; font-family: var(--font-body); font-size: var(--fs-sm); font-weight: 600; cursor: pointer; transition: background var(--dur-fast), box-shadow var(--dur-fast); }
+.btn-social svg { width: 20px; height: 20px; flex-shrink: 0; }
+.btn-social:disabled { opacity: 0.6; cursor: wait; }
+.btn-social--google { background: #fff; color: #1f1f1f; border-color: #747775; }
+.btn-social--google:hover:not(:disabled) { background: #f8f9fa; box-shadow: 0 1px 3px rgba(60, 64, 67, 0.2); }
+.btn-social--facebook { background: #1877f2; color: #fff; border-color: #1877f2; }
+.btn-social--facebook:hover:not(:disabled) { background: #166fe5; }
+.btn-social:focus-visible { outline: 3px solid var(--gold-500); outline-offset: 2px; }
+
+.account-code input { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.45em; text-align: center; font-variant-numeric: tabular-nums; padding-inline: 8px; }
+.account-links { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: center; }
+.link-btn { background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-sm); font-weight: 600; color: var(--gold-800); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-btn:disabled { color: var(--ink-500); text-decoration: none; cursor: default; }
+.link-btn--danger { color: var(--error-600); }
+
+.account-status { font-size: var(--fs-sm); line-height: 1.5; }
+.account-status:empty { display: none; }
+.account-status--erro { color: var(--error-600); }
+.account-status--ok { color: var(--success-600); }
+
+/* Esqueletos (a mesma altura dos cartões: a página não salta) */
+.account-skeleton { height: 300px; border-radius: var(--radius-lg); }
+.account-skeleton--tall { height: 460px; }
+.account-skeleton--form { height: 250px; border-radius: var(--radius-md); }
+.account-skeleton--order { height: 96px; border-radius: var(--radius-md); }
+
+/* A minha conta */
+.account-who { display: flex; align-items: center; gap: 12px; }
+.account-who strong { font-size: var(--fs-md); }
+.account-who__email { color: var(--ink-500); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.account-avatar { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; background: var(--leather-900); color: var(--gold-300); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.account-danger { border-top: 1px dashed var(--border-soft); padding-top: var(--space-sm); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.account-confirm { background: var(--error-100); border-radius: var(--radius-md); padding: var(--space-sm); display: flex; flex-direction: column; gap: 12px; font-size: var(--fs-sm); color: var(--ink-900); }
+.account-confirm[hidden] { display: none; }
+.btn--danger { background: var(--error-600); color: #fff; }
+.btn--danger:hover:not(:disabled) { background: #8a2f26; }
+
+.account-order { border: 1px solid var(--border-soft); border-radius: var(--radius-md); background: var(--cream-050); padding: var(--space-sm); display: grid; gap: 4px; }
+.account-order__head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.account-order__head strong { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.account-order__total { font-weight: 700; color: var(--leather-900); white-space: nowrap; }
+.account-order__meta { color: var(--ink-500); font-size: var(--fs-xs); }
+.account-order__items { list-style: none; padding: 0; margin: 4px 0 0; font-size: var(--fs-sm); color: var(--ink-700); display: grid; gap: 2px; }
+.account-empty { text-align: center; padding: var(--space-md) var(--space-sm); color: var(--ink-500); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); background: var(--cream-100); border-radius: var(--radius-md); }
+
+/* Cabeçalho: inicial do nome no lugar do ícone quando há sessão */
+.icon-btn__avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--leather-900); color: var(--gold-300); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-body); font-weight: 700; font-size: 13px; line-height: 1; }
+.icon-btn--account[hidden] { display: none; }
+
+/* Checkout: linha discreta "Já tem conta?" */
+.checkout-account-hint { align-self: flex-start; display: inline-flex; flex-wrap: wrap; gap: 4px; font-size: var(--fs-sm); color: var(--ink-700); background: var(--cream-100); border: 1px solid var(--border-soft); border-radius: var(--radius-pill); padding: 8px 16px; margin-bottom: var(--space-sm); }
+.checkout-account-hint a { color: var(--gold-800); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

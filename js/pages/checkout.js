@@ -74,7 +74,7 @@
      Só é esvaziado quando a pessoa confirma "Já enviei o pedido" (ou segue
      para "Continuar a comprar"). sendUrl (com a mensagem completa) vive só
      em memória, nesta vista — nunca vai para o localStorage. */
-  function confirmationView(orderId, mode, sendUrl) {
+  function confirmationView(orderId, mode, sendUrl, sentState) {
     const isWhatsapp = mode === 'whatsapp';
     const wrap = el('div', { class: 'order-confirm', 'data-reveal': 'scale' });
     const svg = document.createElement('div');
@@ -97,6 +97,9 @@
     wrap.appendChild(actions);
 
     sentBtn.addEventListener('click', function () {
+      /* Com sessão iniciada, a encomenda fica no histórico da conta. Se a
+         gravação falhar, não faz mal: o pedido já seguiu pelo WhatsApp/e-mail. */
+      if (sentState && GDM.conta && GDM.conta.temSessao()) GDM.conta.gravarEncomenda(orderId, sentState, mode);
       GDM.cart.clear();
       status.textContent = 'Obrigado! O carrinho foi esvaziado — vamos responder-lhe em breve.';
       reopen.remove();
@@ -144,6 +147,33 @@
     const fields = [nameField, emailField, phoneField, addressField, postalField, cityField];
     const validateAll = GDM.formHelpers.wireForm(fields);
 
+    /* Contas de cliente (js/state/conta.js) — só com as contas ligadas.
+       Sem sessão: uma linha discreta para entrar. Com sessão: campos
+       preenchidos com o perfil e a opção de guardar os dados na conta. */
+    const conta = GDM.conta && GDM.conta.ativa() ? GDM.conta : null;
+    const comSessao = !!(conta && conta.temSessao());
+    let accountTop = null;
+    let saveToAccount = null;
+    if (conta && !comSessao) {
+      accountTop = el('p', { class: 'checkout-account-hint' }, ['Já tem conta? ', el('a', { href: 'conta.html?voltar=checkout.html', text: 'Entre para preencher os seus dados' })]);
+    } else if (comSessao) {
+      saveToAccount = el('div', { class: 'checkbox-row', style: 'margin-top:4px' }, [
+        el('input', { type: 'checkbox', id: 'co-save-account', checked: true }),
+        el('label', { for: 'co-save-account', text: 'Guardar estes dados na minha conta' }),
+      ]);
+      // preenche só os campos ainda vazios (a pessoa pode já ter começado a escrever)
+      const fill = function (fieldWrap, value) { if (value && !fieldWrap.__gdmInput.value) fieldWrap.__gdmInput.value = value; };
+      fill(emailField, conta.resumo().email);
+      conta.lerPerfil().then(function (r) {
+        if (r.erro) return;
+        fill(nameField, r.perfil.nome);
+        fill(phoneField, r.perfil.telefone);
+        fill(addressField, r.perfil.morada);
+        fill(postalField, r.perfil.codigo_postal);
+        fill(cityField, r.perfil.localidade);
+      });
+    }
+
     const consent = el('div', { class: 'checkbox-row' }, [
       el('input', { type: 'checkbox', id: 'co-consent', required: true }),
       el('label', { for: 'co-consent', text: 'Compreendo que o pagamento é combinado diretamente comigo pelo ateliê depois de enviar o pedido, e não é cobrado automaticamente neste site.' }),
@@ -151,11 +181,13 @@
     const consentError = el('p', { class: 'field__error' });
 
     const form = el('form', { class: 'stack', novalidate: true }, [
+      accountTop,
       el('h2', { text: 'Dados de entrega', style: 'font-size:1.2rem;margin-bottom:14px' }),
       el('div', { class: 'form-row form-row--2' }, [nameField, emailField]),
       el('div', { class: 'form-row form-row--2' }, [phoneField, addressField]),
       el('div', { class: 'form-row form-row--2' }, [postalField, cityField]),
       notesField,
+      saveToAccount,
       el('h2', { text: 'Pagamento', style: 'font-size:1.2rem;margin-block:20px 14px' }),
       el('div', { class: 'manual-pay-note' }, [
         (function () { const s = document.createElement('span'); s.innerHTML = GDM.icons.icon('shield'); return s; })(),
@@ -191,6 +223,10 @@
         city: GDM.formHelpers.readValue(cityField),
         notes: GDM.formHelpers.readValue(notesField),
       };
+      if (saveToAccount && form.querySelector('#co-save-account').checked) {
+        // não espera pela resposta: o pedido nunca fica bloqueado pela conta
+        GDM.conta.guardarPerfil({ nome: customer.name, telefone: customer.phone, morada: customer.address, codigo_postal: customer.postal, localidade: customer.city });
+      }
       const freshState = GDM.cart.getState();
       const orderId = buildOrderId();
       const message = buildMessage(orderId, customer, freshState);
@@ -205,7 +241,7 @@
         window.location.href = sendUrl;
       }
       inner.innerHTML = '';
-      inner.appendChild(confirmationView(orderId, submitMode, sendUrl));
+      inner.appendChild(confirmationView(orderId, submitMode, sendUrl, comSessao ? freshState : null));
       GDM.components.initScrollReveal();
     });
 

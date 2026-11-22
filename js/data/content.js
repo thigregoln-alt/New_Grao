@@ -158,6 +158,26 @@
     ],
   };
 
+  /* Secções sobre as contas de cliente: o gerador só as acrescenta à
+     Política de Privacidade com GDM.contaConfig.ativa = true (ver
+     privacyContasExtra em tools/gerar-paginas.js). */
+  const PRIVACY_CONTAS = {
+    sections: [
+      { id: 'contas', title: 'Contas de cliente (opcionais)', paragraphs: [
+        'Não precisa de conta para comprar. Se decidir criar uma, guardamos: o seu e-mail; o nome, telefone e morada de entrega que escrever na área "A minha conta" ou no checkout (só se deixar marcada a opção "Guardar estes dados na minha conta"); o carrinho e os favoritos (só os códigos dos produtos e as quantidades); e o histórico das encomendas que enviar com sessão iniciada (número, artigos, valores e se seguiu por WhatsApp ou e-mail).',
+        'Para que servem: manter o carrinho, os favoritos e a morada iguais em todos os seus dispositivos, preencher o checkout por si e mostrar-lhe as suas encomendas. A base legal é o seu pedido para criar e usar a conta (execução de contrato). O histórico de encomendas da conta é só para si: o pagamento e o estado de cada encomenda continuam a ser combinados connosco pelo WhatsApp.',
+        'Onde e até quando: no Supabase (Supabase Inc.), na mesma base de dados das avaliações, em Zurique (Suíça, país que a União Europeia reconhece como tendo proteção de dados adequada). Ficam guardados até apagar a conta. Cada pessoa só consegue ver e alterar os dados da sua própria conta.',
+        'Entrada com e-mail: enviamos-lhe um código de uso único, sem passwords. Entrada com Google ou Facebook (se estiver disponível): o Google ou a Meta confirmam quem é e enviam-nos apenas o seu nome, e-mail e foto de perfil públicos, que ficam guardados com a conta; não temos acesso à sua password nem a mais nada da sua conta nesses serviços.',
+        'Sessão no navegador: com sessão iniciada, o seu navegador guarda um código de sessão (localStorage), necessário para a conta funcionar — não é usado para mais nada. Ao terminar sessão é apagado, junto com o carrinho e os favoritos guardados nesse dispositivo.',
+      ] },
+      { id: 'apagar-conta', title: 'Como apagar a sua conta e os seus dados', paragraphs: [
+        'Entre na sua conta (ícone de pessoa no topo do site), vá a "A minha conta" e escolha "Apagar a minha conta". A conta é apagada de imediato, junto com os dados de entrega, o carrinho, os favoritos e o histórico de encomendas guardados nela. Não dá para desfazer.',
+        'Se entrou com o Facebook ou o Google, pode também retirar o acesso do nosso site nas definições desses serviços (Facebook: Definições → Apps e sites; Google: Conta Google → Segurança → Ligações a apps de terceiros). Isso não apaga a conta no nosso site — para isso, use o passo acima.',
+        'Se não conseguir entrar, peça-nos para apagar a conta por WhatsApp (+351 925 130 518) ou e-mail (ateliergraodemostarda176@gmail.com), indicando o e-mail da conta. Apagamos tudo no prazo de 30 dias e confirmamos consigo.',
+      ] },
+    ],
+  };
+
   const TERMS = {
     updated: '2026-09-03',
     sections: [
@@ -170,5 +190,5 @@
     ],
   };
 
-  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, PROJECTS, NEWSLETTER, PRIVACY_POLICY, TERMS };
+  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, PROJECTS, NEWSLETTER, PRIVACY_POLICY, PRIVACY_CONTAS, TERMS };
 })(window.GDM = window.GDM || {});

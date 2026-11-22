@@ -7,7 +7,7 @@
     if (path.indexOf('?') !== -1) { q = path.slice(path.indexOf('?')); path = path.slice(0, path.indexOf('?')); }
     path = path.replace(/^#/, '').replace(/\/$/, '') || '/';
     if (path.indexOf('/produto/') === 0) return 'produto-' + path.slice('/produto/'.length) + '.html' + q;
-    var map = {'/':'index.html','/loja':'loja.html','/carrinho':'carrinho.html','/checkout':'checkout.html','/favoritos':'favoritos.html','/sobre':'sobre.html','/inspiracao':'inspiracao.html','/projetos':'projetos.html','/faq':'faq.html','/envios':'envios.html','/trocas':'trocas.html','/contacto':'contacto.html','/avaliacoes':'avaliacoes.html','/privacidade':'privacidade.html','/termos':'termos.html'};
+    var map = {'/':'index.html','/loja':'loja.html','/carrinho':'carrinho.html','/checkout':'checkout.html','/favoritos':'favoritos.html','/sobre':'sobre.html','/inspiracao':'inspiracao.html','/projetos':'projetos.html','/faq':'faq.html','/envios':'envios.html','/trocas':'trocas.html','/contacto':'contacto.html','/avaliacoes':'avaliacoes.html','/privacidade':'privacidade.html','/termos':'termos.html','/conta':'conta.html'};
     return (map[path] || 'index.html') + q;
   }
 
@@ -671,6 +671,13 @@
     load();
   }
 
+  function hydrateAccountPage() {
+    if (document.body.getAttribute('data-gdm-page') !== '/conta') return;
+    if (!GDM.pages || !GDM.pages.account || !GDM.conta) return;
+    var app = document.getElementById('app');
+    if (app) GDM.pages.account.render(app);
+  }
+
   function hydrateReviewsPage() {
     if (document.body.getAttribute('data-gdm-page') !== '/avaliacoes') return;
     if (!GDM.pages || !GDM.pages.reviews) return;
@@ -717,7 +724,10 @@
     hydrateFavoritesPage();
     hydrateCheckoutPage();
     hydrateReviewsPage();
+    hydrateAccountPage();
     hydrateHomeTestimonials();
+    // contas de cliente: sincroniza o carrinho/favoritos com a conta (só com sessão iniciada)
+    if (GDM.conta) GDM.conta.iniciar();
     decorateCardRatings(document);
     rewriteLinks(document);
     if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();

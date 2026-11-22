@@ -42,7 +42,7 @@ vm.createContext(sandbox);
 function loadModule(rel) {
   vm.runInContext(fs.readFileSync(rp(rel), 'utf8'), sandbox, { filename: rel });
 }
-['js/utils/security.js', 'js/data/motifs.js', 'js/data/categoryArt.js', 'js/data/icons.js', 'js/utils/format.js', 'js/data/products.js', 'js/data/content.js']
+['js/utils/security.js', 'js/data/motifs.js', 'js/data/categoryArt.js', 'js/data/icons.js', 'js/utils/format.js', 'js/data/products.js', 'js/data/content.js', 'js/data/contaConfig.js']
   .forEach(loadModule);
 
 const GDM = sandbox.window.GDM;
@@ -695,6 +695,12 @@ function navListHtml(cls, currentFile) {
   return '<ul class="' + cls + '">' + NAV_LINKS.map(([href, label]) => '<li>' + routeLink(href, label, currentFile) + '</li>').join('') + '</ul>';
 }
 
+/* Contas de cliente (js/data/contaConfig.js). Com ativa: false o site fica
+   exatamente como sem contas: sem ícone no cabeçalho, sem os scripts das
+   contas nas páginas e sem a secção das contas na Política de Privacidade
+   (só a conta.html existe, fora do menu, do sitemap e com noindex). */
+const CONTA_ATIVA = !!(GDM.contaConfig && GDM.contaConfig.ativa === true);
+
 function headerHtml(currentFile) {
   const wa = 'https://wa.me/' + BRAND.whatsapp;
   const header =
@@ -704,6 +710,7 @@ function headerHtml(currentFile) {
       '<div class="header-actions">' +
         '<button class="icon-btn" type="button" aria-label="Pesquisar" data-header-action="search">' + icon('search') + '</button>' +
         '<a class="icon-btn" href="favoritos.html" aria-label="Ver favoritos" data-header-action="favorites">' + icon('heart') + '<span class="icon-btn__badge" style="display: none;">0</span></a>' +
+        (CONTA_ATIVA ? '<a class="icon-btn icon-btn--account" href="conta.html" aria-label="Entrar ou criar conta" data-header-action="account">' + icon('user') + '</a>' : '') +
         '<button class="icon-btn" type="button" aria-label="Abrir carrinho" data-header-action="cart">' + icon('cart') + '<span class="icon-btn__badge" style="display: none;">0</span></button>' +
         '<a class="icon-btn nav-toggle" href="#mobile-nav" role="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav" data-header-action="menu">' + icon('menu') + '</a>' +
       '</div>' +
@@ -793,6 +800,38 @@ function buildNotFoundPage() {
   return html.slice(0, mStart) + main + html.slice(mEnd);
 }
 
+/* conta.html — entrar / criar conta / "A minha conta" (js/pages/account.js).
+   Criada uma vez a partir de favoritos.html (cabeçalho, rodapé e scripts
+   vêm do molde comum); o <main> é sempre reescrito por contaMain(). Fica
+   fora do sitemap e com noindex (NOINDEX). */
+function buildContaPage() {
+  let html = readText(rp('favoritos.html'));
+  const title = 'A minha conta · Grão de Mostarda Personalizados';
+  const desc = 'Entre ou crie uma conta para guardar o carrinho, os favoritos e a morada em todos os seus dispositivos.';
+  html = html.replace(/<title>[^<]*<\/title>/, '<title>' + title + '</title>')
+    .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + desc + '">')
+    .replace(/<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="' + title + '">')
+    .replace(/<meta property="og:description" content="[^"]*">/, '<meta property="og:description" content="' + desc + '">')
+    .replace(/<meta name="twitter:title" content="[^"]*">/, '<meta name="twitter:title" content="' + title + '">')
+    .replace(/<meta name="twitter:description" content="[^"]*">/, '<meta name="twitter:description" content="' + desc + '">')
+    .replace(/<link rel="canonical" href="[^"]*">/, '<link rel="canonical" href="' + SITE_URL + '/conta.html">')
+    .replace(/<body data-gdm-page="[^"]*">/, '<body data-gdm-page="/conta">')
+    .replace(/<script src="js\/pages\/favorites\.js[^"]*" defer><\/script>/, '<script src="js/pages/account.js" defer></script>');
+  return replaceMain(html, contaMain());
+}
+
+/* O mesmo título que js/pages/account.js mostra sem sessão + um esqueleto
+   com a altura dos cartões (a página não salta quando o JS a desenha). */
+function contaMain() {
+  return '<main id="app" tabindex="-1">' +
+    '<div class="page-hero"><div class="container stack" style="gap:10px;align-items:center"><p class="eyebrow">A sua conta</p><h1>Entrar ou criar conta</h1>' +
+    '<p style="max-width:60ch;margin-inline:auto;color:var(--ink-700)">A conta é opcional — pode sempre comprar sem ela.</p></div></div>' +
+    '<section class="section section--tight"><div class="container" data-conta-host="">' +
+      '<div class="account-grid" aria-hidden="true"><div class="skeleton account-skeleton"></div><div class="skeleton account-skeleton account-skeleton--tall"></div></div>' +
+      '<noscript><p style="text-align:center">A conta precisa de JavaScript. Pode sempre comprar sem conta.</p></noscript>' +
+    '</div></section></main>';
+}
+
 /* Reescreve um bloco <script type="application/ld+json" id="ld-<id>"> (dados
    estruturados), sempre a partir de SITE_URL e dos dados do site. */
 /* -------------------------------------------------------------------------
@@ -869,10 +908,20 @@ function regenerateTerms(html) {
     GDM.content.TERMS, TERMS_EXTRA));
 }
 
+/* Secções das contas (GDM.content.PRIVACY_CONTAS): só com as contas ligadas.
+   A âncora #apagar-conta é o link "eliminação de dados" pedido pela Meta. */
+function privacyContasExtra() {
+  if (!CONTA_ATIVA || !GDM.content.PRIVACY_CONTAS) return [];
+  return GDM.content.PRIVACY_CONTAS.sections.map((s) => ({
+    id: s.id, title: escText(s.title),
+    html: s.paragraphs.map((t) => '<p style="color:var(--ink-700)">' + escText(t) + '</p>').join(''),
+  }));
+}
+
 function regeneratePrivacy(html) {
   return replaceMain(html, legalMain(
     { eyebrow: 'Os seus dados', title: 'Política de Privacidade', lede: 'Como recolhemos, usamos e protegemos os seus dados pessoais.' },
-    GDM.content.PRIVACY_POLICY));
+    GDM.content.PRIVACY_POLICY, privacyContasExtra()));
 }
 
 /* JSON dentro de <script>: "<" escapado como <, para nenhum texto
@@ -970,7 +1019,7 @@ let cspCache = null;
 
 /* Páginas que nunca devem ser indexadas. Não vão para o robots.txt: um
    Disallow anuncia o caminho e impede o Google de ler este noindex. */
-const NOINDEX = ['404.html'];
+const NOINDEX = ['404.html', 'conta.html'];
 
 /* Secções acrescentadas pelo gerador a termos.html (os textos de
    GDM.content.TERMS ficam como estão; first: true = antes deles).
@@ -1019,6 +1068,14 @@ function regenerateChrome(html, file) {
   // a configuração das avaliações tem de carregar antes de js/state/reviews.js
   if (scripts.includes('js/state/reviews.js') && !scripts.includes('js/data/reviewsConfig.js')) {
     scripts.splice(scripts.indexOf('js/state/reviews.js'), 0, 'js/data/reviewsConfig.js');
+  }
+  // scripts das contas: em todas as páginas com contas ligadas; sempre na conta.html
+  ['js/data/contaConfig.js', 'js/state/conta.js'].forEach(function (src) {
+    if (scripts.includes(src)) scripts.splice(scripts.indexOf(src), 1);
+  });
+  if ((CONTA_ATIVA || file === 'conta.html') && scripts.includes('js/state/favorites.js')) {
+    const depois = scripts.includes('js/state/reviews.js') ? 'js/state/reviews.js' : 'js/state/favorites.js';
+    scripts.splice(scripts.indexOf(depois) + 1, 0, 'js/data/contaConfig.js', 'js/state/conta.js');
   }
   const currentFile = /^produto-/.test(file) ? '' : file;
   html = replaceHostContent(html, 'header-host', headerHtml(currentFile));
@@ -1078,6 +1135,11 @@ function main() {
     warn('página "produto-' + s + '.html" existe mas o produto já não está em products.js — não foi apagada, revê manualmente.');
   });
 
+  if (!fs.existsSync(rp('conta.html'))) {
+    fs.writeFileSync(rp('conta.html'), buildContaPage(), 'utf8');
+    createdCount++;
+  }
+
   if (!fs.existsSync(rp('404.html'))) {
     fs.writeFileSync(rp('404.html'), buildNotFoundPage(), 'utf8');
     createdCount++;
@@ -1099,6 +1161,7 @@ function main() {
       // (scroll horizontal de 20px) — passam a nunca ser mais largas que o ecrã
       if (file === 'inspiracao.html') after = after.split('grid-template-columns:repeat(auto-fill,minmax(320px,1fr))').join('grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))');
       if (file === 'privacidade.html') after = regeneratePrivacy(after);
+      if (file === 'conta.html') after = replaceMain(after, contaMain());
       writeIfChanged(filePath, before, regenerateChrome(after, file));
     });
 

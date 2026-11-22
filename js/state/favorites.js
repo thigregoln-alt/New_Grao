@@ -36,5 +36,20 @@
     return ids;
   }
 
-  GDM.favorites = { list, has, count, toggle };
+  /* Contas (js/state/conta.js): juntar os favoritos da conta aos deste
+     navegador, ou substituí-los. Passam pelo mesmo filtro de load(). */
+  function juntar(ids) {
+    if (!Array.isArray(ids)) return list();
+    GDM.storage.write(KEY, load().concat(ids));
+    persist(load());
+    return list();
+  }
+
+  function substituir(ids) {
+    GDM.storage.write(KEY, Array.isArray(ids) ? ids : []);
+    persist(load());
+    return list();
+  }
+
+  GDM.favorites = { list, has, count, toggle, juntar, substituir };
 })(window.GDM = window.GDM || {});

@@ -18,7 +18,7 @@
   'use strict';
 
   GDM.contaConfig = {
-    ativa: false,
+    ativa: true,
     fornecedores: { email: true, google: false, facebook: false },
   };
 })(window.GDM = window.GDM || {});

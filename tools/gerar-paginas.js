@@ -707,8 +707,8 @@ function headerHtml(currentFile) {
       '<div class="header-actions">' +
         '<button class="icon-btn" type="button" aria-label="Pesquisar" data-header-action="search">' + icon('search') + '</button>' +
         '<a class="icon-btn" href="favoritos.html" aria-label="Ver favoritos" data-header-action="favorites">' + icon('heart') + '<span class="icon-btn__badge" style="display: none;">0</span></a>' +
-        (CONTA_ATIVA ? '<a class="icon-btn icon-btn--account" href="conta.html" aria-label="Entrar ou criar conta" data-header-action="account">' + icon('user') + '</a>' : '') +
         '<button class="icon-btn" type="button" aria-label="Abrir carrinho" data-header-action="cart">' + icon('cart') + '<span class="icon-btn__badge" style="display: none;">0</span></button>' +
+        (CONTA_ATIVA ? '<a class="icon-btn icon-btn--account" href="conta.html" aria-label="Entrar ou criar conta" data-header-action="account">' + icon('user') + '</a>' : '') +
         '<a class="icon-btn nav-toggle" href="#mobile-nav" role="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav" data-header-action="menu">' + icon('menu') + '</a>' +
       '</div>' +
     '</div></header>';

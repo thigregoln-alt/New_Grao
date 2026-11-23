@@ -146,7 +146,7 @@
     const navToggle = el('a', { class: 'icon-btn nav-toggle', href: '#mobile-nav', role: 'button', 'aria-label': 'Abrir menu', 'aria-expanded': 'false', 'aria-controls': 'mobile-nav', 'data-header-action': 'menu' });
     navToggle.innerHTML = GDM.icons.icon('menu');
 
-    const actions = el('div', { class: 'header-actions' }, [searchBtn, favLink, contaLink, cartBtn, navToggle]);
+    const actions = el('div', { class: 'header-actions' }, [searchBtn, favLink, cartBtn, contaLink, navToggle]);
 
     const bar = el('div', { class: 'container header-bar' }, [logo, nav, actions]);
     return el('header', { class: 'site-header', id: 'site-header' }, [bar]);

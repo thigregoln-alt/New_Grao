@@ -82,7 +82,6 @@ h1{line-height:.98} h2{line-height:1.02} h3{line-height:1.12}
 .product-card__fav:hover{background:var(--cream-warm)}
 .product-card__badges .badge{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:999px}
 .badge--gold{background:var(--gold-500);color:var(--leather-950)}
-.badge--sale{background:#946256;color:#fff} /* rosa mais escuro: branco sobre --rose-400 dava 3,4:1 (AA pede 4,5:1) */
 .badge--outline{background:rgba(255,253,248,.88);border-color:var(--line-warm);color:var(--leather-800)}
 
 /* Botões: menos "template", mais marca */
@@ -256,11 +255,6 @@ footer a:hover{color:var(--gold-300)}
 
 .product-card__price{
   color:var(--leather-900);
-}
-
-.product-card__price--old{
-  font-size:12px;
-  color:#9b8a76;
 }
 
 .product-card__footer{

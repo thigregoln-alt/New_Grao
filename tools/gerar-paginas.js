@@ -153,10 +153,8 @@ function patchCard(html, cardOpenIdx, product, mediaOpts) {
     card = card.slice(0, mediaStart) + '<div class="product-card__media">' + artImg(product, mediaOpts) + '</div>' + card.slice(mediaEnd);
   }
 
-  const badgesHtml = '<div class="product-card__badges">' +
-    (product.featured ? '<span class="badge badge--gold">Destaque</span>' : '') +
-    (product.oldPrice ? '<span class="badge badge--sale">Promoção</span>' : '') +
-    '</div>';
+  // vazio no HTML: o selo "Destaque" (mais vistos) é posto pelo JS no browser
+  const badgesHtml = '<div class="product-card__badges"></div>';
   card = card.replace(/<div class="product-card__badges">[\s\S]*?<\/div>/, badgesHtml);
 
   card = card.replace(/<span class="product-card__cat">[^<]*<\/span>/, '<span class="product-card__cat">' + escText(product.categoryLabel) + '</span>');
@@ -169,9 +167,7 @@ function patchCard(html, cardOpenIdx, product, mediaOpts) {
     card = card.replace(/<p class="product-card__desc">[^<]*<\/p>/, '<p class="product-card__desc">' + escText(product.description) + '</p>');
   }
 
-  const metaHtml = '<div class="product-card__meta"><span class="product-card__price">' + priceHtml(product.price) + '</span>' +
-    (product.oldPrice ? '<span class="product-card__price--old">' + priceHtml(product.oldPrice) + '</span>' : '') +
-    '</div>';
+  const metaHtml = '<div class="product-card__meta"><span class="product-card__price">' + priceHtml(product.price) + '</span></div>';
   card = card.replace(/<div class="product-card__meta">[\s\S]*?<\/div>/, metaHtml);
 
   card = card.replace(/<a class="btn btn--outline btn--sm btn--block" href="[^"]*">Ver produto<\/a>/,
@@ -189,13 +185,9 @@ function buildCard(product, opts) {
   const href = 'produto-' + product.slug + '.html';
   const media = '<div class="product-card__media">' + artImg(product, opts.media) + '</div>';
   const fav = '<button class="product-card__fav" type="button" aria-pressed="false" aria-label="Adicionar aos favoritos">' + GDM.icons.icon('heart') + '</button>';
-  const badges = '<div class="product-card__badges">' +
-    (product.featured ? '<span class="badge badge--gold">Destaque</span>' : '') +
-    (product.oldPrice ? '<span class="badge badge--sale">Promoção</span>' : '') +
-    '</div>';
+  const badges = '<div class="product-card__badges"></div>';
   const desc = opts.hero ? '<p class="product-card__desc">' + escText(product.description) + '</p>' : '';
-  const meta = '<div class="product-card__meta"><span class="product-card__price">' + priceHtml(product.price) + '</span>' +
-    (product.oldPrice ? '<span class="product-card__price--old">' + priceHtml(product.oldPrice) + '</span>' : '') + '</div>';
+  const meta = '<div class="product-card__meta"><span class="product-card__price">' + priceHtml(product.price) + '</span></div>';
   return '<article class="product-card' + (opts.hero ? ' product-card--hero' : '') + '" data-reveal="' + (opts.reveal || 'fade') + '" style="--reveal-index: ' + (opts.revealIndex || 0) + ';">' +
     '<div style="position:relative">' + media + fav + badges + '</div>' +
     '<div class="product-card__body"><span class="product-card__cat">' + escText(product.categoryLabel) + '</span>' +
@@ -325,8 +317,7 @@ function regenerateProductPage(product, existingHtml) {
     html = html.replace(/<p class="product-info__rating" data-gdm-rating="">[\s\S]*?<\/p>/, ratingLine);
   }
 
-  const priceRow = '<div class="product-info__price-row"><span class="product-info__price">' + priceHtml(product.price) + '</span>' +
-    (product.oldPrice ? '<span class="product-card__price--old">' + priceHtml(product.oldPrice) + '</span>' : '') + '</div>';
+  const priceRow = '<div class="product-info__price-row"><span class="product-info__price">' + priceHtml(product.price) + '</span></div>';
   const stockOk = product.stock > 5;
   const stockLabel = stockOk ? 'Em stock' : (product.stock > 0 ? 'Últimas unidades (' + product.stock + ')' : 'Esgotado');
   const stockLine = '<p class="product-info__stock ' + (stockOk ? 'product-info__stock--ok' : 'product-info__stock--low') + '">' + stockLabel + '</p>';
@@ -590,13 +581,14 @@ function regenerateGallery(html, product) {
    loja.html — grelha de produtos
    ------------------------------------------------------------------------- */
 function regenerateShop(html) {
-  const ordered = PRODUCTS.slice().sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  // ordem do catálogo; no browser, os mais vistos ("Destaque") passam para a frente
+  const ordered = PRODUCTS.slice();
   const gridOpenIdx = html.indexOf('<div class="grid-auto">');
   const gridEndIdx = findBlockEnd(html, gridOpenIdx, 'div');
   const firstRow = (i) => ({ priority: i < 4 });
   const patched = patchCardSequence(html, gridOpenIdx, gridEndIdx, ordered, firstRow);
   if (patched !== null) return patched;
-  warn('loja.html: composição da grelha mudou (produto novo/removido/destaque alterado) — grelha regenerada com novos ids internos de SVG (sem impacto visual).');
+  warn('loja.html: composição da grelha mudou (produto novo/removido/reordenado) — grelha regenerada com novos ids internos de SVG (sem impacto visual).');
   const cardsHtml = ordered.map((p, i) => buildCard(p, { reveal: 'fade', revealIndex: i % 6, media: firstRow(i) })).join('');
   return html.slice(0, gridOpenIdx) + '<div class="grid-auto">' + cardsHtml + '</div>' + html.slice(gridEndIdx);
 }
@@ -604,8 +596,13 @@ function regenerateShop(html) {
 /* -------------------------------------------------------------------------
    index.html — "Peças mais procuradas"
    ------------------------------------------------------------------------- */
+/* No HTML fica o primeiro produto de cada uma das 4 primeiras categorias.
+   No browser, o static-init.js troca-os pelos mais vistos assim que houver
+   visitas suficientes (js/state/destaques.js). */
 function regenerateFeatured(html) {
-  const picks = GDM.catalog.featured().slice(0, 4);
+  const picks = GDM.catalog.CATEGORIES.slice(0, 4)
+    .map((c) => PRODUCTS.find((p) => p.category === c.slug))
+    .filter(Boolean);
   const gridOpenIdx = html.indexOf('<div class="grid-auto">');
   const gridEndIdx = findBlockEnd(html, gridOpenIdx, 'div');
   const patched = patchCardSequence(html, gridOpenIdx, gridEndIdx, picks);
@@ -1067,6 +1064,10 @@ function regenerateChrome(html, file) {
   // a configuração das avaliações tem de carregar antes de js/state/reviews.js
   if (scripts.includes('js/state/reviews.js') && !scripts.includes('js/data/reviewsConfig.js')) {
     scripts.splice(scripts.indexOf('js/state/reviews.js'), 0, 'js/data/reviewsConfig.js');
+  }
+  // destaques (mais vistos): logo a seguir a js/state/reviews.js, que lhe dá a ligação ao Supabase
+  if (scripts.includes('js/state/reviews.js') && !scripts.includes('js/state/destaques.js')) {
+    scripts.splice(scripts.indexOf('js/state/reviews.js') + 1, 0, 'js/state/destaques.js');
   }
   // scripts das contas: em todas as páginas com contas ligadas; sempre na conta.html
   ['js/data/contaConfig.js', 'js/state/conta.js'].forEach(function (src) {

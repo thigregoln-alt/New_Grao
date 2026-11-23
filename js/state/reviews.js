@@ -301,5 +301,6 @@
     }).then(function (r) { return r.erro ? r : { ok: true }; });
   }
 
-  GDM.reviews = { configurado: configurado, modoTeste: modoTeste, listar: listar, resumo: resumo, resumoTodos: resumoTodos, validar: validar, enviar: enviar, ORDENS: Object.keys(ORDENS) };
+  /* pedido: também usado por js/state/destaques.js (mesma ligação ao Supabase) */
+  GDM.reviews = { configurado: configurado, modoTeste: modoTeste, pedido: pedido, listar: listar, resumo: resumo, resumoTodos: resumoTodos, validar: validar, enviar: enviar, ORDENS: Object.keys(ORDENS) };
 })(window.GDM = window.GDM || {});

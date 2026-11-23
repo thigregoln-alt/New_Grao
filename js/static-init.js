@@ -121,6 +121,8 @@
     var slug = document.body.getAttribute('data-product-slug');
     if (!slug) return;
     var product = GDM.catalog.getBySlug(slug); if (!product) return;
+    // conta a visita para os destaques (os mais vistos — js/state/destaques.js)
+    if (GDM.destaques) GDM.destaques.registar(product.id);
     var main = document.querySelector('.product-gallery__main');
     var thumbs = document.querySelector('.product-gallery__thumbs');
     if (main && thumbs && !main.dataset.gdmHydrated) {
@@ -317,6 +319,9 @@
     /* médias por produto (GDM.reviews.resumoTodos): "Melhor avaliação" só
        fica disponível depois de carregarem */
     var ratings = null;
+    /* ids dos produtos em destaque (mais vistos), pela ordem: na
+       "Relevância" vêm primeiro; os outros ficam na ordem do catálogo */
+    var destaques = [];
 
     var sortLabels = {
       'relevancia':'Relevância',
@@ -366,7 +371,10 @@
           var ra=ratings[a.id], rb=ratings[b.id];
           return ((rb?rb.media:0)-(ra?ra.media:0)) || ((rb?rb.contagem:0)-(ra?ra.contagem:0));
         }
-        return (b.featured?1:0)-(a.featured?1:0);
+        var da=destaques.indexOf(a.id), db=destaques.indexOf(b.id);
+        if(da===-1) da=destaques.length;
+        if(db===-1) db=destaques.length;
+        return da-db;
       });
 
       list.forEach(function(p){
@@ -528,6 +536,14 @@
       });
     }
 
+    if (GDM.destaques) {
+      GDM.destaques.lista().then(function(ids){
+        if (!ids.length) return;
+        destaques = ids;
+        if (readState().ordenar === 'relevancia') apply();
+      });
+    }
+
     window.addEventListener('popstate', apply);
     apply();
   }
@@ -561,6 +577,62 @@
     });
   }
 
+  function productOfCard(card) {
+    var a = card.querySelector('.product-card__title a');
+    var m = a && (a.getAttribute('href') || '').match(/produto-([^?#]+)\.html|#\/produto\/([^?#]+)/);
+    return m ? GDM.catalog.getBySlug(m[1] || m[2]) : null;
+  }
+
+  /* Selo "Destaque" nos cartões dos produtos mais vistos (loja, Início,
+     "também vai gostar", favoritos). O HTML vem sem selos; sem
+     configuração, com erro ou sem visitas suficientes: nenhum selo. */
+  function decorateCardBadges(root) {
+    if (!GDM.destaques) return;
+    GDM.destaques.lista().then(function(ids){
+      if (!ids.length) return;
+      (root || document).querySelectorAll('.product-card').forEach(function(card){
+        var p = productOfCard(card);
+        var badges = card.querySelector('.product-card__badges');
+        if (!p || !badges || ids.indexOf(p.id) === -1 || badges.querySelector('.badge--gold')) return;
+        var span = document.createElement('span');
+        span.className = 'badge badge--gold';
+        span.textContent = 'Destaque';
+        badges.appendChild(span);
+      });
+    });
+  }
+
+  /* Início, "Peças mais procuradas": os produtos em destaque (mais vistos)
+     tomam o lugar dos cartões que vêm no HTML, pela ordem. Se houver menos
+     de 4 em destaque, os restantes lugares ficam com os cartões do HTML. */
+  function hydrateHomeDestaques() {
+    if (document.body.getAttribute('data-gdm-page') !== '/' || !GDM.destaques) return;
+    var grid = document.querySelector('#app .grid-auto');
+    if (!grid) return;
+    GDM.destaques.lista().then(function(ids){
+      if (!ids.length) return;
+      var cards = Array.prototype.slice.call(grid.querySelectorAll('.product-card'));
+      var atuais = cards.map(productOfCard);
+      var escolhidos = ids.map(function(id){ return GDM.catalog.getById(id); });
+      atuais.forEach(function(p){
+        if (p && escolhidos.length < cards.length && escolhidos.indexOf(p) === -1) escolhidos.push(p);
+      });
+      var mudou = false;
+      escolhidos.forEach(function(p, i){
+        if (!cards[i] || atuais[i] === p) return;
+        var novo = GDM.components.productCard.render(p, { reveal: 'scale' });
+        novo.style.setProperty('--reveal-index', String(i));
+        cards[i].replaceWith(novo);
+        mudou = true;
+      });
+      if (!mudou) return;
+      decorateCardRatings(grid);
+      decorateCardBadges(grid);
+      rewriteLinks(grid);
+      if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
+    });
+  }
+
   function hydrateContactPage() {
     if (document.body.getAttribute('data-gdm-page') !== '/contacto') return;
     if (!GDM.pages || !GDM.pages.contact) return;
@@ -584,8 +656,9 @@
     if (!app) return;
     GDM.pages.favorites.render(app);
     decorateCardRatings(app);
+    decorateCardBadges(app);
     // a página volta a desenhar os cartões quando os favoritos mudam
-    GDM.bus.on('favorites:change', function () { setTimeout(function () { decorateCardRatings(app); }, 0); });
+    GDM.bus.on('favorites:change', function () { setTimeout(function () { decorateCardRatings(app); decorateCardBadges(app); }, 0); });
   }
 
   function hydrateCheckoutPage() {
@@ -728,7 +801,9 @@
     hydrateHomeTestimonials();
     // contas de cliente: sincroniza o carrinho/favoritos com a conta (só com sessão iniciada)
     if (GDM.conta) GDM.conta.iniciar();
+    hydrateHomeDestaques();
     decorateCardRatings(document);
+    decorateCardBadges(document);
     rewriteLinks(document);
     if (GDM.components && GDM.components.initScrollReveal) GDM.components.initScrollReveal();
   }

@@ -39,6 +39,11 @@
      POST /rest/v1/rpc/apagar_minha_conta
    MOCK_EXPIRA=<segundos> encurta a validade do token (para testar a renovação).
 
+   Destaques (js/state/destaques.js, regras de tools/supabase-destaques.sql):
+     POST /rest/v1/rpc/registar_visualizacao  {produto}  1 visita por IP e
+                                       por produto em 24 h; 60 produtos/IP/dia
+     GET  /rest/v1/produtos_mais_vistos   os 10 mais vistos com >= 5 visitas
+
    Endpoints só de teste (fazem o papel do Table Editor do Supabase):
      GET  /__admin/todas               todas as linhas, incluindo pendentes
      POST /__admin/aprovar   {id, compra_verificada?, resposta_atelier?}
@@ -46,6 +51,9 @@
      POST /__admin/modo      {modo: 'normal'|'lento'|'erro'}
      POST /__admin/limpar
      GET  /__admin/contas              utilizadores, perfis, dados e encomendas
+     POST /__admin/visitas   {produto_id, visitas}  põe o total de visitas
+                                       de um produto (para testar os destaques
+                                       sem precisar de 5 IPs diferentes)
    ========================================================================== */
 'use strict';
 
@@ -71,6 +79,8 @@ let perfis = {};      // id -> perfil
 let dadosCliente = {};// id -> { carrinho, favoritos }
 let encomendas = [];  // { id, utilizador, ... }
 let envios = []; // { origem, t } — como privado.avaliacoes_envios (aqui com o IP em claro: é só no PC)
+let visitas = {};      // produto_id -> total (como public.visualizacoes, sem os dias)
+let vistas = [];       // { origem, produto, t } — como privado.visualizacoes_vistas
 let modo = 'normal';
 
 /* Regras da secção 4b de tools/supabase-avaliacoes.sql (mesma ordem e
@@ -334,8 +344,9 @@ const servidor = http.createServer(async (req, res) => {
     const corpo = req.method === 'POST' ? await lerCorpo(req) : {};
     const acao = url.pathname.slice('/__admin/'.length);
     if (acao === 'todas') return responder(res, 200, linhas);
-    if (acao === 'limpar') { linhas = []; envios = []; contas = {}; codigos = {}; sessoes = {}; refreshes = {}; pkce = {}; perfis = {}; dadosCliente = {}; encomendas = []; return responder(res, 200, { ok: true }); }
+    if (acao === 'limpar') { linhas = []; envios = []; contas = {}; codigos = {}; sessoes = {}; refreshes = {}; pkce = {}; perfis = {}; dadosCliente = {}; encomendas = []; visitas = {}; vistas = []; return responder(res, 200, { ok: true }); }
     if (acao === 'contas') return responder(res, 200, { contas, perfis, dadosCliente, encomendas, codigos });
+    if (acao === 'visitas') { visitas[corpo.produto_id] = Number(corpo.visitas) || 0; return responder(res, 200, visitas); }
     if (acao === 'modo') { modo = corpo.modo || 'normal'; return responder(res, 200, { modo }); }
     if (acao === 'inserir') { const l = novaLinha(corpo); if (l.estado === 'aprovada' && !l.aprovada_em) l.aprovada_em = new Date().toISOString(); linhas.push(l); return responder(res, 200, l); }
     if (acao === 'aprovar') {
@@ -391,6 +402,26 @@ const servidor = http.createServer(async (req, res) => {
       return responder(res, 201);
     }
     return negado(res); // PATCH / DELETE: sem policy para o público
+  }
+  if (tabela === 'rpc/registar_visualizacao' && req.method === 'POST') {
+    const corpo = await lerCorpo(req);
+    const produto = corpo && corpo.produto;
+    const origem = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    vistas = vistas.filter((v) => Date.now() - v.t < 24 * 3600 * 1000);
+    if (typeof produto === 'string' && /^[a-z0-9]{2,5}-[0-9]{2}$/.test(produto)
+        && vistas.filter((v) => v.origem === origem).length < 60
+        && !vistas.some((v) => v.origem === origem && v.produto === produto)) {
+      vistas.push({ origem: origem, produto: produto, t: Date.now() });
+      visitas[produto] = (visitas[produto] || 0) + 1;
+      console.log('visita contada: ' + produto + ' (total ' + visitas[produto] + ')');
+    }
+    return responder(res, 204);
+  }
+  if (tabela.startsWith('produtos_mais_vistos') && req.method === 'GET') {
+    const lista = Object.keys(visitas).filter((id) => visitas[id] >= 5)
+      .sort((a, b) => visitas[b] - visitas[a] || (a < b ? -1 : 1)).slice(0, 10)
+      .map((id) => ({ produto_id: id, visitas: visitas[id] }));
+    return responder(res, 200, lista);
   }
   if (tabela.startsWith('resumo_avaliacoes') && req.method === 'GET') {
     const grupos = {};

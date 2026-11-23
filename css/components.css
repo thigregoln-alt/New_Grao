@@ -87,7 +87,6 @@
 .badge--gold { background: var(--gold-200); color: var(--gold-800); }
 .badge--dark { background: var(--leather-900); color: var(--cream-100); }
 .badge--outline { border: 1px solid var(--border-soft); color: var(--ink-500); }
-.badge--sale { background: var(--error-100); color: var(--error-600); }
 
 /* ---- Cartão de produto ---- */
 .product-card {
@@ -142,7 +141,6 @@
 
 .product-card__meta { display: flex; align-items: center; gap: var(--space-2xs); margin-top: auto; }
 .product-card__price { font-weight: 700; font-size: var(--fs-md); color: var(--leather-900); }
-.product-card__price--old { text-decoration: line-through; color: var(--ink-500); font-weight: 400; font-size: var(--fs-sm); }
 
 .product-card__footer { padding: 0 var(--space-sm) var(--space-sm); position: relative; z-index: 2; }
 

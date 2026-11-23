@@ -29,10 +29,8 @@
       GDM.components.toast.show(pressed ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'info');
     });
 
-    const badges = el('div', { class: 'product-card__badges' }, [
-      product.featured ? el('span', { class: 'badge badge--gold', text: 'Destaque' }) : null,
-      product.oldPrice ? el('span', { class: 'badge badge--sale', text: 'Promoção' }) : null,
-    ]);
+    // o selo "Destaque" é posto depois pelo static-init.js (mais vistos — ver js/state/destaques.js)
+    const badges = el('div', { class: 'product-card__badges' });
 
     const mediaWrap = el('div', { style: 'position:relative' }, [media, favBtn, badges]);
 
@@ -41,7 +39,6 @@
 
     const priceRow = el('div', { class: 'product-card__meta' }, [
       el('span', { class: 'product-card__price', text: GDM.format.currency(product.price) }),
-      product.oldPrice ? el('span', { class: 'product-card__price--old', text: GDM.format.currency(product.oldPrice) }) : null,
     ]);
 
     const bodyChildren = [

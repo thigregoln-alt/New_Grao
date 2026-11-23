@@ -83,18 +83,9 @@
       form,
     ]);
 
-    const bottom = el('div', { class: 'contact-v5__bottom' }, [
-      el('div', { class: 'stack', style: 'gap:3px' }, [
-        el('strong', { text: 'Mais rápido pelo WhatsApp.' }),
-        el('p', { text: 'Para dúvidas urgentes sobre encomendas, é o canal mais direto.' }),
-      ]),
-      el('span', { class: 'eyebrow', text: 'Grão de Mostarda · Atendimento' }),
-    ]);
-
     const shell = el('div', { class: 'container contact-v5' }, [
       hero,
       el('div', { class: 'contact-v5__layout' }, [formPanel, info]),
-      bottom,
     ]);
 
     return el('section', { class: 'section section--tight' }, [shell]);

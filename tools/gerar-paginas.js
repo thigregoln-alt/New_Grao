@@ -898,7 +898,6 @@ function contactMain() {
           method('04', 'Horário', '<span>Segunda a sexta · 9h–18h</span>') +
         '</div><a class="btn btn--whatsapp btn--block contact-v5__wa" href="' + wa + '" target="_blank" rel="noopener">Falar agora no WhatsApp</a></aside>' +
     '</div>' +
-    '<div class="contact-v5__bottom"><div class="stack" style="gap:3px"><strong>Mais rápido pelo WhatsApp.</strong><p>Para dúvidas urgentes sobre encomendas, é o canal mais direto.</p></div><span class="eyebrow">Grão de Mostarda · Atendimento</span></div>' +
     '</div></section></main>';
 }
 

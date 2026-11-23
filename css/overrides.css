@@ -2416,3 +2416,6 @@ body[data-gdm-page="/sobre"] .quote-block{border-left:0!important;border-radius:
     mask-image:linear-gradient(to bottom, var(--fade-cima-baixo));
   }
 }
+/* Contacto — sem a faixa "Mais rápido pelo WhatsApp" no fim; menos espaço vazio por baixo dos cartões */
+body[data-gdm-page="/contacto"] .contact-v5{padding-bottom:0}
+body[data-gdm-page="/contacto"] .section--tight{padding-bottom:clamp(32px,4vw,48px)}

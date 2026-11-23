@@ -1069,15 +1069,13 @@ hr{border:0;border-top:1px solid var(--line-warm);margin-block:28px}
   background:currentColor;
   opacity:.72;
 }
-/* fim do eyebrow: ponto + traço ("— TEXTO • —"), o traço igual ao do início */
+/* fim do eyebrow: traço igual ao do início ("— TEXTO —"), sem ponto */
 .eyebrow::after{
   content:"";
   display:inline-block;
-  width:34px;height:4px;
-  margin-left:-5px;
-  background:
-    radial-gradient(circle,currentColor 2px,transparent 2.2px) left center/4px 4px no-repeat,
-    linear-gradient(color-mix(in srgb,currentColor 72%,transparent),color-mix(in srgb,currentColor 72%,transparent)) right center/24px 1px no-repeat;
+  width:24px;height:1px;
+  background:currentColor;
+  opacity:.72;
 }
 .section h2,
 .page-hero h1,

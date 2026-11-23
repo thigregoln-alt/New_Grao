@@ -65,15 +65,14 @@ js/
   utils/                  security.js, storage.js, format.js, bus.js, formHelpers.js
   data/                   icons.js, motifs.js, categoryArt.js, brandLogo.js,
                           products.js (catálogo), content.js (textos institucionais)
-  state/                  cart.js, favorites.js, reviews.js, newsletter.js
+  state/                  cart.js, favorites.js, reviews.js, newsletter.js, conta.js, destaques.js
   components/             header.js, footer.js, cartDrawer.js, toast.js, productCard.js, ui.js
-  pages/                  Só as 5 páginas com interatividade própria (ver
+  pages/                  Só as páginas com interatividade própria (ver
                           secção 2a): cart.js, checkout.js, contact.js,
-                          favorites.js, reviews.js
+                          favorites.js, reviews.js, account.js
 tools/
   gerar-paginas.js        Ver secção 2b
 assets/
-  favicon.svg
   fonts/                  DM Sans e Manrope (woff2, latin + latin-ext) — ver README.md lá dentro
   art/                    Ilustrações de produto (<slug>.svg, <slug>-b/-c.svg das
                           miniaturas) — escritas por tools/gerar-paginas.js, não editar à mão
@@ -151,9 +150,24 @@ original (incluindo os `!important` que já lá existiam — não foram
 removidos, porque tentar decidir manualmente "qual é a regra final
 efetiva" propriedade a propriedade revelou-se um exercício arriscado
 sempre que duas classes diferentes, aplicadas ao mesmo elemento, competiam
-pela mesma propriedade em ficheiros diferentes). Fundir `overrides.css`
-para dentro dos 6 ficheiros de base, selector a selector, com toda a
-segurança, fica como trabalho futuro.
+pela mesma propriedade em ficheiros diferentes).
+
+Limpeza de 23/11/2026 (sem mudar nada no que se vê):
+- Tiradas as regras cujas classes já não existem em nenhuma página nem em
+  nenhum JS (restos da Inspiração, do antigo cartão de contacto, dos
+  cartões de categoria antigos, da newsletter em caixa, etc.).
+- Tiradas as declarações que nunca ganham: quando o MESMO seletor, no MESMO
+  `@media`, volta a definir a MESMA propriedade mais abaixo na cascata
+  (quase sempre no `overrides.css`), a declaração de cima foi apagada. Só a
+  de cima, nunca a que vale.
+- Verificado com um navegador automático: estilos calculados de todos os
+  elementos (incluindo `::before`/`::after`) iguais antes e depois, nas 47
+  páginas, a 1440 px e 390 px, com e sem carrinho, e com gaveta do
+  carrinho, menu, pesquisa, hover, foco e formulários com erro.
+
+Juntar o `overrides.css` aos 6 ficheiros de base continua por fazer, de
+propósito: mudar uma regra de ficheiro muda a ordem da cascata, e o ganho
+(arrumação) não compensa o risco de partir algo.
 
 ## 3. O que é real (funciona de verdade, sem backend)
 
@@ -184,7 +198,6 @@ segurança, fica como trabalho futuro.
   vistas e formulário em `js/pages/reviews.js`. Com `js/data/reviewsConfig.js`
   por preencher, o site mostra "As avaliações estão a chegar em breve".
   Nunca há avaliações inventadas. Guia completo: `docs/AVALIACOES.md`.
-  `GDM.content.TESTIMONIALS` continua vazio de propósito.
 - **Contas de cliente (opcionais; desligadas até `js/data/contaConfig.js`
   ter `ativa: true`).**
   - Entrada por e-mail com código de 6 dígitos (sem passwords) e, se

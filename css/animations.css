@@ -30,30 +30,13 @@ section:has([data-reveal="right"]) { overflow-x: clip; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
 
-.parallax-layer { will-change: transform; }
-
 @media (prefers-reduced-motion: no-preference) {
   .hero-float { animation: hero-float 7s ease-in-out infinite; }
   .hero-float--slow { animation-duration: 10s; }
-  .hero-float--rev { animation-direction: alternate-reverse; }
 }
 @keyframes hero-float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-14px) rotate(-2deg); }
-}
-
-.pulse-dot { position: relative; }
-.pulse-dot::before {
-  content: '';
-  position: absolute; inset: -6px;
-  border-radius: 50%;
-  border: 2px solid var(--gold-500);
-  animation: pulse-ring 2.2s ease-out infinite;
-}
-@media (prefers-reduced-motion: reduce) { .pulse-dot::before { animation: none; } }
-@keyframes pulse-ring {
-  0% { transform: scale(0.7); opacity: 0.9; }
-  100% { transform: scale(1.6); opacity: 0; }
 }
 
 /* ---- Transição de página (router) ---- */

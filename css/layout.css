@@ -12,16 +12,10 @@
   padding-inline: clamp(1.25rem, 4vw, 3rem);
 }
 
-.container--narrow { max-width: var(--container-narrow); }
-
 .section {
-  padding-block: var(--space-2xl);
   position: relative;
 }
 .section--tight { padding-block: var(--space-xl); }
-.section--dark { background: var(--surface-dark); color: var(--ink-on-dark); }
-.section--cream { background: var(--cream-100); }
-.section--bordered { border-top: 1px solid var(--border-soft); }
 
 /* ==========================================================================
    Header
@@ -31,10 +25,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 253, 248, 0.92);
-  backdrop-filter: blur(10px) saturate(1.2);
   -webkit-backdrop-filter: blur(10px) saturate(1.2);
-  border-bottom: 1px solid var(--border-soft);
 }
 
 .header-bar {
@@ -59,16 +50,11 @@
   line-height: 1.1;
 }
 .header-brand__wordmark strong {
-  font-family: var(--font-display);
   font-size: var(--fs-md);
-  letter-spacing: 0.02em;
-  color: var(--leather-900);
 }
 .header-brand__wordmark span {
   font-size: var(--fs-2xs);
-  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--gold-700);
 }
 
 .main-nav {
@@ -77,10 +63,6 @@
   margin-inline: auto;
 }
 .main-nav a {
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-700);
   padding: var(--space-2xs) var(--space-sm);
@@ -88,7 +70,6 @@
   position: relative;
   isolation: isolate;
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease-out);
 }
 /* Fundo do hover: mais largo que o próprio link, para o gradiente
    chegar a 100% transparente ANTES do limite real da caixa — assim
@@ -275,7 +256,6 @@
 .search-overlay {
   position: fixed;
   inset: 0;
-  z-index: 250;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -349,26 +329,12 @@
    Footer
    ========================================================================== */
 
-.site-footer { background: var(--surface-dark); color: var(--ink-on-dark-muted); }
-
-.footer-newsletter {
-  border-bottom: 1px solid var(--border-dark);
-  padding-block: var(--space-xl);
-}
-
 /* Rodapé com 4 colunas numa só linha em desktop (Marca / Navegação / Ajuda /
    Fica a Par), a marca mais larga (2fr) e sempre alinhada ao mesmo .container
    que a barra de copyright — ver referência do cliente de 2026-09-07. */
-.footer-main {
-  padding-top: var(--space-2xl);
-  padding-bottom: calc(var(--space-xl) + var(--space-3xs) * 2);
-}
 
 .footer-cols {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: var(--space-xl);
-  align-items: start;
 }
 @media (max-width: 1023px) {
   .footer-cols { grid-template-columns: repeat(3, 1fr); }
@@ -383,46 +349,12 @@
 .footer-brand {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
 }
-.footer-logo-card {
-  width: 100%;
-  max-width: 230px;
-  aspect-ratio: 230 / 175;
-  background: var(--cream-050);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-sm);
-}
-.footer-brand__tagline {
-  color: var(--gold-300);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  margin-top: var(--space-md);
-}
-.footer-brand__desc {
-  color: var(--ink-on-dark-muted);
-  font-size: var(--fs-sm);
-  max-width: 34ch;
-  margin-top: var(--space-sm);
-}
-.footer-brand .social-row { margin-top: calc(var(--space-md) + var(--space-3xs) * 2); justify-content: center; }
 
-.footer-col ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+.footer-col ul { display: flex; flex-direction: column; align-items: flex-start; }
 .footer-col h4 {
-  color: var(--gold-300);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: var(--space-sm);
 }
-.footer-col a, .footer-col p { font-size: var(--fs-sm); color: var(--ink-on-dark-muted); }
 .footer-col a:hover, .footer-col a:focus-visible { color: var(--gold-300); }
 .footer-col--newsletter p { margin-bottom: var(--space-md); max-width: 30ch; }
 @media (max-width: 767px) {
@@ -510,18 +442,12 @@
   .footer-bottom__right { align-items: flex-start; text-align: left; }
 }
 
-.social-row { display: flex; gap: var(--space-sm); }
+.social-row { display: flex; }
 .social-row a {
-  width: 56px; height: 56px;
-  border-radius: var(--radius-pill);
   color: var(--cream-050);
   display: inline-flex; align-items: center; justify-content: center;
-  transition: transform var(--dur-fast) var(--ease-out);
 }
 .social-row a:hover, .social-row a:focus-visible { transform: translateY(-2px); }
-.social-row__link--whatsapp { background: #2f7a4f; }
-.social-row__link--instagram { background: linear-gradient(135deg, #f9ce34, #ee2a7b 45%, #6228d7); }
-.social-row__link--mail { background: linear-gradient(135deg, var(--gold-500), var(--gold-700)); color: var(--leather-950); }
 .social-row svg { width: 22px; height: 22px; }
 
 /* ==========================================================================

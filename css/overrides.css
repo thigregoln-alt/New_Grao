@@ -2385,3 +2385,34 @@ body[data-gdm-page="/sobre"] .quote-block{border-left:0!important;border-radius:
 .footer-main{position:relative}
 .footer-top-btn{position:absolute;right:calc((100% - 100vw) / 2 + 28px);bottom:54px}
 @media (max-width:767px){.footer-top-btn{right:20px;bottom:36px}}
+/* Arte ao lado do texto (Início "Porque se chama…" e Sobre Nós) — sem caixa:
+   a arte encosta à borda do ecrã, fica visível desse lado e desvanece aos poucos
+   para o fundo da página do lado do texto (e em cima/em baixo).
+   --sangra = distância da borda do ecrã até ao conteúdo do .container
+   Os gradientes têm vários passos para o desvanecer ser suave e não se notar a borda. */
+.arte-fade{
+  --sangra:calc((100vw - min(100vw, var(--container-max))) / 2 + clamp(1.25rem, 4vw, 3rem));
+  --fade-lado:#000 0%, #000 48%, rgba(0,0,0,.9) 58%, rgba(0,0,0,.7) 68%, rgba(0,0,0,.45) 78%, rgba(0,0,0,.22) 87%, rgba(0,0,0,.07) 94%, transparent 100%;
+  --fade-cima-baixo:transparent 0%, rgba(0,0,0,.08) 5%, rgba(0,0,0,.3) 12%, rgba(0,0,0,.65) 20%, rgba(0,0,0,.9) 27%, #000 33%, #000 67%, rgba(0,0,0,.9) 73%, rgba(0,0,0,.65) 80%, rgba(0,0,0,.3) 88%, rgba(0,0,0,.08) 95%, transparent 100%;
+  margin-left:calc(-1 * var(--sangra));
+  aspect-ratio:auto!important;height:clamp(460px, 46vw, 760px);
+  padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+  /* fundo claro (como no Início) para desvanecer para o creme da página sem ficar acinzentado */
+  background:linear-gradient(135deg, var(--cream-200), #e6c583)!important;
+  -webkit-mask-image:linear-gradient(to right, var(--fade-lado)), linear-gradient(to bottom, var(--fade-cima-baixo));
+  mask-image:linear-gradient(to right, var(--fade-lado)), linear-gradient(to bottom, var(--fade-cima-baixo));
+  -webkit-mask-composite:source-in;mask-composite:intersect;
+}
+.arte-fade--direita{
+  margin-left:0;margin-right:calc(-1 * var(--sangra));
+  -webkit-mask-image:linear-gradient(to left, var(--fade-lado)), linear-gradient(to bottom, var(--fade-cima-baixo));
+  mask-image:linear-gradient(to left, var(--fade-lado)), linear-gradient(to bottom, var(--fade-cima-baixo));
+}
+/* Telemóvel: a arte fica por cima do texto, ocupa a largura toda e desvanece em cima e em baixo */
+@media (max-width:699px){
+  .arte-fade,.arte-fade--direita{
+    margin-inline:calc(-1 * clamp(1.25rem, 4vw, 3rem));height:340px;margin-bottom:8px;
+    -webkit-mask-image:linear-gradient(to bottom, var(--fade-cima-baixo));
+    mask-image:linear-gradient(to bottom, var(--fade-cima-baixo));
+  }
+}

@@ -9,15 +9,13 @@
 
   /* Menu único e global — usado em todas as páginas (cabeçalho e drawer
      mobile) via a mesma lista, para nunca haver divergência entre páginas.
-     "Inspiração" (histórias/versículos por categoria) e "Projetos" (o que
-     o ateliê está a construir para além da loja) são páginas distintas —
-     não fundir uma na outra. "Avaliações" não está aqui: continua
+     "Projetos" é o que o ateliê está a construir para além da loja.
+     "Avaliações" não está aqui: continua
      acessível pelo rodapé e pelo separador de avaliações na página de
      produto (ver js/pages/reviews.js e a rota /avaliacoes em js/main.js). */
   const NAV_LINKS = [
     { path: '/', label: 'Início' },
     { path: '/loja', label: 'Loja' },
-    { path: '/inspiracao', label: 'Inspiração' },
     { path: '/projetos', label: 'Projetos' },
     { path: '/sobre', label: 'Sobre Nós' },
     { path: '/contacto', label: 'Contacto' },

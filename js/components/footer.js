@@ -147,7 +147,6 @@
       brandBlock,
       col('Navegação', [
         { label: 'Loja', hash: '/loja' },
-        { label: 'Inspiração', hash: '/inspiracao' },
         { label: 'Projetos', hash: '/projetos' },
         { label: 'Sobre Nós', hash: '/sobre' },
         { label: 'Contacto', hash: '/contacto' },

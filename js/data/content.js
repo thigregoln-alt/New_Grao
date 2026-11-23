@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Conteúdo institucional — depoimentos, FAQ, envios, devoluções, inspiração.
+   Conteúdo institucional — depoimentos, FAQ, envios, devoluções.
    Texto estático, sem dados de utilizador. (As avaliações vivem no
    Supabase — ver js/state/reviews.js.)
    ========================================================================== */
@@ -111,17 +111,7 @@
     wayOfWorking: 'Não temos stock de prateleira nem produção em massa. Cada encomenda é preparada depois de confirmada, uma de cada vez, muitas vezes numa única sessão de trabalho — da escolha dos materiais à gravação final. É mais lento do que uma loja tradicional, mas é assim que garantimos que cada peça tem o cuidado que merece.',
   };
 
-  const INSPIRATION = [
-    { title: 'Um novo começo', verse: '"Eis que faço uma coisa nova; agora está saindo à luz."', ref: 'Isaías 43:19', text: 'Devolver vida a uma Bíblia de família é também celebrar um recomeço — sem perder a história que ela já carrega.', category: 'reforma-de-biblia' },
-    { title: 'Vestir a fé', verse: '"Revesti-vos de todo o poder de Deus."', ref: 'Efésios 6:11', text: 'Uma t-shirt é uma forma simples de levar consigo, no dia a dia, aquilo em que acredita.', category: 'tshirts-temas-cristaos' },
-    { title: 'A casa que ora unida', verse: '"Escolhei hoje a quem sirvais... eu e a minha casa serviremos ao Senhor."', ref: 'Josué 24:15', text: 'Pequenos lembretes na parede transformam uma casa num espaço de fé partilhada.', category: 'decoracao-crista' },
-    { title: 'Ensinar desde pequenos', verse: '"Instrui a criança no caminho em que deve andar."', ref: 'Provérbios 22:6', text: 'Pintar histórias da Bíblia é uma forma lúdica de plantar as primeiras sementes de fé.', category: 'kit-pintura-infantil' },
-    { title: 'Gratidão em cada página', verse: '"Em tudo dai graças."', ref: '1 Tessalonicenses 5:18', text: 'Um caderno de gratidão transforma um hábito simples numa prática diária de fé.', category: 'cadernos-a5' },
-    { title: 'Levar a Palavra consigo', verse: '"A tua palavra é lâmpada para os meus pés."', ref: 'Salmos 119:105', text: 'Um porta-chaves gravado é um lembrete discreto, presente em cada porta que se abre.', category: 'porta-chaves' },
-  ];
-
   /* PROJETOS — o que o ateliê está a construir para além da loja em si.
-     Página distinta de "Inspiração" (versículos/histórias por categoria).
      Fica isolado aqui para o cliente conseguir atualizar facilmente mais
      tarde (ex. quando o Ministério Bíblico tiver mais detalhes), sem
      precisar de mexer em js/pages/projects.js. */
@@ -190,5 +180,5 @@
     ],
   };
 
-  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, INSPIRATION, PROJECTS, NEWSLETTER, PRIVACY_POLICY, PRIVACY_CONTAS, TERMS };
+  GDM.content = { BRAND, TESTIMONIALS, BENEFITS, HOW_IT_WORKS, FAQ_GROUPS, SHIPPING_INFO, RETURNS_INFO, STORY, PROJECTS, NEWSLETTER, PRIVACY_POLICY, PRIVACY_CONTAS, TERMS };
 })(window.GDM = window.GDM || {});

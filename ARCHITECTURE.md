@@ -47,7 +47,7 @@ gestão de encomendas reais.
 ```
 46 páginas HTML estáticas e pré-renderizadas na raiz do repo:
   index.html, loja.html, carrinho.html, checkout.html, favoritos.html,
-  sobre.html, inspiracao.html, projetos.html, faq.html, envios.html,
+  sobre.html, projetos.html, faq.html, envios.html,
   trocas.html, contacto.html, avaliacoes.html, privacidade.html, termos.html
   e 31 produto-<slug>.html (uma por produto do catálogo)
 css/

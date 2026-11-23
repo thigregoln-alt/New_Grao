@@ -632,7 +632,7 @@ function buildSitemap(lastmodFor) {
   PRODUCTS.forEach((p) => {
     lines.push(url('produto-' + p.slug + '.html', 'monthly', '0.6'));
   });
-  ['inspiracao.html:monthly:0.5', 'projetos.html:monthly:0.5', 'sobre.html:monthly:0.6', 'contacto.html:monthly:0.6',
+  ['projetos.html:monthly:0.5', 'sobre.html:monthly:0.6', 'contacto.html:monthly:0.6',
     'faq.html:monthly:0.5', 'envios.html:monthly:0.5', 'trocas.html:monthly:0.5', 'avaliacoes.html:weekly:0.5',
     'privacidade.html:yearly:0.3', 'termos.html:yearly:0.3']
     .forEach((entry) => {
@@ -669,7 +669,7 @@ const icon = GDM.icons.icon;
    js/components/header.js e footer.js — esses ficheiros só ligam os
    eventos (hydrate) quando a marcação já existe. */
 const NAV_LINKS = [
-  ['index.html', 'Início'], ['loja.html', 'Loja'], ['inspiracao.html', 'Inspiração'],
+  ['index.html', 'Início'], ['loja.html', 'Loja'],
   ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto'],
 ];
 
@@ -744,7 +744,7 @@ function footerHtml(currentFile) {
           '<a class="social-row__link social-row__link--instagram" href="' + insta + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon('instagram') + '</a>' +
           '<a class="social-row__link social-row__link--mail" href="' + mail + '" aria-label="E-mail">' + icon('mail') + '</a>' +
         '</div></div>' +
-      col('Navegação', [['loja.html', 'Loja'], ['inspiracao.html', 'Inspiração'], ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto']]) +
+      col('Navegação', [['loja.html', 'Loja'], ['projetos.html', 'Projetos'], ['sobre.html', 'Sobre Nós'], ['contacto.html', 'Contacto']]) +
       col('Ajuda', [['envios.html', 'Envios & Prazos'], ['trocas.html', 'Trocas & Devoluções'], ['faq.html', 'Perguntas Frequentes']]) +
       '<div class="footer-col footer-col--contact footer-col--newsletter-bottom"><h4>Contacto</h4><ul>' +
         '<li><a href="' + mail + '">' + escText(BRAND.email) + '</a></li>' +
@@ -1157,9 +1157,6 @@ function main() {
       if (file === 'index.html') after = regenerateHomeJsonLd(regenerateHeroLogo(regenerateFeatured(after)));
       if (file === 'termos.html') after = regenerateTerms(after);
       if (file === 'contacto.html') after = replaceMain(after, contactMain());
-      // grelha da Inspiração: colunas de 320px não cabiam num ecrã de 320px
-      // (scroll horizontal de 20px) — passam a nunca ser mais largas que o ecrã
-      if (file === 'inspiracao.html') after = after.split('grid-template-columns:repeat(auto-fill,minmax(320px,1fr))').join('grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))');
       if (file === 'privacidade.html') after = regeneratePrivacy(after);
       if (file === 'conta.html') after = replaceMain(after, contaMain());
       writeIfChanged(filePath, before, regenerateChrome(after, file));

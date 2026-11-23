@@ -130,6 +130,7 @@ h1{line-height:.98} h2{line-height:1.02} h3{line-height:1.12}
 .cta-band{background:radial-gradient(circle at 75% 15%,#68432a 0%,var(--leather-900) 48%,var(--leather-950) 100%);border:1px solid rgba(230,197,131,.2);border-radius:28px;color:var(--cream-050);box-shadow:var(--shadow-card);overflow:hidden;position:relative}
 .cta-band::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-100px;top:-110px;background:rgba(230,197,131,.08);pointer-events:none}
 .cta-band h2{font-family:var(--font-display);letter-spacing:-.06em;color:var(--cream-050)}
+.cta-band h2{margin-inline:auto} /* o h2 tem max-width: sem isto o bloco fica encostado à esquerda */
 .cta-band__verse{font-family:Georgia,serif;color:var(--gold-200)}
 
 /* Benefícios / steps */
@@ -1068,13 +1069,15 @@ hr{border:0;border-top:1px solid var(--line-warm);margin-block:28px}
   background:currentColor;
   opacity:.72;
 }
+/* fim do eyebrow: ponto + traço ("— TEXTO • —"), o traço igual ao do início */
 .eyebrow::after{
   content:"";
   display:inline-block;
-  width:4px;height:4px;
+  width:34px;height:4px;
   margin-left:-5px;
-  background:currentColor;
-  border-radius:50%;
+  background:
+    radial-gradient(circle,currentColor 2px,transparent 2.2px) left center/4px 4px no-repeat,
+    linear-gradient(color-mix(in srgb,currentColor 72%,transparent),color-mix(in srgb,currentColor 72%,transparent)) right center/24px 1px no-repeat;
 }
 .section h2,
 .page-hero h1,
@@ -1161,7 +1164,7 @@ blockquote{border-left:1px solid var(--gdm-gold)!important}
 /* O versículo do hero da Início é centrado: sem a linha vertical à esquerda */
 .hero__verse{border-left:0!important;padding-left:0}
 /* Eyebrow do hero: traço nos dois lados ("— ARTESANATO · FÉ —") em vez do ponto final */
-.hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72}
+.hero__eyebrow::after{width:24px;height:1px;margin-left:0;border-radius:0;opacity:.72;background:currentColor}
 /* Ficha de produto: preço e quantidade na mesma linha. Grelha de 2 linhas:
    em cima o preço e o box "- 1 +", centrados um com o outro; em baixo
    "Em stock" (por baixo do preço) e "Quantidade" (por baixo do box, ao

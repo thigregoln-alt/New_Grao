@@ -228,18 +228,6 @@
 .order-confirm { text-align: center; padding-block: var(--space-2xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
 
 /* ---- Página Sobre ---- */
-.story-section { padding-block: var(--space-2xl); }
-.story-section + .story-section { padding-top: 0; }
-.quote-block {
-  font-size: clamp(1.4rem, 3vw, var(--fs-2xl));
-  font-style: italic;
-  text-align: center;
-  max-width: 46ch;
-  margin-inline: auto;
-  line-height: 1.35;
-}
-.quote-block cite { display: block; font-size: var(--fs-sm); font-style: normal; color: var(--gold-800); font-weight: 700; margin-top: var(--space-sm); }
-
 /* ---- FAQ / conteúdo institucional ---- */
 .content-layout { display: grid; gap: var(--space-xl); grid-template-columns: 1fr; }
 @media (min-width: 860px) { .content-layout { grid-template-columns: 240px 1fr; } }
